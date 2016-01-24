@@ -295,7 +295,7 @@ function addGameToList(gameId, data) {
     'use strict';
     try {
         beforeAddingGameToPlayerList(gameId, data);
-        updateSharedGroupEntry(getGamesListId(handlers.currentPlayerId), gameId, data);
+        updateSharedGroupEntry(getGamesListId(), gameId, data);
     } catch (e) { logException(getISOTimestamp(), 'deleteGameData:' + gameId + ',' + JSON.stringify(data), String(e.stack)); throw e; }
 }
 
