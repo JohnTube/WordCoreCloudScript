@@ -84,6 +84,7 @@ function onEndOfTurn(args, data) {
     'use strict';
     var eventData = args.Data, // TODO: test args and eventData
 	    gameData = addMoveToGame(data.gameData, args.ActorNr, eventData);
+    gameData.t += args.ActorNr;
 	gameData.s = GameStates.Playing + args.ActorNr;
 	// TODO : send push?
 }
@@ -94,6 +95,7 @@ function onEndOfRound(args, data) {
 	    gameData = addMoveToGame(data.gameData, args.ActorNr, eventData.m);
 	gameData.r.push(eventData.r);
 	gameData.r[eventData.m.r].m = [{}, {}];
+    gameData.t += args.ActorNr;
 	gameData.s = GameStates.Playing;
 	// TODO : send push
 
@@ -103,6 +105,7 @@ function onEndOfGame(args, data) {
     'use strict';
     var eventData = args.Data, // TODO: test args and eventData
 	    gameData = addMoveToGame(data.gameData, args.ActorNr, eventData);
+    gameData.t += args.ActorNr;
 	if (gameData.a[0].s === gameData.a[1].s) {
 		gameData.s = GameStates.EndedDraw;
 	} else if (gameData.a[0].s > gameData.a[1].s) {
