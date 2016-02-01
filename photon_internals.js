@@ -637,3 +637,19 @@ function checkWebRpcArgs(args, timestamp) {
         throw new PhotonException(1, msg + 'UserId', timestamp, args);
     }
 }
+
+function sendPushNotification(targetId, msg, data, title, icon) {
+    'use strict';
+    try {
+        server.SendPushNotification({
+            Recipient: targetId,
+            Title: title,
+            Icon: icon,
+            Message: msg,
+            CustomData: data
+        });
+    } catch (e) {
+        logException(getISOTimestamp(), e, 'sendPushNotification');
+        throw e;
+    }
+}
