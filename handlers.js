@@ -57,7 +57,7 @@ function getDiffData(gameData, clientGame) {
 
 handlers.pollData = function (args) {
     'use strict';
-    var serverGamesData = handlers.pollGamesData(),
+    var serverGamesData = handlers.pollGamesData().Data,
         clientGamesList = args.g,
         gameKey = '',
         gameData = {},
@@ -76,5 +76,5 @@ handlers.pollData = function (args) {
             }
         }
     }
-    return data;
+    return {ResultCode: 0, Data: data};
 };
