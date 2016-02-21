@@ -46,7 +46,7 @@ handlers.pollGamesData = function () {
             }
         }
     }
-    return data;
+    return {ResultCode: 0, Data: data};
 };
 
 function getDiffData(gameData, clientGame) {
