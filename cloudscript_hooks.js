@@ -57,7 +57,7 @@ function onInitGame(args, data) {
     'use strict';
     var eventData = args.Data,
 		gameData = {a: [{id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w}],
-				s: GameStates.UnmatchedPlaying, t: -1, rg: args.Region, l: eventData.l, gt: eventData.gt, c: eventData.ts};
+				s: GameStates.UnmatchedPlaying, t: -1, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
     gameData.r = [{gs: eventData.r.gs, ts: eventData.r.ts, r: eventData.r.r, m: [{}, {}]}];
     data.gameData = gameData;
 }

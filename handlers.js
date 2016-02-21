@@ -27,6 +27,7 @@ handlers.pollGamesData = function () {
             if (gameList[gameKey].Creation.UserId === currentPlayerId) {
                 if (!undefinedOrNull(gameList[gameKey].Actors['1']) && gameList[gameKey].Actors['1'].UserId === currentPlayerId) {
                     data[gameKey] = gameList[gameKey].gameData;
+                    data[gameKey].pn = 1;
                 }
             } else {
                 if (undefinedOrNull(listToLoad[gameList[gameKey].Creation.UserId])) {
@@ -42,6 +43,7 @@ handlers.pollGamesData = function () {
             for (gameKey in gameList) {
                 if (gameList.hasOwnProperty(gameKey)) {
                     data[gameKey] = gameList[gameKey].gameData;
+                    data[gameKey].pn = 2;
                 }
             }
         }
