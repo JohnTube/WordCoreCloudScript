@@ -57,7 +57,7 @@ function onInitGame(args, data) {
     'use strict';
     var eventData = args.Data,
 		gameData = {a: [{id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w}],
-				s: GameStates.UnmatchedPlaying, t: -1, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
+				s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
     gameData.r = [{gs: eventData.r.gs, ts: eventData.r.ts, r: eventData.r.r, m: [{}, {}]}];
     data.gameData = gameData;
 }
@@ -66,7 +66,7 @@ function onJoinGame(args, data) {
     'use strict';
     var eventData = args.Data,
 	    gameData = data.gameData;
-	if (gameData.s === GameStates.UnmatchedWaiting) { gameData.s = GameStates.P1Waiting; gameData.t = 1; } else if (gameData.s === GameStates.UnmatchedPlaying) { gameData.s = GameStates.Playing; gameData.t = 0; } else {return; }
+	gameData.s += 2;
 	gameData.a.push({id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w});
     data.gameData = gameData;
 }
