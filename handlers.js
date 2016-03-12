@@ -6,6 +6,28 @@
 /*global currentPlayerId*/
 /*global undefinedOrNull*/
 /*global getSharedGroupData*/
+/*global GameStates*/
+
+var MATCHMAKING_TIME_OUT = 60 * 60 * 1000, // 1 hour in milliseconds, "ClosedRoomTTL" with Photon AsyncRandomLobby !
+	ROUND_TIME_OUT = 2 /** 24*/ * MATCHMAKING_TIME_OUT; // DEV : 2 hours ==> PROD : 2 days in milliseconds
+
+// only called when turnnumber > -1 && turnnumber < MAX_TURNS_PER_GAME
+function CheckRoundTimeOut(timestamp){
+	'use strict';
+	if (Date.now() - new Date(timestamp).getTime() > ROUND_TIME_OUT){
+		return true;
+	}
+	return false;
+}
+
+// only called when turnnumber == -1 or == -2 && calling actorNr = 1
+function CheckMatchmakingTimeOut(timestamp){
+	'use strict';
+	if (Date.now() - new Date(timestamp).getTime() > MATCHMAKING_TIME_OUT){
+		return true;
+	}
+	return false;
+}
 
 handlers.onLogin = function (args) {
     'use strict';
@@ -17,13 +39,30 @@ handlers.onLogin = function (args) {
 handlers.pollGamesData = function () {
     'use strict';
     var gameList = {},
+		listId = getGamesListId(),
         listToLoad = {},
         gameKey = '',
         userKey = '',
-        data = {};
-    gameList = getSharedGroupData(getGamesListId());
+        data = {},
+		updateFlag = false;
+    gameList = getSharedGroupData(listId);
     for (gameKey in gameList) {
         if (gameList.hasOwnProperty(gameKey)) {
+			updateFlag = false;
+			if (gameList[gameKey].gameData.s === GameStates.UnmatchedPlaying || gameList[gameKey].gameData.s === GameStates.UnmatchedWaiting) {
+				if (CheckMatchmakingTimeOut(gameList[gameKey].gameData.ts)) {
+					gameList[gameKey].gameData.s = GameStates.MatchmakingTimedOut;
+					updateFlag = true;
+				}
+			} else if (gameList[gameKey].gameData.s > GameStates.UnmatchedWaiting && gameList[gameKey].gameData.s < GameStates.P1Resigned) {
+				if (CheckRoundTimeOut(gameList[gameKey].gameData.r[gameList[gameKey].gameData.t / 3].ts)) {
+					gameList[gameKey].gameData.s = GameStates.TimedOutDraw;
+					if (gameList[gameKey].gameData.t % 3 !== 0) {
+						gameList[gameKey].gameData.s += (3- gameList[gameKey].gameData.t % 3);
+					}
+					updateFlag = true;
+				}
+			}
             if (gameList[gameKey].Creation.UserId === currentPlayerId) {
                 if (!undefinedOrNull(gameList[gameKey].Actors['1']) && gameList[gameKey].Actors['1'].UserId === currentPlayerId) {
                     data[gameKey] = gameList[gameKey].gameData;
@@ -35,17 +74,45 @@ handlers.pollGamesData = function () {
                 }
                 listToLoad[gameList[gameKey].Creation.UserId].push(gameKey);
             }
+			if (!updateFlag) {
+				delete gameList[gameKey];
+			} 
         }
     }
+	if (!isEmpty(gameList)){
+		updateSharedGroupData(listId, gameList);
+	}
     for (userKey in listToLoad) {
         if (listToLoad.hasOwnProperty(userKey)) {
-            gameList = getSharedGroupData(getGamesListId(userKey), listToLoad[userKey]);
+			listId = getGamesListId(userKey);
+            gameList = getSharedGroupData(listId, listToLoad[userKey]);
             for (gameKey in gameList) {
                 if (gameList.hasOwnProperty(gameKey)) {
+					updateFlag = false;
+					if (gameList[gameKey].gameData.s === GameStates.UnmatchedPlaying || gameList[gameKey].gameData.s === GameStates.UnmatchedWaiting) {
+						if (CheckMatchmakingTimeOut(gameList[gameKey].gameData.ts)) {
+							gameList[gameKey].gameData.s = GameStates.MatchmakingTimedOut;
+							updateFlag = true;
+						}
+					} else if (gameList[gameKey].gameData.s > GameStates.UnmatchedWaiting && gameList[gameKey].gameData.s < GameStates.P1Resigned) {
+						if (CheckRoundTimeOut(gameList[gameKey].gameData.r[gameList[gameKey].gameData.t / 3].ts)) {
+							gameList[gameKey].gameData.s = GameStates.TimedOutDraw;
+							if (gameList[gameKey].gameData.t % 3 !== 0) {
+								gameList[gameKey].gameData.s += (3- gameList[gameKey].gameData.t % 3);
+							}
+							updateFlag = true;
+						}
+					}
                     data[gameKey] = gameList[gameKey].gameData;
                     data[gameKey].pn = 2;
+					if (!updateFlag) {
+						delete gameList[gameKey];
+					} 
                 }
             }
+			if (!isEmpty(gameList)){
+				updateSharedGroupData(listId, gameList);
+			}
         }
     }
     return {ResultCode: 0, Data: data};
