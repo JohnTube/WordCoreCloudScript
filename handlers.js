@@ -85,14 +85,13 @@ handlers.pollGamesData = function () {
 					}
 					listToLoad[gameList[gameKey].Creation.UserId].push(gameKey);
 				}
+				if (!updateFlag) {
+					delete gameList[gameKey];
+				} else if (gameList[gameKey].gameData.s === GameStates.MatchmakingTimedOut) {
+					gameList[gameKey] = null;
+				}
 			} else {
-				updateFlag = true;
 				gameList[gameKey] = null; // deleting values that do not contain 'gameData' key, TODO: report and investigate
-			}
-			if (!updateFlag) {
-				delete gameList[gameKey];
-			} else if (gameList[gameKey].gameData.s === GameStates.MatchmakingTimedOut) {
-				gameList[gameKey] = null;
 			}
         } 
     }
