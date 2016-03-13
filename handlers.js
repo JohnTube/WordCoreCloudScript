@@ -85,8 +85,10 @@ handlers.pollGamesData = function () {
 			}
 			if (!updateFlag) {
 				delete gameList[gameKey];
-			} 
-        }
+			} else if (gameList[gameKey].gameData.s === GameStates.MatchmakingTimedOut) {
+				gameList[gameKey] = null;
+			}
+        } 
     }
 	if (!isEmpty(gameList)){
 		updateSharedGroupData(listId, gameList);
@@ -119,12 +121,14 @@ handlers.pollGamesData = function () {
 					}
 					if (!updateFlag) {
 						delete gameList[gameKey];
-					} 
+					} else if (gameList[gameKey].gameData.s === GameStates.MatchmakingTimedOut) {
+						gameList[gameKey] = null;
+					}
                 }
             }
 			if (!isEmpty(gameList)){
 				updateSharedGroupData(listId, gameList);
-			}
+			} 
         }
     }
     return {ResultCode: 0, Data: data};
@@ -148,7 +152,7 @@ handlers.pollData = function (args) {
         if (serverGamesData.hasOwnProperty(gameKey)) {
             gameData = serverGamesData[gameKey];
             if (undefinedOrNull(clientGamesList) || !clientGamesList.hasOwnProperty(gameKey)) {
-                data.n[gameKey] = gameData;
+                if (gameData.s < GameStates.P1Resigned && gameData.s > GameStates.MatchmakingTimedOut) { data.n[gameKey] = gameData; }
             } else {
 				gameState = clientGamesList[gameKey];
                 if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
