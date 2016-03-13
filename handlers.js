@@ -37,9 +37,9 @@ function CheckMatchmakingTimeOut(timestamp){
 
 handlers.onLogin = function (args) {
     'use strict';
-    if (args.c) { // newly created
-		createSharedGroup(getGamesListId());
-	}
+    //if (args.c) { // newly created
+	createSharedGroup(getGamesListId());
+	//}
 };
 
 handlers.pollGamesData = function () {
