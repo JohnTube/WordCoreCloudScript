@@ -56,7 +56,8 @@ handlers.pollGamesData = function () {
 						updateFlag = true;
 					}
 				} else if (gameList[gameKey].gameData.s > GameStates.UnmatchedWaiting && gameList[gameKey].gameData.s < GameStates.P1Resigned) {
-					if (CheckRoundTimeOut(gameList[gameKey].gameData.r[gameList[gameKey].gameData.t / 3].ts)) {
+					//gameList[gameKey].gameData.t / 3
+					if (gameList[gameKey].gameData.r.length > 0 && CheckRoundTimeOut(gameList[gameKey].gameData.r[gameList[gameKey].gameData.r.length - 1].ts)) {
 						gameList[gameKey].gameData.s = GameStates.TimedOutDraw;
 						if (gameList[gameKey].gameData.t % 3 !== 0) {
 							gameList[gameKey].gameData.s += (3- gameList[gameKey].gameData.t % 3);
@@ -98,7 +99,8 @@ handlers.pollGamesData = function () {
 								updateFlag = true;
 							}
 						} else if (gameList[gameKey].gameData.s > GameStates.UnmatchedWaiting && gameList[gameKey].gameData.s < GameStates.P1Resigned) {
-							if (CheckRoundTimeOut(gameList[gameKey].gameData.r[gameList[gameKey].gameData.t / 3].ts)) {
+							//gameList[gameKey].gameData.t / 3
+							if (gameList[gameKey].gameData.r.length > 0 && CheckRoundTimeOut(gameList[gameKey].gameData.r[gameList[gameKey].gameData.r.length].ts)) {
 								gameList[gameKey].gameData.s = GameStates.TimedOutDraw;
 								if (gameList[gameKey].gameData.t % 3 !== 0) {
 									gameList[gameKey].gameData.s += (3- gameList[gameKey].gameData.t % 3);
