@@ -126,7 +126,7 @@ handlers.pollGamesData = function () {
 
 function getDiffData(gameData, clientGame) {
     'use strict';
-    var diff = {};
+    var diff = gameData; // temporary
     return diff;
 }
 
@@ -141,13 +141,13 @@ handlers.pollData = function (args) {
     for (gameKey in serverGamesData) {
         if (serverGamesData.hasOwnProperty(gameKey)) {
             gameData = serverGamesData[gameKey];
-            if (clientGamesList.hasOwnProperty(gameKey)) {
-                gameState = clientGamesList[gameKey];
+            if (undefinedOrNull(clientGamesList) || !clientGamesList.hasOwnProperty(gameKey)) {
+                data.n[gameKey] = gameData;
+            } else {
+				gameState = clientGamesList[gameKey];
                 if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
                     data.u[gameKey] = getDiffData(gameData, gameState);
                 }
-            } else {
-                data.n[gameKey] = gameData;
             }
         }
     }
