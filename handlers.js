@@ -14,6 +14,9 @@ var MATCHMAKING_TIME_OUT = 60 * 60 * 1000, // 1 hour in milliseconds, "ClosedRoo
 // only called when turnnumber > -1 && turnnumber < MAX_TURNS_PER_GAME
 function CheckRoundTimeOut(timestamp){
 	'use strict';
+	if (!timestamp.includes('.')) { // fixing timestamp
+		timestamp = timestamp.substr(0, timestamp.lastIndexOf(':')) + '.' + timestamp.substr(timestamp.lastIndexOf(':') + 1);
+	}
 	if (Date.now() - new Date(timestamp).getTime() > ROUND_TIME_OUT){
 		return true;
 	}
@@ -23,6 +26,9 @@ function CheckRoundTimeOut(timestamp){
 // only called when turnnumber == -1 or == -2 && calling actorNr = 1
 function CheckMatchmakingTimeOut(timestamp){
 	'use strict';
+	if (!timestamp.includes('.')) { // fixing timestamp
+		timestamp = timestamp.substr(0, timestamp.lastIndexOf(':')) + '.' + timestamp.substr(timestamp.lastIndexOf(':') + 1);
+	}
 	if (Date.now() - new Date(timestamp).getTime() > MATCHMAKING_TIME_OUT){
 		return true;
 	}
