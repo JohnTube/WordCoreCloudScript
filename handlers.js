@@ -86,6 +86,7 @@ handlers.pollGamesData = function () {
 					listToLoad[gameList[gameKey].Creation.UserId].push(gameKey);
 				}
 			} else {
+				updateFlag = true;
 				gameList[gameKey] = null; // deleting values that do not contain 'gameData' key, TODO: report and investigate
 			}
 			if (!updateFlag) {
