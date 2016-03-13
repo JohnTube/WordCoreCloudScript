@@ -57,7 +57,8 @@ handlers.pollGamesData = function () {
 			updateFlag = false;
 			if (!undefinedOrNull(gameList[gameKey].gameData)) {
 				if (gameList[gameKey].gameData.s === GameStates.UnmatchedPlaying || gameList[gameKey].gameData.s === GameStates.UnmatchedWaiting) {
-					if (CheckMatchmakingTimeOut(gameList[gameKey].gameData.ts)) {
+					if (CheckMatchmakingTimeOut(gameList[gameKey].gameData.ts) 
+						|| CheckMatchmakingTimeOut(gameList[gameKey].gameData.c)) { // temporary to delete old games (creation timestamp used to have 'c' key)
 						gameList[gameKey].gameData.s = GameStates.MatchmakingTimedOut;
 						updateFlag = true;
 					}
