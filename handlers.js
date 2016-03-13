@@ -26,11 +26,13 @@ function CheckRoundTimeOut(timestamp){
 // only called when turnnumber == -1 or == -2 && calling actorNr = 1
 function CheckMatchmakingTimeOut(timestamp){
 	'use strict';
-	if (!timestamp.includes('.')) { // fixing timestamp
-		timestamp = timestamp.substr(0, timestamp.lastIndexOf(':')) + '.' + timestamp.substr(timestamp.lastIndexOf(':') + 1);
-	}
-	if (Date.now() - new Date(timestamp).getTime() > MATCHMAKING_TIME_OUT){
-		return true;
+	if (!undefinedOrNull(timestamp)){
+		if (!timestamp.includes('.')) { // fixing timestamp
+			timestamp = timestamp.substr(0, timestamp.lastIndexOf(':')) + '.' + timestamp.substr(timestamp.lastIndexOf(':') + 1);
+		}
+		if (Date.now() - new Date(timestamp).getTime() > MATCHMAKING_TIME_OUT){
+			return true;
+		}
 	}
 	return false;
 }
