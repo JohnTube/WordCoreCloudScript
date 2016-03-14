@@ -581,7 +581,7 @@ handlers.RoomPropertyUpdated = function (args) {
         }
         if (!undefinedOrNull(args.State)) {
             data.State = args.State;
-            updateSharedGroupData(args.GameId, data);
+            //updateSharedGroupData(args.GameId, data);
             updateSharedGroupEntry(getGamesListId(data.Creation.UserId), args.GameId, data);
         } else if (data.Env.WebhooksVersion !== '1.2') {
             throw new PhotonException(1, 'Missing argument State', timestamp, {Webhook: args, CustomState: data});
@@ -607,7 +607,7 @@ handlers.RoomEventRaised = function (args) {
         onEventReceived(args, data);
         if (!undefinedOrNull(args.State)) {
             data.State = args.State;
-            updateSharedGroupData(args.GameId, data);
+            //updateSharedGroupData(args.GameId, data);
             updateSharedGroupEntry(getGamesListId(data.Creation.UserId), args.GameId, data);
         } else if (data.Env.WebhooksVersion !== '1.2') {
             throw new PhotonException(1, 'Missing argument State', timestamp, {Webhook: args, CustomState: data});
