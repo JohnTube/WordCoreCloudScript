@@ -49,90 +49,91 @@ handlers.pollGamesData = function () {
     var gameList = {},
 		listId = getGamesListId(),
         listToLoad = {},
+		listToUpdate = {},
         gameKey = '',
         userKey = '',
-        data = {},
-		updateFlag = false;
+        data = {};
     gameList = getSharedGroupData(listId);
     for (gameKey in gameList) {
         if (gameList.hasOwnProperty(gameKey)) {
-			updateFlag = false;
-			if (!undefinedOrNull(gameList[gameKey].gameData)) {
-				if (gameList[gameKey].gameData.s === GameStates.UnmatchedPlaying || gameList[gameKey].gameData.s === GameStates.UnmatchedWaiting) {
-					if (CheckMatchmakingTimeOut(gameList[gameKey].gameData.ts) 
-						|| CheckMatchmakingTimeOut(gameList[gameKey].gameData.c)) { // temporary to delete old games (creation timestamp used to have 'c' key)
-						gameList[gameKey].gameData.s = GameStates.MatchmakingTimedOut;
-						updateFlag = true;
-					}
-				} else if (gameList[gameKey].gameData.s > GameStates.UnmatchedWaiting && gameList[gameKey].gameData.s < GameStates.P1Resigned) {
-					//gameList[gameKey].gameData.t / 3
-					if (gameList[gameKey].gameData.r.length > 0 && CheckRoundTimeOut(gameList[gameKey].gameData.r[gameList[gameKey].gameData.r.length - 1].ts)) {
-						gameList[gameKey].gameData.s = GameStates.TimedOutDraw;
-						if (gameList[gameKey].gameData.t % 3 !== 0) {
-							gameList[gameKey].gameData.s += (3- gameList[gameKey].gameData.t % 3);
+			if (gameList[gameKey].Creation.UserId === currentPlayerId) {
+				if (!undefinedOrNull(gameList[gameKey].gameData)) {
+					if (gameList[gameKey].gameData.s === GameStates.UnmatchedPlaying || gameList[gameKey].gameData.s === GameStates.UnmatchedWaiting) {
+						if (CheckMatchmakingTimeOut(gameList[gameKey].gameData.ts) 
+							|| CheckMatchmakingTimeOut(gameList[gameKey].gameData.c)) { // temporary to delete old games (creation timestamp used to have 'c' key)
+							gameList[gameKey].gameData.s = GameStates.MatchmakingTimedOut;
+							listToUpdate[gameKey] = null;
 						}
-						updateFlag = true;
+					} else if (gameList[gameKey].gameData.s > GameStates.UnmatchedWaiting && gameList[gameKey].gameData.s < GameStates.P1Resigned) {
+						//gameList[gameKey].gameData.t / 3
+						if (gameList[gameKey].gameData.r.length > 0 && CheckRoundTimeOut(gameList[gameKey].gameData.r[gameList[gameKey].gameData.r.length - 1].ts)) {
+							gameList[gameKey].gameData.s = GameStates.TimedOutDraw;
+							if (gameList[gameKey].gameData.t % 3 !== 0) {
+								gameList[gameKey].gameData.s += (3- gameList[gameKey].gameData.t % 3);
+							}
+							listToUpdate[gameKey] = gameList[gameKey];
+						}
 					}
-				}
-				if (gameList[gameKey].Creation.UserId === currentPlayerId) {
-					if (!undefinedOrNull(gameList[gameKey].Actors['1']) && gameList[gameKey].Actors['1'].UserId === currentPlayerId) {
-						data[gameKey] = gameList[gameKey].gameData;
-						data[gameKey].pn = 1;
-					}
+					if (!undefinedOrNull(gameList[gameKey].gameData.a) && // TODO: handle case when undefinedOrNull
+						!undefinedOrNull(gameList[gameKey].a[0]) && // TODO: handle case when undefinedOrNull
+						gameList[gameKey].gameData.a[0].id === currentPlayerId) {
+							data[gameKey] = gameList[gameKey].gameData;
+							data[gameKey].pn = 1;
+						}
 				} else {
-					if (undefinedOrNull(listToLoad[gameList[gameKey].Creation.UserId])) {
-						listToLoad[gameList[gameKey].Creation.UserId] = [];
-					}
-					listToLoad[gameList[gameKey].Creation.UserId].push(gameKey);
-				}
-				if (!updateFlag) {
-					delete gameList[gameKey];
-				} else if (gameList[gameKey].gameData.s === GameStates.MatchmakingTimedOut) {
-					gameList[gameKey] = null;
+					listToUpdate[gameKey] = null; // deleting values that do not contain 'gameData' key, TODO: report and investigate
 				}
 			} else {
-				gameList[gameKey] = null; // deleting values that do not contain 'gameData' key, TODO: report and investigate
+				if (undefinedOrNull(listToLoad[gameList[gameKey].Creation.UserId])) {
+					listToLoad[gameList[gameKey].Creation.UserId] = [];
+				}
+				listToLoad[gameList[gameKey].Creation.UserId].push(gameKey);
 			}
         } 
     }
-	if (!isEmpty(gameList)){
-		updateSharedGroupData(listId, gameList);
+	if (!isEmpty(listToUpdate)){
+		updateSharedGroupData(listId, listToUpdate);
 	}
     for (userKey in listToLoad) {
         if (listToLoad.hasOwnProperty(userKey)) {
+			listToUpdate = {};
 			listId = getGamesListId(userKey);
             gameList = getSharedGroupData(listId, listToLoad[userKey]);
             for (gameKey in gameList) {
                 if (gameList.hasOwnProperty(gameKey)) {
-					updateFlag = false;
 					if (!undefinedOrNull(gameList[gameKey].gameData)) {
-						if (gameList[gameKey].gameData.s === GameStates.UnmatchedPlaying || gameList[gameKey].gameData.s === GameStates.UnmatchedWaiting) {
-							if (CheckMatchmakingTimeOut(gameList[gameKey].gameData.ts)) {
+					if (gameList[gameKey].gameData.s === GameStates.UnmatchedPlaying 
+						|| gameList[gameKey].gameData.s === GameStates.UnmatchedWaiting) {
+							if (CheckMatchmakingTimeOut(gameList[gameKey].gameData.ts) 
+								|| CheckMatchmakingTimeOut(gameList[gameKey].gameData.c)) { // temporary to delete old games (creation timestamp used to have 'c' key)
 								gameList[gameKey].gameData.s = GameStates.MatchmakingTimedOut;
-								updateFlag = true;
+								listToUpdate[gameKey] = null;
 							}
-						} else if (gameList[gameKey].gameData.s > GameStates.UnmatchedWaiting && gameList[gameKey].gameData.s < GameStates.P1Resigned) {
+						} else if (gameList[gameKey].gameData.s > GameStates.UnmatchedWaiting 
+									&& gameList[gameKey].gameData.s < GameStates.P1Resigned) {
 							//gameList[gameKey].gameData.t / 3
-							if (gameList[gameKey].gameData.r.length > 0 && CheckRoundTimeOut(gameList[gameKey].gameData.r[gameList[gameKey].gameData.r.length].ts)) {
+							if (gameList[gameKey].gameData.r.length > 0 && 
+								CheckRoundTimeOut(gameList[gameKey].gameData.r[gameList[gameKey].gameData.r.length - 1].ts)) {
 								gameList[gameKey].gameData.s = GameStates.TimedOutDraw;
 								if (gameList[gameKey].gameData.t % 3 !== 0) {
 									gameList[gameKey].gameData.s += (3- gameList[gameKey].gameData.t % 3);
 								}
-								updateFlag = true;
+								listToUpdate[gameKey] = gameList[gameKey];
 							}
 						}
-						data[gameKey] = gameList[gameKey].gameData;
-						data[gameKey].pn = 2;
-					}
-					if (!updateFlag) {
-						delete gameList[gameKey];
-					} else if (gameList[gameKey].gameData.s === GameStates.MatchmakingTimedOut) {
-						gameList[gameKey] = null;
+						if (!undefinedOrNull(gameList[gameKey].gameData.a) && // TODO: handle case when undefinedOrNull
+							!undefinedOrNull(gameList[gameKey].a[1]) && // TODO: handle case when undefinedOrNull
+							gameList[gameKey].gameData.a[1].id === currentPlayerId) {
+								data[gameKey] = gameList[gameKey].gameData;
+								data[gameKey].pn = 2;
+							}
+					} else {
+						listToUpdate[gameKey] = null; // deleting values that do not contain 'gameData' key, TODO: report and investigate
 					}
                 }
             }
-			if (!isEmpty(gameList)){
-				updateSharedGroupData(listId, gameList);
+			if (!isEmpty(listToUpdate)){
+				updateSharedGroupData(listId, listToUpdate);
 			} 
         }
     }
