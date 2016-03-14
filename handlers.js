@@ -83,11 +83,14 @@ handlers.pollGamesData = function () {
 				} else {
 					listToUpdate[gameKey] = null; // deleting values that do not contain 'gameData' key, TODO: report and investigate
 				}
-			} else {
+			} else if (!undefinedOrNull(gameList[gameKey].Creation) 
+				&& !undefinedOrNull(gameList[gameKey].Creation.UserId)) {
 				if (undefinedOrNull(listToLoad[gameList[gameKey].Creation.UserId])) {
 					listToLoad[gameList[gameKey].Creation.UserId] = [];
 				}
 				listToLoad[gameList[gameKey].Creation.UserId].push(gameKey);
+			} else {
+				logException(getISOTimestamp(), gameList, 'something is undefinedOrNull');
 			}
         } 
     }
@@ -102,15 +105,15 @@ handlers.pollGamesData = function () {
             for (gameKey in gameList) {
                 if (gameList.hasOwnProperty(gameKey)) {
 					if (!undefinedOrNull(gameList[gameKey].gameData)) {
-					if (gameList[gameKey].gameData.s === GameStates.UnmatchedPlaying 
-						|| gameList[gameKey].gameData.s === GameStates.UnmatchedWaiting) {
-							if (CheckMatchmakingTimeOut(gameList[gameKey].gameData.ts) 
-								|| CheckMatchmakingTimeOut(gameList[gameKey].gameData.c)) { // temporary to delete old games (creation timestamp used to have 'c' key)
-								gameList[gameKey].gameData.s = GameStates.MatchmakingTimedOut;
-								listToUpdate[gameKey] = null;
-							}
+						if (gameList[gameKey].gameData.s === GameStates.UnmatchedPlaying 
+							|| gameList[gameKey].gameData.s === GameStates.UnmatchedWaiting) {
+								if (CheckMatchmakingTimeOut(gameList[gameKey].gameData.ts) 
+									|| CheckMatchmakingTimeOut(gameList[gameKey].gameData.c)) { // temporary to delete old games (creation timestamp used to have 'c' key)
+									gameList[gameKey].gameData.s = GameStates.MatchmakingTimedOut;
+									listToUpdate[gameKey] = null;
+								}
 						} else if (gameList[gameKey].gameData.s > GameStates.UnmatchedWaiting 
-									&& gameList[gameKey].gameData.s < GameStates.P1Resigned) {
+							&& gameList[gameKey].gameData.s < GameStates.P1Resigned) {
 							//gameList[gameKey].gameData.t / 3
 							if (gameList[gameKey].gameData.r.length > 0 && 
 								CheckRoundTimeOut(gameList[gameKey].gameData.r[gameList[gameKey].gameData.r.length - 1].ts)) {
@@ -126,7 +129,7 @@ handlers.pollGamesData = function () {
 							gameList[gameKey].gameData.a[1].id === currentPlayerId) {
 								data[gameKey] = gameList[gameKey].gameData;
 								data[gameKey].pn = 2;
-							}
+						}
 					} else {
 						listToUpdate[gameKey] = null; // deleting values that do not contain 'gameData' key, TODO: report and investigate
 					}
