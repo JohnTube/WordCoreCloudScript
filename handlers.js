@@ -59,15 +59,18 @@ handlers.pollGamesData = function () {
         if (gameList.hasOwnProperty(gameKey)) {
 			if (gameList[gameKey].Creation.UserId === currentPlayerId) {
 				if (!undefinedOrNull(gameList[gameKey].gameData)) {
-					if (gameList[gameKey].gameData.s === GameStates.UnmatchedPlaying || gameList[gameKey].gameData.s === GameStates.UnmatchedWaiting) {
+					if (gameList[gameKey].gameData.s === GameStates.UnmatchedPlaying 
+						|| gameList[gameKey].gameData.s === GameStates.UnmatchedWaiting) {
 						if (CheckMatchmakingTimeOut(gameList[gameKey].gameData.ts) 
 							|| CheckMatchmakingTimeOut(gameList[gameKey].gameData.c)) { // temporary to delete old games (creation timestamp used to have 'c' key)
 							gameList[gameKey].gameData.s = GameStates.MatchmakingTimedOut;
 							listToUpdate[listId][gameKey] = null;
 						}
-					} else if (gameList[gameKey].gameData.s > GameStates.UnmatchedWaiting && gameList[gameKey].gameData.s < GameStates.P1Resigned) {
+					} else if (gameList[gameKey].gameData.s > GameStates.UnmatchedWaiting 
+						&& gameList[gameKey].gameData.s < GameStates.P1Resigned) {
 						//gameList[gameKey].gameData.t / 3
-						if (gameList[gameKey].gameData.r.length > 0 && CheckRoundTimeOut(gameList[gameKey].gameData.r[gameList[gameKey].gameData.r.length - 1].ts)) {
+						if (gameList[gameKey].gameData.r.length > 0 
+							&& CheckRoundTimeOut(gameList[gameKey].gameData.r[gameList[gameKey].gameData.r.length - 1].ts)) {
 							gameList[gameKey].gameData.s = GameStates.TimedOutDraw;
 							if (gameList[gameKey].gameData.t % 3 !== 0) {
 								gameList[gameKey].gameData.s += (3- gameList[gameKey].gameData.t % 3);
@@ -76,7 +79,7 @@ handlers.pollGamesData = function () {
 						}
 					}
 					if (!undefinedOrNull(gameList[gameKey].gameData.a) && // TODO: handle case when undefinedOrNull
-						!undefinedOrNull(gameList[gameKey].a[0]) && // TODO: handle case when undefinedOrNull
+						!undefinedOrNull(gameList[gameKey].gameData.a[0]) && // TODO: handle case when undefinedOrNull
 						gameList[gameKey].gameData.a[0].id === currentPlayerId) {
 							data[gameKey] = gameList[gameKey].gameData;
 							data[gameKey].pn = 1;
@@ -123,7 +126,7 @@ handlers.pollGamesData = function () {
 							}
 						}
 						if (!undefinedOrNull(gameList[gameKey].gameData.a) && // TODO: handle case when undefinedOrNull
-							!undefinedOrNull(gameList[gameKey].a[1]) && // TODO: handle case when undefinedOrNull
+							!undefinedOrNull(gameList[gameKey].gameData.a[1]) && // TODO: handle case when undefinedOrNull
 							gameList[gameKey].gameData.a[1].id === currentPlayerId) {
 								data[gameKey] = gameList[gameKey].gameData;
 								data[gameKey].pn = 2;
