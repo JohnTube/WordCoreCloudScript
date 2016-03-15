@@ -217,7 +217,6 @@ handlers.pollData = function (args) {
 			}
 		}
 	}
-	deleteOrFlagGames(gamesToDelete);
 	if (undefinedOrNull(clientGamesList)) {
 		for (gameKey in clientGamesList) {
 			if (clientGamesList.hasOwnProperty(gameKey)) {
