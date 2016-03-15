@@ -17,29 +17,25 @@
 /*global onEnvChanged*/
 
 // http://stackoverflow.com/a/21273362/1449056
-function undefinedOrNull(variable) {	'use strict'; return variable === undefined || variable === null; } //return variable == null;
+function undefinedOrNull(variable) {	 return variable === undefined || variable === null; } //return variable == null;
 
 // checks to see if an object has any properties
 // Returns true for empty objects and false for non-empty objects
 function isEmpty(obj) {
-    'use strict';
 	// Object.getOwnPropertyNames(obj).length vs. Object.keys(obj).length
 	// http://stackoverflow.com/a/22658584/1449056
 	return (undefinedOrNull(obj) || Object.getOwnPropertyNames(obj).length === 0);
 }
 
 function isString(obj) {
-    'use strict';
     return (typeof obj === 'string' || obj instanceof String);
 }
 
 function getISOTimestamp() {
-    'use strict';
     return (new Date()).toISOString() + Math.random();
 }
 
 function logException(timestamp, data, message) {
-    'use strict';
     //TEMPORARY solution until log functions' output is available from GameManager
     return server.SetTitleData({
         Key: timestamp,
@@ -48,7 +44,6 @@ function logException(timestamp, data, message) {
 }
 
 function getGamesListId(playerId) {
-    'use strict';
     if (undefinedOrNull(playerId)) {
         playerId = currentPlayerId;
     }
@@ -56,26 +51,23 @@ function getGamesListId(playerId) {
 }
 
 function PhotonException(code, msg, timestamp, data) {
-    'use strict';
 	this.ResultCode = code;
 	this.Message = msg;
-    this.Timestamp = timestamp;
-    this.Data = data;
-    logException(timestamp, data, msg);
-    //this.Stack = (new Error()).stack;
+  this.Timestamp = timestamp;
+  this.Data = data;
+  logException(timestamp, data, msg);
+  //this.Stack = (new Error()).stack;
 }
 
 PhotonException.prototype = Object.create(Error.prototype);
 PhotonException.prototype.constructor = PhotonException;
 
 function createSharedGroup(id) {
-    'use strict';
     try { server.CreateSharedGroup({SharedGroupId : id});
         } catch (e) { /*logException(getISOTimestamp(), e, 'createSharedGroup:' + id);*/throw e; }
 }
 
 function updateSharedGroupData(id, data) {
-    'use strict';
     try {
         var key;
         for (key in data) {
@@ -88,7 +80,6 @@ function updateSharedGroupData(id, data) {
 }
 
 function getSharedGroupData(id, keys) {
-    'use strict';
     try {
         var data = {}, key;
         if (undefinedOrNull(keys)) {
@@ -106,17 +97,14 @@ function getSharedGroupData(id, keys) {
 }
 
 function deleteSharedGroup(id) {
-    'use strict';
     try { return server.DeleteSharedGroup({SharedGroupId : id}); } catch (e) { logException(getISOTimestamp(), e, 'deleteSharedGroup:' + id); throw e; }
 }
 
 function getSharedGroupEntry(id, key) {
-    'use strict';
     try { return getSharedGroupData(id, [key])[key]; } catch (e) { logException(getISOTimestamp(), 'getSharedGroupEntry:' + id + ',' + key, String(e.stack)); throw e; }
 }
 
 function updateSharedGroupEntry(id, key, value) {
-    'use strict';
     try {
         var data = {};
         data[key] = value;
@@ -125,7 +113,6 @@ function updateSharedGroupEntry(id, key, value) {
 }
 
 function deleteSharedGroupEntry(id, key) {
-    'use strict';
     try { return updateSharedGroupEntry(id, key, null); } catch (e) { logException(getISOTimestamp(), e, 'deleteSharedGroupEntry:' + id + ',' + key); throw e; }
 }
 
@@ -133,7 +120,6 @@ var LeaveReason = { ClientDisconnect: '0', ClientTimeoutDisconnect: '1', Managed
                     SwitchRoom: '100', LeaveRequest: '101', PlayerTtlTimedOut: '102', PeerLastTouchTimedout: '103', PluginRequest: '104', PluginFailedJoin: '105' };
 
 function checkWebhookArgs(args, timestamp) {
-    'use strict';
 	var msg = 'Missing argument: ';
 	if (undefinedOrNull(args.AppId)) {
 		throw new PhotonException(1, msg + 'AppId', timestamp, args);
@@ -259,7 +245,6 @@ function checkWebhookArgs(args, timestamp) {
 
 
 function loadGameData(gameId) {
-    'use strict';
     try {
         var listId = getGamesListId(),
             data = getSharedGroupEntry(listId, gameId);
@@ -276,7 +261,6 @@ function loadGameData(gameId) {
 }
 
 function saveGameData(gameId, data) {
-    'use strict';
     try {
         deleteSharedGroup(gameId);
         updateSharedGroupEntry(getGamesListId(data.Creation.UserId), gameId, data);
@@ -284,7 +268,6 @@ function saveGameData(gameId, data) {
 }
 
 function deleteGameData(gameId, data) {
-    'use strict';
     try {
         deleteSharedGroup(gameId);
         deleteSharedGroupEntry(getGamesListId(data.Creation.UserId), gameId);
@@ -292,7 +275,6 @@ function deleteGameData(gameId, data) {
 }
 
 function addGameToList(gameId, data) {
-    'use strict';
     try {
         beforeAddingGameToPlayerList(gameId, data);
         updateSharedGroupEntry(getGamesListId(), gameId, data);
@@ -300,7 +282,6 @@ function addGameToList(gameId, data) {
 }
 
 function createGame(args, timestamp) {
-    'use strict';
     try {
         createSharedGroup(args.GameId);
         var data = {};
@@ -318,7 +299,6 @@ function createGame(args, timestamp) {
 }
 
 function compareEnv(timestamp, args, data) {
-    'use strict';
     try {
         if (args.AppId !== data.Env.AppId) {
             onEnvChanged({timestamp: timestamp, type: 'AppId', loaded: data.Env.AppId, read: args.AppId}, args, data);
@@ -354,7 +334,6 @@ function compareEnv(timestamp, args, data) {
 }
 
 handlers.RoomCreated = function (args) {
-    'use strict';
     try {
         var timestamp = getISOTimestamp(),
             data = {},
@@ -431,7 +410,6 @@ handlers.RoomCreated = function (args) {
 };
 
 handlers.RoomClosed = function (args) {
-    'use strict';
     try {
         var timestamp = getISOTimestamp(),
             data = {};
@@ -474,7 +452,6 @@ handlers.RoomClosed = function (args) {
 };
 
 handlers.RoomJoined = function (args) {
-    'use strict';
     try {
         var timestamp = getISOTimestamp(),
             data = {},
@@ -525,7 +502,6 @@ handlers.RoomJoined = function (args) {
 };
 
 handlers.RoomLeft = function (args) {
-    'use strict';
     try {
         var timestamp = getISOTimestamp(),
             data = {};
@@ -566,7 +542,6 @@ handlers.RoomLeft = function (args) {
 };
 
 handlers.RoomPropertyUpdated = function (args) {
-    'use strict';
     try {
         var timestamp = getISOTimestamp(),
             data = {};
@@ -595,7 +570,6 @@ handlers.RoomPropertyUpdated = function (args) {
 };
 
 handlers.RoomEventRaised = function (args) {
-    'use strict';
     try {
         var timestamp = getISOTimestamp(),
             data = {};
@@ -622,24 +596,22 @@ handlers.RoomEventRaised = function (args) {
 };
 
 function checkWebRpcArgs(args, timestamp) {
-    'use strict';
     var msg = 'Missing argument: ';
-	if (undefinedOrNull(args.AppId)) {
-		throw new PhotonException(1, msg + 'AppId', timestamp, args);
-	}
-	if (undefinedOrNull(args.AppVersion)) {
-		throw new PhotonException(1, msg + 'AppVersion', timestamp, args);
-	}
-	if (undefinedOrNull(args.Region)) {
-		throw new PhotonException(1, msg + 'Region', timestamp, args);
-	}
+  	if (undefinedOrNull(args.AppId)) {
+  		throw new PhotonException(1, msg + 'AppId', timestamp, args);
+  	}
+  	if (undefinedOrNull(args.AppVersion)) {
+  		throw new PhotonException(1, msg + 'AppVersion', timestamp, args);
+  	}
+  	if (undefinedOrNull(args.Region)) {
+  		throw new PhotonException(1, msg + 'Region', timestamp, args);
+  	}
     if (undefinedOrNull(args.UserId)) {
         throw new PhotonException(1, msg + 'UserId', timestamp, args);
     }
 }
 
 function sendPushNotification(targetId, msg, data, title, icon) {
-    'use strict';
     try {
         server.SendPushNotification({
             Recipient: targetId,

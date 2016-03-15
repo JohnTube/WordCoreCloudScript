@@ -1,5 +1,4 @@
 function getLengthBonus(word) {
-    'use strict';
 	var length = word.length, lengthBonus = 0;
 	if (length > 4) { lengthBonus += length - 4; } // single point for each Letter > 4
 	if (length > 8) { lengthBonus += length - 8; } // double point for each Letter > 8
@@ -8,7 +7,6 @@ function getLengthBonus(word) {
 }
 
 function getMovePoints(word) {
-    'use strict';
     var LETTERS_POINTS = {A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1, J: 8, K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1, S: 1, T: 1, U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10}, i = 0, score = 0;
 	word = word.toUpperCase();
 	for (i; i < word.length; i += 1) { score +=  LETTERS_POINTS[word.charAt(i)]; }
@@ -18,7 +16,6 @@ function getMovePoints(word) {
 var WordukenType = { NoWorduken : 0, BestMove : 1, WildCard : 2, SingleColor : 3, Shuffler : 4, Incrementor : 5};
 
 function addMoveToGame(gameData, actorNr, move) {
-    'use strict';
 	// TODO : test if move is legit/legal
 	gameData.r[move.r].m[actorNr - 1] = move;
 	if (move.wt !== 0) {
@@ -54,7 +51,6 @@ var GameStates = {
 };
 
 function onInitGame(args, data) {
-    'use strict';
     var eventData = args.Data,
 		gameData = {a: [{id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w}],
 				s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
@@ -63,7 +59,6 @@ function onInitGame(args, data) {
 }
 
 function onJoinGame(args, data) {
-    'use strict';
     var eventData = args.Data,
 	    gameData = data.gameData;
 	gameData.s += 2;
@@ -72,7 +67,6 @@ function onJoinGame(args, data) {
 }
 
 function onWordukenUsed(args, data) {
-    'use strict';
     var eventData = args.Data, // TODO: test args and eventData
 	    gameData = data.gameData;
 	// TODO : test if worduken use is legit/legal
@@ -81,28 +75,25 @@ function onWordukenUsed(args, data) {
 }
 
 function onEndOfTurn(args, data) {
-    'use strict';
     var eventData = args.Data, // TODO: test args and eventData
 	    gameData = addMoveToGame(data.gameData, args.ActorNr, eventData);
     gameData.t += args.ActorNr;
-	gameData.s = GameStates.Playing + args.ActorNr;
+   gameData.s = GameStates.Playing + args.ActorNr;
 	// TODO : send push?
 }
 
 function onEndOfRound(args, data) {
-    'use strict';
     var eventData = args.Data, // TODO: test args and eventData
 	    gameData = addMoveToGame(data.gameData, args.ActorNr, eventData.m);
-	gameData.r.push(eventData.r);
-	gameData.r[eventData.m.r].m = [{}, {}];
+    gameData.r.push(eventData.r);
+    gameData.r[eventData.m.r].m = [{}, {}];
     gameData.t += args.ActorNr;
-	gameData.s = GameStates.Playing;
+	  gameData.s = GameStates.Playing;
 	// TODO : send push
 
 }
 
 function onEndOfGame(args, data) {
-    'use strict';
     var eventData = args.Data, // TODO: test args and eventData
 	    gameData = addMoveToGame(data.gameData, args.ActorNr, eventData);
     gameData.t += args.ActorNr;
@@ -114,6 +105,7 @@ function onEndOfGame(args, data) {
 		gameData.s = GameStates.EndedP2Won;
 	}
 	// TODO : send push
+  deleteOrFlagGames([args.GameId]);
 }
 
 
@@ -139,49 +131,49 @@ function onEndOfGame(args, data) {
 // args = PathCreate, Type='Create' webhook args. you need args.GameId.
 // data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
 function onGameCreated(args, data) {
-    'use strict';
+
 }
 
 // args = PathCreate, Type='Load' webhook args. you need args.GameId.
 // data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
 function onGameLoaded(args, data) {
-    'use strict';
+
 }
 
 // args = PathClose, Type='Close' webhook args. you need args.GameId.
 // data = Room data. this will be destroyed and lost.
 function beforeGameDeletion(args, data) {
-    'use strict';
+
 }
 
 // args = PathClose, Type='Save' webhook args. you need args.GameId. args.State is already added to data.
 // data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
 function beforeSavingGame(args, data) {
-    'use strict';
+
 }
 
 // gameId = GameId of the game
 // gameEntry = game entry in the list, content vary
 function beforeAddingGameToPlayerList(gameId, data) {
-    'use strict';
+
 }
 
 // args = PathJoin webhook args. you need args.ActorNr.
 // data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
 function onPlayerJoined(args, data) {
-    'use strict';
+
 }
 
 // args = PathLeft webhook args. you need args.ActorNr.
 // data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
 function onPlayerLeft(args, data) {
-    'use strict';
+
 }
 
 // args = PathEvent webhook args, you need args.EvCode and args.Data (event data).
 // data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
 function onEventReceived(args, data) {
-    'use strict';
+
     var CustomEventCodes = {Undefined : 0, InitGame : 1, JoinGame : 2, WordukenUsed : 3, EndOfTurn : 4, EndOfRound : 5, EndOfGame : 6};
     switch (args.EvCode) {
     case CustomEventCodes.InitGame: // args.ActorNr === 1
@@ -208,13 +200,13 @@ function onEventReceived(args, data) {
 // args = PathGameProperties webhook args, you need args.TargetActor and args.Properties.
 // data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
 function onPlayerPropertyChanged(args, data) {
-    'use strict';
+
 }
 
 // args = PathGameProperties webhook args, you need args.Properties.
 // data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
 function onRoomPropertyChanged(args, data) {
-    'use strict';
+
 }
 
 /*global PhotonException */
@@ -223,7 +215,7 @@ function onRoomPropertyChanged(args, data) {
 // args = webhook args
 // data = game data
 function onEnvChanged(change, args, data) {
-    'use strict';
+
     switch (change.type) {
     case 'AppId': // should not happen
         throw new PhotonException(101, 'AppId mismatch', change.timestamp, {Change: change, Webhook: args, GameData: data});
