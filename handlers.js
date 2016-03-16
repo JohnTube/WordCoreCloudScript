@@ -230,9 +230,9 @@ handlers.pollData = function (args) {
 	return {ResultCode: 0, Data: data};
 };
 
-// expects [] of gameIDs in 'g'
-handlers.deleteGames = function (args) {
-	deleteOrFlagGames(args.g);
+// expects [] of gameIDs
+handlers.deleteGames = function (toDelete) {
+	deleteOrFlagGames(toDelete);
 	return {ResultCode: 0};
 };
 
