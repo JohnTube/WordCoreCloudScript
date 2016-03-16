@@ -71,12 +71,8 @@ function updateSharedGroupData(id, data) {
     var key, stringData = {};
     try {
         for (key in data) {
-            if (data.hasOwnProperty(key) && !undefinedOrNull(data[key])) {
-              if (!isString(data[key])) {
-                stringData[key] = String(data[key]);
-              } else {
-                stringData[key] = data[key];
-              }
+            if (data.hasOwnProperty(key)) {
+                stringData[key] = JSON.stringify(data[key]);
             }
         }
         key = server.UpdateSharedGroupData({ SharedGroupId: id, Data: stringData });
