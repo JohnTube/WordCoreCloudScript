@@ -69,13 +69,15 @@ function createSharedGroup(id) {
 
 function updateSharedGroupData(id, data) {
     try {
-        var key;
+        var key, stringData;
         for (key in data) {
             if (data.hasOwnProperty(key) && !undefinedOrNull(data[key]) && !isString(data[key])) {
-                data[key] = JSON.stringify(data[key]);
+                stringData[key] = JSON.stringify(data[key]);
+            } else {
+                stringData[key] = data[key];
             }
         }
-        return server.UpdateSharedGroupData({ SharedGroupId: id, Data: data });
+        return server.UpdateSharedGroupData({ SharedGroupId: id, Data: stringData });
     } catch (e) { logException(getISOTimestamp(), e, 'updateSharedGroupData(' + id + ', ' + JSON.stringify(data) + ')'); throw e; }
 }
 
@@ -556,7 +558,7 @@ handlers.RoomPropertyUpdated = function (args) {
         }
         if (!undefinedOrNull(args.State)) {
             data.State = args.State;
-            //updateSharedGroupData(args.GameId, data);
+            updateSharedGroupData(args.GameId, data);
             updateSharedGroupEntry(getGamesListId(data.Creation.UserId), args.GameId, data);
         } else if (data.Env.WebhooksVersion !== '1.2') {
             throw new PhotonException(1, 'Missing argument State', timestamp, {Webhook: args, CustomState: data});
@@ -581,7 +583,7 @@ handlers.RoomEventRaised = function (args) {
         onEventReceived(args, data);
         if (!undefinedOrNull(args.State)) {
             data.State = args.State;
-            //updateSharedGroupData(args.GameId, data);
+            updateSharedGroupData(args.GameId, data);
             updateSharedGroupEntry(getGamesListId(data.Creation.UserId), args.GameId, data);
         } else if (data.Env.WebhooksVersion !== '1.2') {
             throw new PhotonException(1, 'Missing argument State', timestamp, {Webhook: args, CustomState: data});
