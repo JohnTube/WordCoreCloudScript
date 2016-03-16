@@ -195,6 +195,7 @@ function deleteOrFlagGames(games) {
 	}
 }
 
+// expects {} in 'g' with <gameID> : {s: <gameState>, t: <turn#>}
 handlers.pollData = function (args) {
 	var serverGamesData = pollGamesData(),
 	clientGamesList = args.g,
@@ -229,12 +230,14 @@ handlers.pollData = function (args) {
 	return {ResultCode: 0, Data: data};
 };
 
+// expects [] of gameIDs in 'g'
 handlers.deleteGames = function (args) {
 	deleteOrFlagGames(args.g);
 	return {ResultCode: 0};
 };
 
-handlers.resgion = function (args) {
+// expects gameID in 'g' & actorNr in 'pn'
+handlers.resign = function (args) {
 	var listId = getGamesListId(), gameData = getSharedGroupEntry(listId, args.g);
 	if (gameData.gameData.a[args.pn - 1].id === currentPlayerId &&
 		gameData.gameData.s > GameStates.UnmatchedPlaying &&
