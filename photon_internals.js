@@ -68,17 +68,20 @@ function createSharedGroup(id) {
 }
 
 function updateSharedGroupData(id, data) {
+    var key, stringData = {};
     try {
-        var key, stringData;
         for (key in data) {
-            if (data.hasOwnProperty(key) && !undefinedOrNull(data[key]) && !isString(data[key])) {
-                stringData[key] = JSON.stringify(data[key]);
-            } else {
+            if (data.hasOwnProperty(key) && !undefinedOrNull(data[key])) {
+              if (!isString(data[key])) {
+                stringData[key] = String(data[key]);
+              } else {
                 stringData[key] = data[key];
+              }
             }
         }
-        return server.UpdateSharedGroupData({ SharedGroupId: id, Data: stringData });
-    } catch (e) { logException(getISOTimestamp(), e, 'updateSharedGroupData(' + id + ', ' + JSON.stringify(data) + ')'); throw e; }
+        key = server.UpdateSharedGroupData({ SharedGroupId: id, Data: stringData });
+        return key;
+    } catch (e) { logException(getISOTimestamp(), key, 'updateSharedGroupData(' + id + ', ' + stringData + ')'); throw e; }
 }
 
 function getSharedGroupData(id, keys) {
