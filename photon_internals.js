@@ -257,28 +257,28 @@ function loadGameData(gameId) {
             data = getSharedGroupEntry(listId, gameId);
         }
         return data;
-    } catch (e) { logException(getISOTimestamp(), 'loadGameData:' + gameId + ',currentPlayerId=' + currentPlayerId, String(e.stack)); throw e; }
+    } catch (e) { logException(getISOTimestamp(), 'loadGameData:' + gameId + ',currentPlayerId=' + currentPlayerId, e); throw e; }
 }
 
 function saveGameData(gameId, data) {
     try {
         deleteSharedGroup(gameId);
         updateSharedGroupEntry(getGamesListId(data.Creation.UserId), gameId, data);
-    } catch (e) { logException(getISOTimestamp(), 'saveGameData:' + gameId + ',' + JSON.stringify(data), String(e.stack)); throw e; }
+    } catch (e) { logException(getISOTimestamp(), 'saveGameData:' + gameId + ',' + JSON.stringify(data), e); throw e; }
 }
 
 function deleteGameData(gameId, data) {
     try {
         deleteSharedGroup(gameId);
         deleteSharedGroupEntry(getGamesListId(data.Creation.UserId), gameId);
-    } catch (e) { logException(getISOTimestamp(), 'deleteGameData:' + gameId + ',' + JSON.stringify(data), String(e.stack)); throw e; }
+    } catch (e) { logException(getISOTimestamp(), 'deleteGameData:' + gameId + ',' + JSON.stringify(data), e); throw e; }
 }
 
 function addGameToList(gameId, data) {
     try {
         beforeAddingGameToPlayerList(gameId, data);
         updateSharedGroupEntry(getGamesListId(), gameId, data);
-    } catch (e) { logException(getISOTimestamp(), 'addGameToList:' + gameId + ',' + JSON.stringify(data), String(e.stack)); throw e; }
+    } catch (e) { logException(getISOTimestamp(), 'addGameToList:' + gameId + ',' + JSON.stringify(data), e); throw e; }
 }
 
 function createGame(args, timestamp) {
