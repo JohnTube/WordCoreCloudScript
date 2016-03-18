@@ -71,7 +71,7 @@ function updateSharedGroupData(id, data) {
     var key, stringData = {};
     try {
         for (key in data) {
-            if (data.hasOwnProperty(key)) {
+            if (data.hasOwnProperty(key) && !undefinedOrNull(data[key])) {
                 stringData[key] = JSON.stringify(data[key]);
             }
         }
