@@ -55,7 +55,7 @@ function pollGamesData() {
 		listToUpdate[listId] = {};
 	for (gameKey in gameList) {
 		if (gameList.hasOwnProperty(gameKey)) {
-			if (undefinedOrNull(gameList[gameKey].Creation) || undefinedOrNull(gameList[gameKey].Creation.UserId)) {
+			if (undefinedOrNull(gameList[gameKey]) || undefinedOrNull(gameList[gameKey].Creation) || undefinedOrNull(gameList[gameKey].Creation.UserId)) {
 				listToUpdate[listId][gameKey] = null; // deleting values that do not contain 'gameData' key
 				logException(getISOTimestamp(), gameList[gameKey], 'Creation or Creation.UserId is undefinedOrNull');
 			}
