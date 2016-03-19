@@ -144,7 +144,7 @@ for (userKey in listToLoad) {
 				}
 	}
 	for (listId in listToUpdate) {
-		if (listToUpdate.hasOwnProperty(listId) && !isEmpty(listToUpdate[listId])){
+		if (listToUpdate.hasOwnProperty(listId) && !isEmpty(listToUpdate[listId])) {
 			updateSharedGroupData(listId, listToUpdate[listId]);
 		}
 	}
