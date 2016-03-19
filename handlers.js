@@ -55,7 +55,11 @@ function pollGamesData() {
 		listToUpdate[listId] = {};
 	for (gameKey in gameList) {
 		if (gameList.hasOwnProperty(gameKey)) {
-			if (gameList[gameKey].Creation.UserId === currentPlayerId) {
+			if (undefinedOrNull(gameList[gameKey].Creation) || undefinedOrNull(gameList[gameKey].Creation.UserId)) {
+				listToUpdate[listId][gameKey] = null; // deleting values that do not contain 'gameData' key
+				logException(getISOTimestamp(), gameList[gameKey], 'Creation or Creation.UserId is undefinedOrNull');
+			}
+			else if (gameList[gameKey].Creation.UserId === currentPlayerId) {
 				if (!undefinedOrNull(gameList[gameKey].gameData)) {
 					if (gameList[gameKey].gameData.s === GameStates.UnmatchedPlaying ||
 							gameList[gameKey].gameData.s === GameStates.UnmatchedWaiting) {
