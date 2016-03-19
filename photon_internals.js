@@ -255,7 +255,7 @@ function checkWebhookArgs(args, timestamp) {
 function loadGameData(gameId) {
 		var result;
     try {
-				result = getSharedGroupEntry(getGamesListId(gameId.split('-')[4], gameId));
+				result = getSharedGroupEntry(getGamesListId(gameId.split('-')[4]), gameId);
 				return result;
     } catch (e) { logException(getISOTimestamp(), {err: e, ret: result}, 'loadGameData:' + gameId + ', currentPlayerId=' + currentPlayerId); throw e; }
 }
