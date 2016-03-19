@@ -85,8 +85,8 @@ function updateSharedGroupData(id, data) {
 }
 
 function getSharedGroupData(id, keys) {
+		var data = {}, key;
     try {
-        var data = {}, key;
         if (undefinedOrNull(keys)) {
             data = server.GetSharedGroupData({ SharedGroupId: id }).Data;
         } else {
@@ -98,7 +98,7 @@ function getSharedGroupData(id, keys) {
             }
         }
         return data;
-    } catch (e) { logException(getISOTimestamp(), e, 'getSharedGroupData:' + id + ',' + JSON.stringify(keys)); throw e; }
+    } catch (e) { logException(getISOTimestamp(), {ret: data, err: e}, 'getSharedGroupData:' + id + ',' + JSON.stringify(keys)); throw e; }
 }
 
 function deleteSharedGroup(id) {
@@ -250,19 +250,11 @@ function checkWebhookArgs(args, timestamp) {
 
 
 function loadGameData(gameId) {
+		var result;
     try {
-        var listId = getGamesListId(),
-            data = getSharedGroupEntry(listId, gameId);
-        if (isEmpty(data)) {
-            createSharedGroup(listId);
-            return data;
-        }
-        if (data.Creation.UserId !== currentPlayerId) {
-            listId = getGamesListId(data.Creation.UserId);
-            data = getSharedGroupEntry(listId, gameId);
-        }
-        return data;
-    } catch (e) { logException(getISOTimestamp(), 'loadGameData:' + gameId + ',currentPlayerId=' + currentPlayerId, e); throw e; }
+				result = getSharedGroupEntry(getGamesListId(gameId.split('-')[4], gameId));
+				return result;
+    } catch (e) { logException(getISOTimestamp(), {err: e, ret: result}, 'loadGameData:' + gameId + ', currentPlayerId=' + currentPlayerId); throw e; }
 }
 
 function saveGameData(gameId, data) {
