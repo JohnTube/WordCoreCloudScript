@@ -397,7 +397,7 @@ handlers.RoomCreated = function (args) {
             try { createSharedGroup(args.GameId); } catch (x) {}
             onGameLoaded(args, data);
             updateSharedGroupData(args.GameId, data);
-            return {ResultCode: 0, Message: 'OK', State: JSON.parse(data.State)};
+            return {ResultCode: 0, Message: 'OK', State: data.State};
         } else {
             throw new PhotonException(2, 'Wrong PathCreate Type=' + args.Type, timestamp, {Webhook: args});
         }
