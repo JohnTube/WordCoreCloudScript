@@ -77,7 +77,7 @@ function updateSharedGroupData(id, data) {
         }
         key = server.UpdateSharedGroupData({ SharedGroupId: id, Data: stringData });
         return key;
-    } catch (e) { logException(getISOTimestamp(), key, 'updateSharedGroupData(' + id + ', ' + stringData + ')'); throw e; }
+    } catch (e) { logException(getISOTimestamp(), {ret: key, err: e}, 'updateSharedGroupData(' + id + ', ' + JSON.stringify(stringData) + ')'); throw e; }
 }
 
 function getSharedGroupData(id, keys) {
