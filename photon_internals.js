@@ -344,7 +344,7 @@ handlers.RoomCreated = function (args) {
             return {ResultCode: 0, Message: 'OK'};
         } else if (args.Type === 'Load') {
             data = loadGameData(args.GameId);
-            //logException(timestamp, data, 'loadedGameData');
+            logException(timestamp, data, 'loadedGameData');
             if (undefinedOrNull(data.State)) {
                 if (args.CreateIfNotExists === false) {
                     throw new PhotonException(5, 'Room=' + args.GameId + ' not found', timestamp, {Webhook: args, CustomState: data});
