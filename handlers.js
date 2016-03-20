@@ -60,7 +60,8 @@ function pollGamesData() {
 										listToUpdate[listId][gameKey] = gameList[gameKey];
 									}
 								}
-								if (!undefinedOrNull(gameList[gameKey].a) && // TODO: handle case when undefinedOrNull
+								if (!undefinedOrNull(gameList[gameKey].a) &&
+										gameList[gameKey].a.lengnth >= 1 &&
 										gameList[gameKey].a[0].id === currentPlayerId) {
 											data[gameKey] = gameList[gameKey];
 											data[gameKey].pn = 1;
@@ -106,8 +107,9 @@ for (userKey in listToLoad) {
 										listToUpdate[listId][gameKey] = gameList[gameKey];
 									}
 								}
-								if (!undefinedOrNull(gameList[gameKey].a) && // TODO: handle case when undefinedOrNull
-										gameList[gameKey].a[0].id === userKey && // TODO: handle case when undefinedOrNull
+								if (!undefinedOrNull(gameList[gameKey].a) &&
+										gameList[gameKey].a.length === 2 &&
+										gameList[gameKey].a[0].id === userKey &&
 										gameList[gameKey].a[1].id === currentPlayerId) {
 									data[gameKey] = gameList[gameKey];
 									data[gameKey].pn = 2;
