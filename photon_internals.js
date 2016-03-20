@@ -241,7 +241,7 @@ handlers.RoomEventRaised = function (args) {
 				}
         data = onEventReceived(args, data);
         if (!undefinedOrNull(args.State)) {
-          data.State = args.State;
+        	data.State = stripRoomState(args.State);
         }
 				saveGameData(args.GameId, data);
         return {ResultCode: 0, Message: 'OK'};
