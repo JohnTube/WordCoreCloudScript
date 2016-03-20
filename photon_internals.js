@@ -233,7 +233,9 @@ handlers.RoomEventRaised = function (args) {
         var timestamp = getISOTimestamp(),
             data = {};
         checkWebhookArgs(args, timestamp);
-        data = getSharedGroupData(args.GameId);
+				if (args.EvCode > CustomEventCodes.InitGame) {
+					data = loadGameData(args.GameId);
+				}
         onEventReceived(args, data);
         if (!undefinedOrNull(args.State)) {
           data.State = args.State;

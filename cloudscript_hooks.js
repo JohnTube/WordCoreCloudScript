@@ -104,10 +104,10 @@ function onEndOfGame(args, data) {
 	// TODO : send push
 }
 
+var CustomEventCodes = {Undefined : 0, InitGame : 1, JoinGame : 2, WordukenUsed : 3, EndOfTurn : 4, EndOfRound : 5, EndOfGame : 6};
 // args = PathEvent webhook args, you need args.EvCode and args.Data (event data).
 // data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
 function onEventReceived(args, data) {
-    var CustomEventCodes = {Undefined : 0, InitGame : 1, JoinGame : 2, WordukenUsed : 3, EndOfTurn : 4, EndOfRound : 5, EndOfGame : 6};
     switch (args.EvCode) {
     case CustomEventCodes.InitGame: // args.ActorNr === 1
         onInitGame(args, data);
