@@ -1,48 +1,3 @@
-/*global handlers */
-/*global server */
-/*global http */
-/*global log */
-/*global script */
-/*global currentPlayerId */
-/*global beforeAddingGameToPlayerList*/
-/*global onGameCreated*/
-/*global onGameLoaded*/
-/*global beforeGameDeletion*/
-/*global beforeSavingGame*/
-/*global onPlayerJoined*/
-/*global onPlayerLeft*/
-/*global onPlayerPropertyChanged*/
-/*global onRoomPropertyChanged*/
-/*global onEventReceived*/
-/*global onEnvChanged*/
-
-// http://stackoverflow.com/a/21273362/1449056
-function undefinedOrNull(variable) {	 return variable === undefined || variable === null; } //return variable == null;
-
-// checks to see if an object has any properties
-// Returns true for empty objects and false for non-empty objects
-function isEmpty(obj) {
-	// Object.getOwnPropertyNames(obj).length vs. Object.keys(obj).length
-	// http://stackoverflow.com/a/22658584/1449056
-	return (undefinedOrNull(obj) || Object.getOwnPropertyNames(obj).length === 0);
-}
-
-function isString(obj) {
-    return (typeof obj === 'string' || obj instanceof String);
-}
-
-function getISOTimestamp() {
-    return (new Date()).toISOString() + Math.random();
-}
-
-function logException(timestamp, data, message) {
-    //TEMPORARY solution until log functions' output is available from GameManager
-    return server.SetTitleData({
-        Key: timestamp,
-        Value: JSON.stringify({Message: message, Data: data})
-    });
-}
-
 function getGamesListId(playerId) {
     if (undefinedOrNull(playerId)) {
         playerId = currentPlayerId;
@@ -65,75 +20,6 @@ function PhotonException(code, msg, timestamp, data) {
 
 PhotonException.prototype = Object.create(Error.prototype);
 PhotonException.prototype.constructor = PhotonException;
-
-function createSharedGroup(id) {
-		try { server.CreateSharedGroup({SharedGroupId : id});
-    } catch (e) { /*logException(getISOTimestamp(), e, 'createSharedGroup:' + id);*/throw e; }
-}
-
-function updateSharedGroupData(id, data) {
-    var key, stringData = {};
-    try {
-        for (key in data) {
-            if (data.hasOwnProperty(key)) {
-							if (!undefinedOrNull(data[key])) {
-	                stringData[key] = JSON.stringify(data[key]);
-	            } else {
-								stringData[key] = data[key];
-							}
-						}
-        }
-        key = server.UpdateSharedGroupData({ SharedGroupId: id, Data: stringData });
-        return key;
-    } catch (e) { logException(getISOTimestamp(), {ret: key, err: e}, 'updateSharedGroupData(' + id + ', ' + JSON.stringify(stringData) + ')'); throw e; }
-}
-
-function getSharedGroupData(id, keys) {
-		var data = {}, key;
-    try {
-        if (undefinedOrNull(keys)) {
-            data = server.GetSharedGroupData({ SharedGroupId: id }).Data;
-        } else {
-            data = server.GetSharedGroupData({ SharedGroupId: id, Keys: keys }).Data;
-        }
-        for (key in data) {
-            if (data.hasOwnProperty(key)) {
-                data[key] = JSON.parse(data[key].Value); // 'LastUpdated' and 'Permission' properties are overwritten
-            }
-        }
-        return data;
-    } catch (e) { logException(getISOTimestamp(), {ret: data, err: e}, 'getSharedGroupData:' + id + ',' + JSON.stringify(keys)); throw e; }
-}
-
-function deleteSharedGroup(id) {
-	var result;
-    try {
-			result = server.DeleteSharedGroup({SharedGroupId : id});
-			return result;
-		} catch (e) {
-			logException(getISOTimestamp(), {err: e, ret: result}, 'deleteSharedGroup:' + id); throw e;
-		}
-}
-
-function getSharedGroupEntry(id, key) {
-	var result;
-    try {
-			result = getSharedGroupData(id, [key])[key];
-			return result;
-		} catch (e) { logException(getISOTimestamp(), {err: e, ret: result},'getSharedGroupEntry:' + id + ',' + key); throw e; }
-}
-
-function updateSharedGroupEntry(id, key, value) {
-    try {
-        var data = {};
-        data[key] = value;
-        return updateSharedGroupData(id, data);
-    } catch (e) { logException(getISOTimestamp(), e, 'updateSharedGroupEntry:' + id + ',' + key + ',' + value); throw e; }
-}
-
-function deleteSharedGroupEntry(id, key) {
-    try { return updateSharedGroupEntry(id, key, null); } catch (e) { logException(getISOTimestamp(), e, 'deleteSharedGroupEntry:' + id + ',' + key); throw e; }
-}
 
 var LeaveReason = { ClientDisconnect: '0', ClientTimeoutDisconnect: '1', ManagedDisconnect: '2', ServerDisconnect: '3', TimeoutDisconnect: '4', ConnectTimeout: '5',
                     SwitchRoom: '100', LeaveRequest: '101', PlayerTtlTimedOut: '102', PeerLastTouchTimedout: '103', PluginRequest: '104', PluginFailedJoin: '105' };
@@ -162,9 +48,9 @@ function checkWebhookArgs(args, timestamp) {
 		if (undefinedOrNull(args.UserId)) {
 			throw new PhotonException(1, msg + 'UserId', timestamp, args);
 		}
-        if (args.UserId !== currentPlayerId) {
-            throw new PhotonException(3, 'currentPlayerId=' + currentPlayerId + ' does not match UserId', timestamp, args);
-        }
+    if (args.UserId !== currentPlayerId) {
+        throw new PhotonException(3, 'currentPlayerId=' + currentPlayerId + ' does not match UserId', timestamp, args);
+    }
 		if (undefinedOrNull(args.Username) && undefinedOrNull(args.Nickname)) {
 			throw new PhotonException(1, msg + 'Username/Nickname', timestamp, args);
 		}

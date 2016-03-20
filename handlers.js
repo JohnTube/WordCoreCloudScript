@@ -1,13 +1,3 @@
-/*global handlers */
-/*global server */
-/*global createSharedGroup*/
-/*global getGamesListId*/
-/*global checkWebRpcArgs*/
-/*global currentPlayerId*/
-/*global undefinedOrNull*/
-/*global getSharedGroupData*/
-/*global GameStates*/
-
 var MATCHMAKING_TIME_OUT = 60 * 60 * 1000, // 1 hour in milliseconds, "ClosedRoomTTL" with Photon AsyncRandomLobby !
 ROUND_TIME_OUT = 2 /* 24 */* MATCHMAKING_TIME_OUT; // DEV : 2 hours ==> PROD : 2 days in milliseconds
 

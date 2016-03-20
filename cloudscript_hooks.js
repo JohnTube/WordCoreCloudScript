@@ -104,25 +104,6 @@ function onEndOfGame(args, data) {
 	// TODO : send push
 }
 
-
-/*****************************************************************************************************************************/
-
-// implement your logic into the following callbacks and do not worry about how to load and save Photon room state
-// constraints:
-// 1. ONLY update 'data' argument
-// 2. do not delete or overwrite existing properties of 'data' argument
-
-// GameData may contain the following properties:
-//- Env (Photon Cloud Region, Photon Client AppVersion, Photon AppId, WebhooksVersion, PlayFab TitleId, CloudScriptVersion and Revision, PlayFabServerVersion)
-//- RoomOptions
-//- Actors (ActorNr: {UserId, Inactive})
-//- Creation (Timestamp, UserId=creator, Type=Load/Create)
-//- JoinEvents (Timestamp, UserId)
-//- LeaveEvents (Timestamp, UserId, Inactive, <Reason:Type>)
-//- LoadEvents (Timestamp, UserId)
-//- SaveEvents (Timestamp, UserId)
-//- State (Photon Room State)
-
 // args = PathEvent webhook args, you need args.EvCode and args.Data (event data).
 // data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
 function onEventReceived(args, data) {
