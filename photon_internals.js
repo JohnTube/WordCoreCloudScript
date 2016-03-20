@@ -239,7 +239,7 @@ handlers.RoomEventRaised = function (args) {
 				if (args.EvCode > CustomEventCodes.InitGame) {
 					data = loadGameData(args.GameId);
 				}
-        onEventReceived(args, data);
+        data = onEventReceived(args, data);
         if (!undefinedOrNull(args.State)) {
           data.State = args.State;
         }

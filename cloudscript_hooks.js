@@ -55,6 +55,7 @@ function onInitGame(args, data) {
 		data = {a: [{id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w}],
 				s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
     data.r = [{gs: eventData.r.gs, ts: eventData.r.ts, r: eventData.r.r, m: [{}, {}]}];
+		return data;
 }
 
 function onJoinGame(args, data) {
@@ -62,12 +63,14 @@ function onJoinGame(args, data) {
     var eventData = args.Data;
 		data.s += 2;
 		data.a.push({id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w});
+		return data;
 }
 
 function onWordukenUsed(args, data) {
     var eventData = args.Data; // TODO: test args and eventData
 	// TODO : test if worduken use is legit/legal
 		data.a[args.ActorNr - 1].w[eventData.wi] = eventData;
+		return data;
 }
 
 function onEndOfTurn(args, data) {
@@ -76,6 +79,7 @@ function onEndOfTurn(args, data) {
 		data.t += args.ActorNr;
    	data.s = GameStates.Playing + args.ActorNr;
 	// TODO : send push?
+	return data;
 }
 
 function onEndOfRound(args, data) {
@@ -86,6 +90,7 @@ function onEndOfRound(args, data) {
     data.t += args.ActorNr;
 	  data.s = GameStates.Playing;
 	// TODO : send push
+	return data;
 
 }
 
@@ -102,6 +107,7 @@ function onEndOfGame(args, data) {
 	}
   deleteOrFlagGames([args.GameId]);
 	// TODO : send push
+	return data;
 }
 
 var CustomEventCodes = {Undefined : 0, InitGame : 1, JoinGame : 2, WordukenUsed : 3, EndOfTurn : 4, EndOfRound : 5, EndOfGame : 6};
