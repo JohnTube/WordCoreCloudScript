@@ -50,6 +50,10 @@ function getGamesListId(playerId) {
     return playerId + '_GamesList';
 }
 
+function getCreatorId(gameId) {
+		return gameId.split('-')[4];
+}
+
 function PhotonException(code, msg, timestamp, data) {
 	this.ResultCode = code;
 	this.Message = msg;
@@ -63,8 +67,8 @@ PhotonException.prototype = Object.create(Error.prototype);
 PhotonException.prototype.constructor = PhotonException;
 
 function createSharedGroup(id) {
-    try { server.CreateSharedGroup({SharedGroupId : id});
-        } catch (e) { /*logException(getISOTimestamp(), e, 'createSharedGroup:' + id);*/throw e; }
+		try { server.CreateSharedGroup({SharedGroupId : id});
+    } catch (e) { /*logException(getISOTimestamp(), e, 'createSharedGroup:' + id);*/throw e; }
 }
 
 function updateSharedGroupData(id, data) {
@@ -102,7 +106,13 @@ function getSharedGroupData(id, keys) {
 }
 
 function deleteSharedGroup(id) {
-    try { return server.DeleteSharedGroup({SharedGroupId : id}); } catch (e) { logException(getISOTimestamp(), e, 'deleteSharedGroup:' + id); throw e; }
+	var result;
+    try {
+			result = server.DeleteSharedGroup({SharedGroupId : id});
+			return result;
+		} catch (e) {
+			logException(getISOTimestamp(), {err: e, ret: result}, 'deleteSharedGroup:' + id); throw e;
+		}
 }
 
 function getSharedGroupEntry(id, key) {
@@ -162,11 +172,11 @@ function checkWebhookArgs(args, timestamp) {
 		if (undefinedOrNull(args.ActorCount)) {
             throw new PhotonException(1, msg + 'ActorCount', timestamp, args);
 		}
-        if (!undefinedOrNull(args.State2) && !undefinedOrNull(args.State2.ActorList)) {
-            if (args.State2.ActorList.length !== args.ActorCount) {
-                throw new PhotonException(2, 'ActorCount does not match State2.ActorList.count', timestamp, args);
-            }
+    if (!undefinedOrNull(args.State2) && !undefinedOrNull(args.State2.ActorList)) {
+        if (args.State2.ActorList.length !== args.ActorCount) {
+            throw new PhotonException(2, 'ActorCount does not match State2.ActorList.count', timestamp, args);
         }
+    }
 	}
 	switch (args.Type) {
     case 'Load':
@@ -255,148 +265,37 @@ function checkWebhookArgs(args, timestamp) {
 function loadGameData(gameId) {
 		var result;
     try {
-				result = getSharedGroupEntry(getGamesListId(gameId.split('-')[4]), gameId);
+				result = getSharedGroupEntry(getGamesListId(getCreatorId(gameId)), gameId);
 				return result;
     } catch (e) { logException(getISOTimestamp(), {err: e, ret: result}, 'loadGameData:' + gameId + ', currentPlayerId=' + currentPlayerId); throw e; }
 }
 
 function saveGameData(gameId, data) {
     try {
-        deleteSharedGroup(gameId);
-        updateSharedGroupEntry(getGamesListId(data.Creation.UserId), gameId, data);
-    } catch (e) { logException(getISOTimestamp(), 'saveGameData:' + gameId + ',' + JSON.stringify(data), e); throw e; }
+        updateSharedGroupEntry(getGamesListId(getCreatorId(gameId)), gameId, data);
+    } catch (e) { logException(getISOTimestamp(), e, 'saveGameData:' + gameId + ',' + JSON.stringify(data)); throw e; }
 }
 
-function deleteGameData(gameId, data) {
-    try {
-        deleteSharedGroup(gameId);
-        deleteSharedGroupEntry(getGamesListId(data.Creation.UserId), gameId);
-    } catch (e) { logException(getISOTimestamp(), 'deleteGameData:' + gameId + ',' + JSON.stringify(data), e); throw e; }
-}
-
-function addGameToList(gameId, data) {
-    try {
-        beforeAddingGameToPlayerList(gameId, data);
-        updateSharedGroupEntry(getGamesListId(), gameId, data);
-    } catch (e) { logException(getISOTimestamp(), 'addGameToList:' + gameId + ',' + JSON.stringify(data), e); throw e; }
-}
-
-function createGame(args, timestamp) {
-    try {
-        createSharedGroup(args.GameId);
-        var data = {};
-        data.Env = {Region: args.Region, AppVersion: args.AppVersion, AppId: args.AppId, TitleId: script.titleId,
-                    CloudScriptVersion: script.version, CloudScriptRevision: script.revision, PlayFabServerVersion: server.version,
-                   WebhooksVersion: undefinedOrNull(args.Nickname) ? '1.0' : '1.2'};
-        data.RoomOptions = args.CreateOptions;
-        data.Creation = {Timestamp: timestamp, UserId: args.UserId, Type: args.Type};
-        data.Actors = {1: {UserId: args.UserId, Inactive: false}};
-        data.NextActorNr = 2;
-        onGameCreated(args, data);
-        updateSharedGroupData(args.GameId, data);
-        addGameToList(args.GameId, data);
-    } catch (e) { throw new PhotonException(7, 'Error creating new game: ' + args.GameId, timestamp, {Webhook: args}); }
-}
-
-function compareEnv(timestamp, args, data) {
-    try {
-        if (args.AppId !== data.Env.AppId) {
-            onEnvChanged({timestamp: timestamp, type: 'AppId', loaded: data.Env.AppId, read: args.AppId}, args, data);
-        }
-        if (args.AppVersion !== data.Env.AppVersion) {
-            onEnvChanged({timestamp: timestamp, type: 'AppVersion', loaded: data.Env.Region, read: args.Region}, args, data);
-        }
-        if (args.Region !== data.Env.Region) {
-            onEnvChanged({timestamp: timestamp, type: 'Region', loaded: data.Env.Region, read: args.Region}, args, data);
-        }
-        if (args.Type !== 'Close' && args.Type !== 'Save') {
-            if (undefinedOrNull(args.Nickname) && data.Env.WebhooksVersion !== '1.0') {
-                onEnvChanged({timestamp: timestamp, type: 'WebhookVersion', loaded: data.Env.WebhooksVersion, read: '1.0'}, args, data);
-            }
-        } else {
-            if (undefinedOrNull(args.State2) && data.Env.WebhooksVersion !== '1.2') {
-                onEnvChanged({timestamp: timestamp, type: 'WebhookVersion', loaded: data.Env.WebhooksVersion, read: '1.2'}, args, data);
-            }
-        }
-        if (script.titleId !== data.Env.TitleId) {
-            onEnvChanged({timestamp: timestamp, type: 'TitleId', loaded: data.Env.TitleId, read: script.titleId}, args, data);
-        }
-        if (script.version !== data.Env.CloudScriptVersion) {
-            onEnvChanged({timestamp: timestamp, type: 'CloudScriptVersion', loaded: data.Env.CloudScriptVersion, read: script.version}, args, data);
-        }
-        if (script.revision !== data.Env.CloudScriptRevision) {
-            onEnvChanged({timestamp: timestamp, type: 'CloudScriptRevision', loaded: data.Env.CloudScriptRevision, read: script.revision}, args, data);
-        }
-        if (server.version !== data.Env.PlayFabServerVersion) {
-            onEnvChanged({timestamp: timestamp, type: 'PlayFabServerVersion', loaded: data.Env.CloudScriptRevision, read: server.version}, args, data);
-        }
-    } catch (e) { throw e; }
+function stripRoomState(state) {
+	delete state.DebugInfo;
+	state.ActorList.forEach(function(value, key, myArray) {
+    delete value.DEBUG_BINARY;
+	});
+	return state;
 }
 
 handlers.RoomCreated = function (args) {
     try {
         var timestamp = getISOTimestamp(),
-            data = {},
-            actorNr;
+            data = {};
         checkWebhookArgs(args, timestamp);
         if (args.Type === 'Create') {
-            createGame(args, timestamp);
             return {ResultCode: 0, Message: 'OK'};
         } else if (args.Type === 'Load') {
             data = loadGameData(args.GameId);
-            logException(timestamp, data, 'loadedGameData');
-            if (undefinedOrNull(data.State)) {
-                if (args.CreateIfNotExists === false) {
-                    throw new PhotonException(5, 'Room=' + args.GameId + ' not found', timestamp, {Webhook: args, CustomState: data});
-                } else {
-                    createGame(args, timestamp);
-                    return {ResultCode: 0, Message: 'OK', State: ''}; // TBD: test if State property is required or what can be returned
-                }
+            if (undefinedOrNull(data) || undefinedOrNull(data.State)) {
+                throw new PhotonException(5, 'Room State=' + args.GameId + ' not found', timestamp, {Webhook: args, CustomState: data});
             }
-            if (args.ActorNr === 0) {
-                if (data.Env.WebhooksVersion !== '1.2') {
-                    throw new PhotonException(3, 'AsyncRejoin behaviour in 1.0', timestamp, {Webhook: args, CustomState: data});
-                } else {
-                    args.ActorNr = data.NextActorNr;
-                    data.NextActorNr = data.NextActorNr + 1;
-                    data.Actors[args.ActorNr] = {UserId: args.UserId, Inactive: false};
-                }
-            } else if (data.RoomOptions.PlayerTTL !== 0 && data.NextActorNr > args.ActorNr) {
-                if (args.ActorNr > 0) {
-                    if (data.Actors[args.ActorNr].Inactive === false) {
-                        throw new PhotonException(2, 'Actor is already joined', timestamp, {Webhook: args, CustomState: data});
-                    } else if (data.RoomOptions.CheckUserOnJoin === true && args.UserId !== data.Actors[args.ActorNr].UserId) {
-                        throw new PhotonException(2, 'Illegal rejoin with different UserId', timestamp, {Webhook: args, CustomState: data});
-                    } else if (args.UserId !== data.Actors[args.ActorNr].UserId) {
-                        data.Actors[args.ActorNr].UserId = args.UserId;
-                    }
-                } else if (data.RoomOptions.CheckUserOnJoin === true) {
-                    for (actorNr in data.Actors) {
-                        if (data.Actors.hasOwnProperty(actorNr) && data.Actors[actorNr].UserId === currentPlayerId) {
-                            if (data.Actors[actorNr].Inactive === false) {
-                                throw new PhotonException(2, 'Actor is already joined?!', timestamp, {Webhook: args, CustomState: data});
-                            }
-                            args.ActorNr = actorNr;
-                            break;
-                        }
-                    }
-                    if (args.ActorNr < 0) {
-                        throw new PhotonException(3, 'Unexpected ActorNr in weird Load event', timestamp, {Webhook: args, CustomState: data});
-                    }
-                } else {
-                    throw new PhotonException(3, 'Unexpected ActorNr in weird Load event', timestamp, {Webhook: args, CustomState: data});
-                }
-            } else {
-                throw new PhotonException(3, 'Unexpected ActorNr in weird Load event', timestamp, {Webhook: args, CustomState: data});
-            }
-            data.Actors[args.ActorNr].Inactive = false;
-            if (undefinedOrNull(data.LoadEvents)) {
-                data.LoadEvents = {};
-            }
-            data.LoadEvents[timestamp] = {ActorNr: args.ActorNr, UserId: args.UserId, CreateIfNotExists: args.CreateIfNotExists};
-            try { createSharedGroup(args.GameId); } catch (x) {}
-            onGameLoaded(args, data);
-            updateSharedGroupData(args.GameId, data);
             return {ResultCode: 0, Message: 'OK', State: data.State};
         } else {
             throw new PhotonException(2, 'Wrong PathCreate Type=' + args.Type, timestamp, {Webhook: args});
@@ -411,87 +310,13 @@ handlers.RoomCreated = function (args) {
 
 handlers.RoomClosed = function (args) {
     try {
-        var timestamp = getISOTimestamp(),
-            data = {};
-        checkWebhookArgs(args, timestamp);
-        data = getSharedGroupData(args.GameId);
-        if (Object.keys(data.Actors).length !== args.ActorCount) {
-            throw new PhotonException(6, 'Actors count does not match', timestamp, {Webhook: args, CustomState: data});
-        }
-        if (!undefinedOrNull(args.State2)) {
-            if (undefinedOrNull(args.State2.ActorList)) {
-                throw new PhotonException(6, 'State2 does not contain ActorList', timestamp, {Webhook: args, CustomState: data});
-            } else if (args.ActorCount !== args.State2.ActorList.length) {
-                throw new PhotonException(6, 'Actors count does not match', timestamp, {Webhook: args, CustomState: data});
-            }
-        } else if (data.Env.WebhooksVersion !== '1.2') {
-            throw new PhotonException(1, 'Missing argument State2', timestamp, {Webhook: args, CustomState: data});
-        }
-        // TODO: compare data.Env with current env
+        var timestamp = getISOTimestamp();
         if (args.Type === 'Close') {
-            beforeGameDeletion(args, data);
-            deleteGameData(data);
+					logException(timestamp, args, 'Unexpected GameClose, Type == Close');
         } else if (args.Type === 'Save') {
-            if (undefinedOrNull(data.SaveEvents)) {
-                data.SaveEvents = {};
-            }
-            data.SaveEvents[timestamp] = {ActorCount: args.ActorCount};
-            data.State = args.State;
-            beforeSavingGame(args, data);
+						data.State = stripRoomState(args.State);
             saveGameData(args.GameId, data);
-        } else {
-            throw new PhotonException(2, 'Wrong PathClose Type=' + args.Type, timestamp, {Webhook: args, CustomState: data});
         }
-        return {ResultCode: 0, Message: 'OK'};
-    } catch (e) {
-        if (e instanceof PhotonException) {
-            return {ResultCode: e.ResultCode, Message: e.Message};
-        }
-        return {ResultCode: 100, Message: JSON.stringify(e)};
-    }
-};
-
-handlers.RoomJoined = function (args) {
-    try {
-        var timestamp = getISOTimestamp(),
-            data = {},
-            actorNr;
-        checkWebhookArgs(args, timestamp);
-        data = getSharedGroupData(args.GameId);
-        if (args.Type !== 'Join') {
-            throw new PhotonException(2, 'Wrong PathJoin Type=' + args.Type, timestamp, {Webhook: args, CustomState: data});
-        }
-        // TODO: compare data.Env with current env
-        if (data.RoomOptions.PlayerTTL !== 0 && data.NextActorNr > args.ActorNr) { // ActorNr is already claimed, should be a rejoin
-            if (data.Actors[args.ActorNr].Inactive === false) {
-                throw new PhotonException(2, 'Actor is already joined', timestamp, {Webhook: args, CustomState: data});
-            } else if (data.RoomOptions.CheckUserOnJoin === true && args.UserId !== data.Actors[args.ActorNr].UserId) {
-                throw new PhotonException(2, 'Illegal rejoin with different UserId', timestamp, {Webhook: args, CustomState: data});
-            } else if (args.UserId !== data.Actors[args.ActorNr].UserId) {
-                data.Actors[args.ActorNr].UserId = args.UserId;
-            }
-            data.Actors[args.ActorNr].Inactive = false;
-        } else if (data.NextActorNr === args.ActorNr) { // first join
-            if (Object.keys(data.Actors).length === args.RoomOptions.MaxPlayers) {
-                throw new PhotonException(2, 'Actors overflow', timestamp, {Webhook: args, CustomState: data});
-            }
-            for (actorNr in data.Actors) {
-                if (data.Actors.hasOwnProperty(actorNr) && data.Actors[actorNr].UserId === currentPlayerId) {
-                    throw new PhotonException(2, 'UserId is already used', timestamp, {Webhook: args, CustomState: data});
-                }
-            }
-            addGameToList(args.GameId, {Env: data.Env, Creation: data.Creation});
-            data.Actors[args.ActorNr] = {UserId: args.UserId, Inactive: false};
-            data.NextActorNr = data.NextActorNr + 1;
-        } else {
-            throw new PhotonException(2, 'Unexpected ActorNr', timestamp, {Webhook: args, CustomState: data});
-        }
-        if (undefinedOrNull(data.JoinEvents)) {
-            data.JoinEvents = {};
-        }
-        data.JoinEvents[timestamp] = {ActorNr: args.ActorNr, UserId: args.UserId};
-        onPlayerJoined(args, data);
-        updateSharedGroupData(args.GameId, data);
         return {ResultCode: 0, Message: 'OK'};
     } catch (e) {
         if (e instanceof PhotonException) {
@@ -503,66 +328,13 @@ handlers.RoomJoined = function (args) {
 
 handlers.RoomLeft = function (args) {
     try {
-        var timestamp = getISOTimestamp(),
-            data = {};
+        var timestamp = getISOTimestamp();
         checkWebhookArgs(args, timestamp);
-        data = getSharedGroupData(args.GameId);
-        if (!LeaveReason.hasOwnProperty(args.Type)) {
-            throw new PhotonException(2, 'Wrong PathLeave Type=' + args.Type, timestamp, {Webhook: args, CustomState: data});
-        }
-        // TODO: compare data.Env with current env
-        if (!data.Actors.hasOwnProperty(args.ActorNr)) {
-            throw new PhotonException(2, 'No ActorNr inside the room', timestamp, {Webhook: args, CustomState: data});
-        }
-        if (args.Type !== LeaveReason.PlayerTtlTimedOut && data.Actors[args.ActorNr].Inactive === true) {
-            throw new PhotonException(2, 'Inactive actors cant leave', timestamp, {Webhook: args, CustomState: data});
-        }
-        if (data.Actors[args.ActorNr].UserId !== args.UserId) {
-            throw new PhotonException(2, 'Leaving UserId is different from joined', timestamp, {Webhook: args, CustomState: data});
-        }
-        if (args.IsInactive === true) {
-            data.Actors[args.ActorNr].Inactive = true;
-        } else if (args.ActorNr !== 1) { // temporary fix
-            delete data.Actors[args.ActorNr];
-            deleteSharedGroupEntry(getGamesListId(), args.GameId);
-        }
-        if (undefinedOrNull(data.LeaveEvents)) {
-            data.LeaveEvents = {};
-        }
-        data.LeaveEvents[timestamp] = {ActorNr: args.ActorNr, UserId: args.UserId, CanRejoin: args.IsInactive, Reason: args.Reason + ':' + args.Type};
-        onPlayerLeft(args, data);
-        updateSharedGroupData(args.GameId, data);
+				if (args.IsInactive === false) {
+					logException(timestamp, args, 'Unexpected GameLeave, IsInactive == false');
+				}
         return {ResultCode: 0, Message: 'OK'};
     } catch (e) {
-        if (e instanceof PhotonException) {
-            return {ResultCode: e.ResultCode, Message: e.Message};
-        }
-        return {ResultCode: 100, Message: JSON.stringify(e)};
-    }
-};
-
-handlers.RoomPropertyUpdated = function (args) {
-    try {
-        var timestamp = getISOTimestamp(),
-            data = {};
-        checkWebhookArgs(args, timestamp);
-        data = getSharedGroupData(args.GameId);
-        if (args.Type === 'Player') {
-            onPlayerPropertyChanged(args, data);
-        } else if (args.Type === 'Game') {
-            onRoomPropertyChanged(args, data);
-        } else {
-            throw new PhotonException(2, 'Wrong PathGameProperties Type=' + args.Type, timestamp, {Webhook: args, CustomState: data});
-        }
-        if (!undefinedOrNull(args.State)) {
-            data.State = args.State;
-            //updateSharedGroupEntry(getGamesListId(data.Creation.UserId), args.GameId, data);
-        } else if (data.Env.WebhooksVersion !== '1.2') {
-            throw new PhotonException(1, 'Missing argument State', timestamp, {Webhook: args, CustomState: data});
-        }
-				updateSharedGroupData(args.GameId, data);
-				return {ResultCode: 0, Message: 'OK'};
-		} catch (e) {
         if (e instanceof PhotonException) {
             return {ResultCode: e.ResultCode, Message: e.Message};
         }
@@ -576,18 +348,11 @@ handlers.RoomEventRaised = function (args) {
             data = {};
         checkWebhookArgs(args, timestamp);
         data = getSharedGroupData(args.GameId);
-        if (args.Type !== 'Event') {
-            throw new PhotonException(2, 'Wrong PathEvent Type=' + args.Type, timestamp, {Webhook: args, CustomState: data});
-        }
         onEventReceived(args, data);
         if (!undefinedOrNull(args.State)) {
-            data.State = args.State;
-            //updateSharedGroupData(args.GameId, data);
-            updateSharedGroupEntry(getGamesListId(data.Creation.UserId), args.GameId, data);
-        } else if (data.Env.WebhooksVersion !== '1.2') {
-            throw new PhotonException(1, 'Missing argument State', timestamp, {Webhook: args, CustomState: data});
+          data.State = args.State;
         }
-				updateSharedGroupData(args.GameId, data);
+				saveGameData(args.GameId, data);
         return {ResultCode: 0, Message: 'OK'};
     } catch (e) {
         if (e instanceof PhotonException) {

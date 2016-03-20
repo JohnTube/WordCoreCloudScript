@@ -51,61 +51,57 @@ var GameStates = {
 };
 
 function onInitGame(args, data) {
-    var eventData = args.Data,
-		gameData = {a: [{id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w}],
+    var eventData = args.Data;
+		data = {a: [{id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w}],
 				s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
-    gameData.r = [{gs: eventData.r.gs, ts: eventData.r.ts, r: eventData.r.r, m: [{}, {}]}];
-    data.gameData = gameData;
+    data.r = [{gs: eventData.r.gs, ts: eventData.r.ts, r: eventData.r.r, m: [{}, {}]}];
 }
 
 function onJoinGame(args, data) {
-    var eventData = args.Data,
-	    gameData = data.gameData;
-	gameData.s += 2;
-	gameData.a.push({id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w});
-    data.gameData = gameData;
+		updateSharedGroupEntry(getGamesListId(args.UserId), args.gameId, {});
+    var eventData = args.Data;
+		data.s += 2;
+		data.a.push({id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w});
 }
 
 function onWordukenUsed(args, data) {
-    var eventData = args.Data, // TODO: test args and eventData
-	    gameData = data.gameData;
+    var eventData = args.Data; // TODO: test args and eventData
 	// TODO : test if worduken use is legit/legal
-	gameData.a[args.ActorNr - 1].w[eventData.wi] = eventData;
-    data.gameData = gameData;
+		data.a[args.ActorNr - 1].w[eventData.wi] = eventData;
 }
 
 function onEndOfTurn(args, data) {
-    var eventData = args.Data, // TODO: test args and eventData
-	    gameData = addMoveToGame(data.gameData, args.ActorNr, eventData);
-    gameData.t += args.ActorNr;
-   gameData.s = GameStates.Playing + args.ActorNr;
+    var eventData = args.Data; // TODO: test args and eventData
+		data = addMoveToGame(data, args.ActorNr, eventData);
+		data.t += args.ActorNr;
+   	data.s = GameStates.Playing + args.ActorNr;
 	// TODO : send push?
 }
 
 function onEndOfRound(args, data) {
-    var eventData = args.Data, // TODO: test args and eventData
-	    gameData = addMoveToGame(data.gameData, args.ActorNr, eventData.m);
-    gameData.r.push(eventData.r);
-    gameData.r[eventData.m.r].m = [{}, {}];
-    gameData.t += args.ActorNr;
-	  gameData.s = GameStates.Playing;
+    var eventData = args.Data; // TODO: test args and eventData
+    data = addMoveToGame(data, args.ActorNr, eventData.m);
+    data.r.push(eventData.r);
+    data.r[eventData.m.r].m = [{}, {}];
+    data.t += args.ActorNr;
+	  data.s = GameStates.Playing;
 	// TODO : send push
 
 }
 
 function onEndOfGame(args, data) {
-    var eventData = args.Data, // TODO: test args and eventData
-	    gameData = addMoveToGame(data.gameData, args.ActorNr, eventData);
-    gameData.t += args.ActorNr;
-	if (gameData.a[0].s === gameData.a[1].s) {
-		gameData.s = GameStates.EndedDraw;
-	} else if (gameData.a[0].s > gameData.a[1].s) {
-		gameData.s = GameStates.EndedP1Won;
+    var eventData = args.Data; // TODO: test args and eventData
+	  data = addMoveToGame(data, args.ActorNr, eventData);
+    data.t += args.ActorNr;
+	if (data.a[0].s === data.a[1].s) {
+		data.s = GameStates.EndedDraw;
+	} else if (data.a[0].s > data.a[1].s) {
+		data.s = GameStates.EndedP1Won;
 	} else {
-		gameData.s = GameStates.EndedP2Won;
+		data.s = GameStates.EndedP2Won;
 	}
-	// TODO : send push
   deleteOrFlagGames([args.GameId]);
+	// TODO : send push
 }
 
 
@@ -127,53 +123,9 @@ function onEndOfGame(args, data) {
 //- SaveEvents (Timestamp, UserId)
 //- State (Photon Room State)
 
-
-// args = PathCreate, Type='Create' webhook args. you need args.GameId.
-// data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
-function onGameCreated(args, data) {
-
-}
-
-// args = PathCreate, Type='Load' webhook args. you need args.GameId.
-// data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
-function onGameLoaded(args, data) {
-
-}
-
-// args = PathClose, Type='Close' webhook args. you need args.GameId.
-// data = Room data. this will be destroyed and lost.
-function beforeGameDeletion(args, data) {
-
-}
-
-// args = PathClose, Type='Save' webhook args. you need args.GameId. args.State is already added to data.
-// data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
-function beforeSavingGame(args, data) {
-
-}
-
-// gameId = GameId of the game
-// gameEntry = game entry in the list, content vary
-function beforeAddingGameToPlayerList(gameId, data) {
-
-}
-
-// args = PathJoin webhook args. you need args.ActorNr.
-// data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
-function onPlayerJoined(args, data) {
-
-}
-
-// args = PathLeft webhook args. you need args.ActorNr.
-// data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
-function onPlayerLeft(args, data) {
-
-}
-
 // args = PathEvent webhook args, you need args.EvCode and args.Data (event data).
 // data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
 function onEventReceived(args, data) {
-
     var CustomEventCodes = {Undefined : 0, InitGame : 1, JoinGame : 2, WordukenUsed : 3, EndOfTurn : 4, EndOfRound : 5, EndOfGame : 6};
     switch (args.EvCode) {
     case CustomEventCodes.InitGame: // args.ActorNr === 1
@@ -196,50 +148,3 @@ function onEventReceived(args, data) {
         break;
 	}
 }
-
-// args = PathGameProperties webhook args, you need args.TargetActor and args.Properties.
-// data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
-function onPlayerPropertyChanged(args, data) {
-
-}
-
-// args = PathGameProperties webhook args, you need args.Properties.
-// data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
-function onRoomPropertyChanged(args, data) {
-
-}
-
-/*global PhotonException */
-
-// change = {type: <>, loaded: <saved/inGame_Value>, read: <current/received_Value>, timestamp: <>}
-// args = webhook args
-// data = game data
-function onEnvChanged(change, args, data) {
-
-    switch (change.type) {
-    case 'AppId': // should not happen
-        throw new PhotonException(101, 'AppId mismatch', change.timestamp, {Change: change, Webhook: args, GameData: data});
-    case 'AppVersion': // choose to allow or disallow, tip: you may want to update client or server game data
-        // throw new PhotonException(101, 'AppVersion mismatch', change.timestamp, {Change: change, Webhook: args, GameData: data});
-        break;
-    case 'Region': // choose to allow or disallow, tip:  a "hack" may join players from different regions
-        // throw new PhotonException(101, 'Region mismatch', change.timestamp, {Change: change, Webhook: args, GameData: data});
-        break;
-    case 'WebhooksVersion':
-        // throw new PhotonException(101, 'WebhooksVersion mismatch', change.timestamp, {Change: change, Webhook: args, GameData: data});
-        break;
-    case 'TitleId': // should not happen
-        throw new PhotonException(101, 'TitleId mismatch', change.timestamp, {Change: change, Webhook: args, GameData: data});
-    case 'CloudScriptVersion': // tip: you may want to update client or server game data
-        // throw new PhotonException(101, 'CloudScriptVersion mismatch', change.timestamp, {Change: change, Webhook: args, GameData: data});
-        break;
-    case 'CloudScriptRevision': // tip: you may want to update client or server game data
-        // throw new PhotonException(101, 'CloudScriptRevision mismatch', change.timestamp, {Change: change, Webhook: args, GameData: data});
-        break;
-    case 'PlayFabServerVersion': // you can safely skip this
-        // throw new PhotonException(101, 'PlayFabServerVersion mismatch', change.timestamp, {Change: change, Webhook: args, GameData: data});
-        break;
-    }
-}
-
-/*****************************************************************************************************************************/
