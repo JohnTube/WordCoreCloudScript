@@ -116,22 +116,16 @@ var CustomEventCodes = {Undefined : 0, InitGame : 1, JoinGame : 2, WordukenUsed 
 function onEventReceived(args, data) {
     switch (args.EvCode) {
     case CustomEventCodes.InitGame: // args.ActorNr === 1
-        onInitGame(args, data);
-        break;
+        return onInitGame(args, data);
     case CustomEventCodes.JoinGame: // args.ActorNr === 2
-        onJoinGame(args, data);
-        break;
+        return onJoinGame(args, data);
     case CustomEventCodes.WordukenUsed:
-        onWordukenUsed(args, data);
-        break;
+        return onWordukenUsed(args, data);
     case CustomEventCodes.EndOfTurn: // args.Data.t % 3 !== 0
-        onEndOfTurn(args, data);
-        break;
+        return onEndOfTurn(args, data);
     case CustomEventCodes.EndOfRound: // args.Data.t % 3 === 0
-        onEndOfRound(args, data);
-        break;
+        return onEndOfRound(args, data);
     case CustomEventCodes.EndOfGame: // args.Data.t = MAX_TURNS_PER_GAME
-        onEndOfGame(args, data);
-        break;
+        return onEndOfGame(args, data);
 	}
 }
