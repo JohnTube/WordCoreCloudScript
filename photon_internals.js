@@ -196,10 +196,12 @@ handlers.RoomCreated = function (args) {
 
 handlers.RoomClosed = function (args) {
     try {
-        var timestamp = getISOTimestamp();
+        var timestamp = getISOTimestamp(),
+						data = {};
         if (args.Type === 'Close') {
 					logException(timestamp, args, 'Unexpected GameClose, Type == Close');
         } else if (args.Type === 'Save') {
+						data = loadGameData(args.GameId);
 						data.State = stripRoomState(args.State);
             saveGameData(args.GameId, data);
         }
