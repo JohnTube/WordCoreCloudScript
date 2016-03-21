@@ -42,7 +42,7 @@ function pollGamesData() {
 		if (gameList.hasOwnProperty(gameKey)) {
 			userKey = getCreatorId(gameKey);
 			if (userKey === currentPlayerId) {
-				if (!undefinedOrNull(gameList[gameKey])) {
+				if (!undefinedOrNull(gameList[gameKey])) { // TODO: remove test
 					if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
 							gameList[gameKey].s === GameStates.UnmatchedWaiting) {
 							if (checkMatchmakingTimeOut(gameList[gameKey].ts)) {
@@ -71,7 +71,7 @@ function pollGamesData() {
 								}
 							} else {
 								listToUpdate[listId][gameKey] = null; // deleting values that do not contain 'gameData' key
-								logException(getISOTimestamp(), gameList[gameKey], 'gameData is undefinedOrNull');
+								logException(getISOTimestamp(), gameList[gameKey], 'Game ' + gameKey + ' value is undefinedOrNull');
 							}
 						} else {
 							if (!listToLoad.hasOwnProperty(userKey)) {
@@ -121,7 +121,7 @@ for (userKey in listToLoad) {
 								listToUpdate[listId][gameKey] = null;
 								logException(getISOTimestamp(), gameList[gameKey], 'Game ' + gameKey + ' value is undefinedOrNull');
 							}
-						} else if (listToLoad[userKey].hasOwnProperty(gameKey)) {
+						} else if (listToLoad[userKey].includes(gameKey)) {
 							listToUpdate[getGamesListId()][gameKey] = null;
 							logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + currentPlayerId);
 						}
