@@ -121,7 +121,7 @@ for (userKey in listToLoad) {
 								listToUpdate[listId][gameKey] = null;
 								logException(getISOTimestamp(), gameList[gameKey], 'Game ' + gameKey + ' value is undefinedOrNull');
 							}
-						} else {
+						} else if (listToLoad[userKey].hasOwnProperty(gameKey)) {
 							listToUpdate[getGamesListId()][gameKey] = null;
 							logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + currentPlayerId);
 						}
@@ -179,7 +179,7 @@ function deleteOrFlagGames(games) {
 						gameData.deletionFlag = 2;
 						listToUpdate[listId][gameKey] = gameData;
 					}
-				} else {
+				} else if (listToLoad[userKey].hasOwnProperty(gameKey)) {
 					listToUpdate[getGamesListId()][gameKey] = null;
 					logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + currentPlayerId);
 				}
