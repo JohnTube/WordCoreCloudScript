@@ -59,7 +59,7 @@ function onInitGame(args, data) {
 }
 
 function onJoinGame(args, data) {
-		updateSharedGroupEntry(getGamesListId(args.UserId), args.gameId, {});
+		updateSharedGroupEntry(getGamesListId(args.UserId), args.GameId, {});
     var eventData = args.Data;
 		data.s += 2;
 		data.a.push({id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w});
