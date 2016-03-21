@@ -61,7 +61,7 @@ function pollGamesData() {
 									}
 								}
 								if (!undefinedOrNull(gameList[gameKey].a) &&
-										gameList[gameKey].a.lengnth >= 1 &&
+										gameList[gameKey].a.length >= 1 &&
 										gameList[gameKey].a[0].id === currentPlayerId) {
 											data[gameKey] = gameList[gameKey];
 											data[gameKey].pn = 1;
