@@ -19,10 +19,17 @@ function getISOTimestamp() {
 
 function logException(timestamp, data, message) {
     //TEMPORARY solution until log functions' output is available from GameManager
-    return server.SetTitleData({
+    /*return server.SetTitleData({
         Key: timestamp,
         Value: JSON.stringify({Message: message, Data: data})
-    });
+    });*/
+		http.request('http://logs-01.loggly.com/inputs/47d0eb9f-eb72-49a3-8921-730df6ea180c/tag/http/', 'post',
+			JSON.stringify({
+				ts: timestamp,
+				msg: message,
+				d: data
+			}),
+			'application/json');
 }
 
 function createSharedGroup(id) {
