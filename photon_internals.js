@@ -158,6 +158,7 @@ function loadGameData(gameId) {
 
 function saveGameData(gameId, data) {
     try {
+        delete data.pn; // temporary TODO: remove later
         updateSharedGroupEntry(getGamesListId(getCreatorId(gameId)), gameId, data);
     } catch (e) { logException(getISOTimestamp(), e, 'saveGameData:' + gameId + ',' + JSON.stringify(data)); throw e; }
 }
@@ -283,3 +284,19 @@ function sendPushNotification(targetId, msg, data, title, icon) {
         throw e;
     }
 }
+
+handlers.RoomJoined = function (args) { // added to stop receiving ErrorInfo event
+    try {
+        var timestamp = getISOTimestamp();
+        checkWebhookArgs(args, timestamp);
+        if (args.ActorNr < 0 || args.ActorNr > 2) {
+          throw new PhotonException(5, "ActorNr < 0 || ActorNr > 2", getISOTimestamp(), args);
+        }
+        return {ResultCode: 0, Message: 'OK'};
+    } catch (e) {
+        if (e instanceof PhotonException) {
+            return {ResultCode: e.ResultCode, Message: e.Message};
+        }
+        return {ResultCode: 100, Message: JSON.stringify(e)};
+    }
+};

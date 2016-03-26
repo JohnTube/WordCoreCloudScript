@@ -42,7 +42,7 @@ function pollGamesData() {
 		if (gameList.hasOwnProperty(gameKey)) {
 			userKey = getCreatorId(gameKey);
 			if (userKey === currentPlayerId) {
-				if (!undefinedOrNull(gameList[gameKey])) { // TODO: remove test
+				//if (!undefinedOrNull(gameList[gameKey])) { // TODO: remove test
 					if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
 							gameList[gameKey].s === GameStates.UnmatchedWaiting) {
 							if (checkMatchmakingTimeOut(gameList[gameKey].ts)) {
@@ -69,10 +69,10 @@ function pollGamesData() {
 									listToUpdate[listId][gameKey] = null; // deleting values that do not contain 'gameData' key
 									logException(getISOTimestamp(), gameList[gameKey], 'actors array is missing or corrupt');
 								}
-							} else {
+							/*} else {
 								listToUpdate[listId][gameKey] = null; // deleting values that do not contain 'gameData' key
 								logException(getISOTimestamp(), gameList[gameKey], 'Game ' + gameKey + ' value is undefinedOrNull');
-							}
+							}*/
 						} else {
 							if (!listToLoad.hasOwnProperty(userKey)) {
 								listToLoad[userKey] = [];
@@ -88,7 +88,7 @@ for (userKey in listToLoad) {
 		gameList = getSharedGroupData(listId, listToLoad[userKey]);
 		for (gameKey in listToLoad[userKey]) {
 			if (gameList.hasOwnProperty(gameKey)) {
-				if (!undefinedOrNull(gameList[gameKey])) {
+				//if (!undefinedOrNull(gameList[gameKey])) {
 					if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
 							gameList[gameKey].s === GameStates.UnmatchedWaiting) {
 							if (checkMatchmakingTimeOut(gameList[gameKey].ts)) {
@@ -117,10 +117,10 @@ for (userKey in listToLoad) {
 									listToUpdate[listId][gameKey] = null;
 									logException(getISOTimestamp(), gameList[gameKey], 'actors array is missing or corrupt');
 								}
-							} else {
+							/*} else {
 								listToUpdate[listId][gameKey] = null;
 								logException(getISOTimestamp(), gameList[gameKey], 'Game ' + gameKey + ' value is undefinedOrNull');
-							}
+							}*/
 						} else if (listToLoad[userKey].includes(gameKey)) {
 							listToUpdate[getGamesListId()][gameKey] = null;
 							logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + currentPlayerId);
@@ -137,7 +137,39 @@ for (userKey in listToLoad) {
 }
 
 function getDiffData(gameData, clientGame) {
-	var diff = gameData; // temporary
+	var diff = {}, x = gameData.t - clientGame.t, actorNr = 1;
+	if (gameData.a[0].id !== currentPlayerId) {actorNr = 2;}
+	var opponentNr = 3 - actorNr;
+	if (x > 0) {
+		if (gameData.s === clientGame.s) {
+				return null;
+		}
+		diff.s = gameData.s;
+		if (x === opponentNr) { // player should be missing one opponent move
+			if (gameData.t % 3 === 0 && clientGame.s === GameStates.Playing + actorNr) {
+					// player should be missing last move in a round
+					diff.e = gameData.Cache[actorNr];
+			} else if (gameData.t % 3 === opponentNr && clientGame.s === GameStates.Playing) {
+					// player should be missing first move in a round
+					diff.e = gameData.Cache[actorNr];
+			}
+			return null;
+		} else if (x === 2 * opponentNr && clientGame.s === GameStates.Playing + actorNr && gameData.t % 3 === opponentNr) {
+				// player should be missing two opponent moves
+				diff.e = gameData.Cache[actorNr];
+		} else {
+			return null;
+		}
+		diff.t = gameData.t;
+	} else if (x < 0) {
+		throw new PhotonException(5, "Unexpected: clientTurnNr > serverTurnNr", getISOTimestamp(), { serverData: gameData, clientData: clientGame });
+	}
+	else if (gameData.s !== clientGame.s) {
+		diff.s = gameData.s;
+		if (clientGame.s === GameStates.Playing || clientGame.s === GameStates.P1Waiting) { // player should be missing join event
+			diff.e = gameData.Cache[actorNr];
+		}
+	}
 	return diff;
 }
 
@@ -206,6 +238,7 @@ handlers.pollData = function (args) {
 			gameData = serverGamesData[gameKey];
 			if (undefinedOrNull(clientGamesList) || !clientGamesList.hasOwnProperty(gameKey)) {
 				if (gameData.s < GameStates.P1Resigned && gameData.s > GameStates.MatchmakingTimedOut) {
+					delete gameData.State;
 					data.n[gameKey] = gameData;
 				}
 			} else {

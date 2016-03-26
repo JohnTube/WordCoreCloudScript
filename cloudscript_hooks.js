@@ -55,22 +55,23 @@ function onInitGame(args, data) {
 		data = {a: [{id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w}],
 				s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
     data.r = [{gs: eventData.r.gs, ts: eventData.r.ts, r: eventData.r.r, m: [{}, {}]}];
-		return data;
+		return data; // do not cache this event
 }
 
 function onJoinGame(args, data) {
 		updateSharedGroupEntry(getGamesListId(args.UserId), args.GameId, {});
     var eventData = args.Data;
 		data.s += 2;
-		data.a.push({id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w});
-		return data;
+		//data.a.push({id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w});
+		data.a[1] = {id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w};
+		return addToEventsCache(args, data);
 }
 
 function onWordukenUsed(args, data) {
     var eventData = args.Data; // TODO: test args and eventData
 	// TODO : test if worduken use is legit/legal
 		data.a[args.ActorNr - 1].w[eventData.wi] = eventData;
-		return data;
+		return addToEventsCache(args, data);
 }
 
 function onEndOfTurn(args, data) {
@@ -78,8 +79,11 @@ function onEndOfTurn(args, data) {
 		data = addMoveToGame(data, args.ActorNr, eventData);
 		data.t += args.ActorNr;
    	data.s = GameStates.Playing + args.ActorNr;
-	// TODO : send push?
-	return data;
+		// TODO : send push?
+		if (data.s === GameStates.UnmatchedWaiting) { // cache this directly in Photon
+			return data;
+		}
+		return addToEventsCache(args, data);
 }
 
 function onEndOfRound(args, data) {
@@ -90,8 +94,7 @@ function onEndOfRound(args, data) {
     data.t += args.ActorNr;
 	  data.s = GameStates.Playing;
 	// TODO : send push
-	return data;
-
+	return addToEventsCache(args, data);
 }
 
 function onEndOfGame(args, data) {
@@ -107,25 +110,90 @@ function onEndOfGame(args, data) {
 	}
   deleteOrFlagGames([args.GameId]);
 	// TODO : send push
-	return data;
+	return addToEventsCache(args, data);
 }
 
-var CustomEventCodes = {Undefined : 0, InitGame : 1, JoinGame : 2, WordukenUsed : 3, EndOfTurn : 4, EndOfRound : 5, EndOfGame : 6};
+var CustomEventCodes = {Undefined : 0, InitGame : 1, JoinGame : 2, WordukenUsed : 3, EndOfTurn : 4, EndOfRound : 5, EndOfGame : 6,
+												JoinGameAck: 7, WordukenUsedAck: 8, EndOfTurnAck: 9, EndOfRoundAck: 10, EndOfGameAck: 11};
+var MAX_ROUNDS_PER_GAME = 5;
+var MAX_TURNS_PER_GAME = 3 * MAX_ROUNDS_PER_GAME;
+
+
+// args = PathEvent webhook args, you need args.EvCode and args.Data (event data).
+// data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
+function addToEventsCache(args, data) {
+		if (!data.hasOwnProperty((3 - args.ActorNr))) {
+			data[3 - args.ActorNr] = [];
+		}
+		// TODO: test if opponent is inactive
+		var cachedEvent = [
+			args.ActorNr,
+			args.EvCode,
+			args.Data
+		];
+		data[3 - args.ActorNr].push(cachedEvent);
+		return data;
+}
+
+// args = PathEvent webhook args, you need args.EvCode and args.Data (event data).
+// data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
+function removeFromEventsCache(args, data) {
+		var filter = args.Data;
+		if (!data.hasOwnProperty('Cache') && !data.Cache.hasOwnProperty(args.ActorNr)) {
+			// TODO: throw error
+		}
+		for(var i=0; i < data.Cache[args.ActorNr].length; i++) {
+				var event = data.Cache[args.ActorNr][i];
+				if (event[1] === args.EventCode - 5 && args.EventCode > 6) {
+					var foundFlag = true;
+					for(var key in filter) {
+							if (filter.hasOwnProperty(key) && !event[2].hasOwnProperty(key)) {
+									foundFlag = false;
+									break;
+							}
+					}
+					if (foundFlag === true) {
+						data.Cache[args.ActorNr].Splice(i, 1);
+						return data;
+					}
+				}
+		}
+		// TODO: throw error
+		return data;
+}
+
 // args = PathEvent webhook args, you need args.EvCode and args.Data (event data).
 // data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
 function onEventReceived(args, data) {
-    switch (args.EvCode) {
+  switch (args.EvCode) {
     case CustomEventCodes.InitGame: // args.ActorNr === 1
+				if (args.ActorNr !== 1) {
+						throw new PhotonException(5, "Custom InitGame event: Wrong actorNr", getISOTimestamp(), { webhook: args, gameData: data });
+				}
         return onInitGame(args, data);
     case CustomEventCodes.JoinGame: // args.ActorNr === 2
+				if (args.ActorNr !== 2 || data.a.length !== 1) {
+						throw new PhotonException(5, "Custom JoinGame event: Wrong actorNr or duplicate event", getISOTimestamp(), { webhook: args, gameData: data });
+				}
         return onJoinGame(args, data);
     case CustomEventCodes.WordukenUsed:
         return onWordukenUsed(args, data);
     case CustomEventCodes.EndOfTurn: // args.Data.t % 3 !== 0
+				if (args.Data.t % 3 === 0 || args.Data.t < 1 || args.Data.t >= MAX_TURNS_PER_GAME) {
+						throw new PhotonException(5, "Custom EndOfTurn event: wrong turnNr", getISOTimestamp(), { webhook: args, gameData: data });
+				}
         return onEndOfTurn(args, data);
     case CustomEventCodes.EndOfRound: // args.Data.t % 3 === 0
+				if (args.Data.t % 3 !== 0 || args.Data.t < 3 || args.Data.t > MAX_TURNS_PER_GAME) {
+						throw new PhotonException(5, "Custom EndOfRound event: wrong turnNr", getISOTimestamp(), { webhook: args, gameData: data });
+				}
         return onEndOfRound(args, data);
-    case CustomEventCodes.EndOfGame: // args.Data.t = MAX_TURNS_PER_GAME
+    case CustomEventCodes.EndOfGame: // args.Data.t === MAX_TURNS_PER_GAME
+				if (args.Data.t % 3 !== MAX_TURNS_PER_GAME) {
+						throw new PhotonException(5, "Custom EndOfGame event: wrong turnNr", getISOTimestamp(), { webhook: args, gameData: data });
+				}
         return onEndOfGame(args, data);
+		default:
+				return removeFromEventsCache(args, data);
 	}
 }
