@@ -55,6 +55,9 @@ function onInitGame(args, data) {
 		data = {a: [{id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w}],
 				s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
     data.r = [{gs: eventData.r.gs, ts: eventData.r.ts, r: eventData.r.r, m: [{}, {}]}];
+		/*data.Cache = {};
+		data.Cache['1'] = [];
+		data.Cache['2'] = [];*/
 		return data; // do not cache this event
 }
 
@@ -126,7 +129,7 @@ function addToEventsCache(args, data) {
 			data.Cache = {};
 		}
 		if (!data.Cache.hasOwnProperty((3 - args.ActorNr))) {
-			data[3 - args.ActorNr] = [];
+			data.Cache[3 - args.ActorNr] = [];
 		}
 		// TODO: test if opponent is inactive
 		var cachedEvent = [
