@@ -81,7 +81,11 @@ function onEndOfTurn(args, data) {
     var eventData = args.Data; // TODO: test args and eventData
 		data = addMoveToGame(data, args.ActorNr, eventData);
 		data.t += args.ActorNr;
-   	data.s = GameStates.Playing + args.ActorNr;
+		if (args.ActorNr === 1 && data.s === GameStates.UnmatchedPlaying) {
+			data.s = GameStates.UnmatchedWaiting;
+		} else {
+   		data.s = GameStates.Playing + args.ActorNr;
+		}
 		// TODO : send push?
 		if (data.s === GameStates.UnmatchedWaiting) { // cache this directly in Photon
 			return data;
