@@ -137,6 +137,7 @@ for (userKey in listToLoad) {
 }
 
 function getDiffData(gameData, clientGame) {
+	if (!gameData.hasOwnProperty('Cache')) {return null;} // TODO: remove or add log when moving to prod
 	var diff = {}, x = gameData.t - clientGame.t, actorNr = 1;
 	if (gameData.a[0].id !== currentPlayerId) {actorNr = 2;}
 	var opponentNr = 3 - actorNr;
