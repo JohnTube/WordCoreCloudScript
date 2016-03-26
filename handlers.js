@@ -24,8 +24,53 @@ function checkMatchmakingTimeOut(timestamp){
 
 handlers.onLogin = function (args) {
 	try { // temporary
+		if (args.c === true) {
+			createSharedGroup(getGamesListId());
+			return {ResultCode: 0};
+		}
+		var serverGamesData = pollGamesData(),
+		clientGamesList = args.g,
+		gameKey = '',
+		gameData = {},
+		gameState = {},
+		data = {u: {}, o: [], n: {}, r: {}, ni: {}, ui: {}};
+		for (gameKey in serverGamesData) {
+			if (serverGamesData.hasOwnProperty(gameKey)) {
+				gameData = serverGamesData[gameKey];
+				if (undefinedOrNull(clientGamesList) || !clientGamesList.hasOwnProperty(gameKey)) {
+					if (gameData.s < GameStates.P1Resigned && gameData.s > GameStates.MatchmakingTimedOut) {
+						delete gameData.State;
+						data.n[gameKey] = gameData;
+					}
+				} else {
+					gameState = clientGamesList[gameKey];
+					if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
+						var diff = getDiffData(gameData, gameState);
+						if (undefinedOrNull(diff)) {
+							delete gameData.State;
+							data.r[gamekey] = gameData;
+						} else {
+							data.u[gameKey] = diff;
+						}
+					}
+				}
+			}
+		}
+		// sending to client array of 'old/outdated' gameIDs that should be deleted [from cache] locally
+		if (!isEmpty(clientGamesList)) {
+			for (gameKey in clientGamesList) {
+				if (clientGamesList.hasOwnProperty(gameKey)) {
+					if (!serverGamesData.hasOwnProperty(gameKey)) {
+						data.o.push(gameKey);
+					}
+				}
+			}
+		}
+		return {ResultCode: 0, Data: data};
+	} catch (e){
 		createSharedGroup(getGamesListId());
-	} catch (e){}
+		return {ResultCode: 0};
+	}
 };
 
 function pollGamesData() {
@@ -233,7 +278,7 @@ handlers.pollData = function (args) {
 	gameKey = '',
 	gameData = {},
 	gameState = {},
-	data = {u: {}, o: [], n: {}, r: {}, ni: {}, ui: {}};
+	data = {u: {}, n: {}, r: {}, ni: {}, ui: {}}; // TODO: remove r, n
 	for (gameKey in serverGamesData) {
 		if (serverGamesData.hasOwnProperty(gameKey)) {
 			gameData = serverGamesData[gameKey];
@@ -252,16 +297,6 @@ handlers.pollData = function (args) {
 					} else {
 						data.u[gameKey] = diff;
 					}
-				}
-			}
-		}
-	}
-	// sending to client array of 'old/outdated' gameIDs that should be deleted [from cache] locally
-	if (!isEmpty(clientGamesList)) {
-		for (gameKey in clientGamesList) {
-			if (clientGamesList.hasOwnProperty(gameKey)) {
-				if (!serverGamesData.hasOwnProperty(gameKey)) {
-					data.o.push(gameKey);
 				}
 			}
 		}
