@@ -122,7 +122,10 @@ var MAX_TURNS_PER_GAME = 3 * MAX_ROUNDS_PER_GAME;
 // args = PathEvent webhook args, you need args.EvCode and args.Data (event data).
 // data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
 function addToEventsCache(args, data) {
-		if (!data.hasOwnProperty((3 - args.ActorNr))) {
+		if (!data.hasOwnProperty('Cache')) {
+			data.Cache = {};
+		}
+		if (!data.Cache.hasOwnProperty((3 - args.ActorNr))) {
 			data[3 - args.ActorNr] = [];
 		}
 		// TODO: test if opponent is inactive
@@ -131,7 +134,7 @@ function addToEventsCache(args, data) {
 			args.EvCode,
 			args.Data
 		];
-		data[3 - args.ActorNr].push(cachedEvent);
+		data.Cache[3 - args.ActorNr].push(cachedEvent);
 		return data;
 }
 
