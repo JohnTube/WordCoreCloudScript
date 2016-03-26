@@ -237,6 +237,10 @@ handlers.RoomEventRaised = function (args) {
         var timestamp = getISOTimestamp(),
             data = {};
         checkWebhookArgs(args, timestamp);
+        if (args.ActorNr === 0) {
+          logException(getISOTimestamp(), args, "Ignoring cached event resent from server.");
+          return {ResultCode: 0, Message: 'OK'};
+        }
 				if (args.EvCode > CustomEventCodes.InitGame) {
 					data = loadGameData(args.GameId);
 				}
