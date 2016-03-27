@@ -34,7 +34,7 @@ handlers.onLogin = function (args) {
 		gameData = {},
 		gameState = {},
 		data = {u: {}, o: [], n: {}, r: {}, ni: {}, ui: {}};
-		logException(getISOTimestamp(), {s:serverGamesData, c:args}, "PollingGameData_OnLogin");
+		//logException(getISOTimestamp(), {s:serverGamesData, c:args}, "PollingGameData_OnLogin");
 		for (gameKey in serverGamesData) {
 			if (serverGamesData.hasOwnProperty(gameKey)) {
 				gameData = serverGamesData[gameKey];
@@ -88,7 +88,7 @@ function pollGamesData() {
 		data = {};
 		gameList = getSharedGroupData(listId);
 		listToUpdate[listId] = {};
-		logException(getISOTimestamp(), gameList, "list of games in " + listId);
+		//logException(getISOTimestamp(), gameList, "list of games in " + listId);
 	for (gameKey in gameList) {
 		if (gameList.hasOwnProperty(gameKey)) {
 			userKey = getCreatorId(gameKey);
@@ -132,7 +132,7 @@ for (userKey in listToLoad) {
 		listId = getGamesListId(userKey);
 		listToUpdate[listId] = {};
 		gameList = getSharedGroupData(listId, listToLoad[userKey]);
-		logException(getISOTimestamp(), gameList, "list of games in " + listId);
+		//logException(getISOTimestamp(), gameList, "list of games in " + listId);
 		for (var i=0; i<listToLoad[userKey].length;i++) {
 			gameKey = listToLoad[userKey][i];
 			if (gameList.hasOwnProperty(gameKey)) {
@@ -158,7 +158,7 @@ for (userKey in listToLoad) {
 										gameList[gameKey].a.length === 2 &&
 										gameList[gameKey].a[0].id === userKey &&
 										gameList[gameKey].a[1].id === currentPlayerId) {
-											logException(getISOTimestamp(), gameList[gameKey], 'game added');
+											//logException(getISOTimestamp(), gameList[gameKey], 'game added');
 									data[gameKey] = gameList[gameKey];
 									data[gameKey].pn = 2;
 								} else {
