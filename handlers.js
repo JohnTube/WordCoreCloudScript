@@ -34,7 +34,7 @@ handlers.onLogin = function (args) {
 		gameData = {},
 		gameState = {},
 		data = {u: {}, o: [], n: {}, r: {}, ni: {}, ui: {}};
-		logException(getISOTimestamp(), "PollingGameData_OnLogin", {s:serverGamesData, c:args});
+		logException(getISOTimestamp(), {s:serverGamesData, c:args}, "PollingGameData_OnLogin");
 		for (gameKey in serverGamesData) {
 			if (serverGamesData.hasOwnProperty(gameKey)) {
 				gameData = serverGamesData[gameKey];
@@ -71,7 +71,7 @@ handlers.onLogin = function (args) {
 		}
 		return {ResultCode: 0, Data: data};
 	} catch (e){
-		logException(getISOTimestamp(), "Error in onLogin handler", JSON.stringify(e));
+		logException(getISOTimestamp(), e, "Error in onLogin handler");
 		createSharedGroup(getGamesListId());
 		return {ResultCode: 0};
 	}
@@ -287,7 +287,7 @@ handlers.pollData = function (args) {
 	gameData = {},
 	gameState = {},
 	data = {u: {}, n: {}, r: {}, ni: {}, ui: {}}; // TODO: remove r, n
-	logException(getISOTimestamp(), "PollingGameData", {s:serverGamesData, c:args});
+	logException(getISOTimestamp(), {s:serverGamesData, c:args}, "PollingGameData");
 	for (gameKey in serverGamesData) {
 		if (serverGamesData.hasOwnProperty(gameKey)) {
 			gameData = serverGamesData[gameKey];
