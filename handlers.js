@@ -1,9 +1,9 @@
 var MATCHMAKING_TIME_OUT = 60 * 60 * 1000, // 1 hour in milliseconds, "ClosedRoomTTL" with Photon AsyncRandomLobby !
-ROUND_TIME_OUT = 2 /* 24 */* MATCHMAKING_TIME_OUT; // DEV : 2 hours ==> PROD : 2 days in milliseconds
+ROUND_TIME_OUT = 7 * 24 * MATCHMAKING_TIME_OUT; // DEV : 1 week ==> PROD : 2 days in milliseconds
 
 
 function checkTimeOut(timestamp, THRESHOLD) {
-	if (!timestamp.includes('.')) { // fixing timestamp
+	if (!timestamp.includes('.')) { // fixing timestamps
 		timestamp = timestamp.substr(0, timestamp.lastIndexOf(':')) + '.' + timestamp.substr(timestamp.lastIndexOf(':') + 1);
 	}
 	if (Date.now() - new Date(timestamp).getTime() > THRESHOLD){
@@ -88,11 +88,11 @@ function pollGamesData() {
 		data = {};
 		gameList = getSharedGroupData(listId);
 		listToUpdate[listId] = {};
+		logException(getISOTimestamp(), gameList, "list of games in" + listId);
 	for (gameKey in gameList) {
 		if (gameList.hasOwnProperty(gameKey)) {
 			userKey = getCreatorId(gameKey);
 			if (userKey === currentPlayerId) {
-				//if (!undefinedOrNull(gameList[gameKey])) { // TODO: remove test
 					if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
 							gameList[gameKey].s === GameStates.UnmatchedWaiting) {
 							if (checkMatchmakingTimeOut(gameList[gameKey].ts)) {
@@ -100,16 +100,16 @@ function pollGamesData() {
 							}
 						} else if (gameList[gameKey].s > GameStates.UnmatchedWaiting &&
 											gameList[gameKey].s < GameStates.P1Resigned) {
-								//gameList[gameKey].t / 3
-								if (gameList[gameKey].r.length > 0 &&
-									  checkRoundTimeOut(gameList[gameKey].r[gameList[gameKey].r.length - 1].ts)) {
-										gameList[gameKey].s = GameStates.TimedOutDraw;
-										if (gameList[gameKey].t % 3 !== 0) {
-											gameList[gameKey].s += (3- gameList[gameKey].t % 3);
-										}
-										listToUpdate[listId][gameKey] = gameList[gameKey];
+											//gameList[gameKey].t / 3
+											if (gameList[gameKey].r.length > 0 &&
+												  checkRoundTimeOut(gameList[gameKey].r[gameList[gameKey].r.length - 1].ts)) {
+													gameList[gameKey].s = GameStates.TimedOutDraw;
+													if (gameList[gameKey].t % 3 !== 0) {
+														gameList[gameKey].s += (3- gameList[gameKey].t % 3);
+													}
+													listToUpdate[listId][gameKey] = gameList[gameKey];
+												}
 									}
-								}
 								if (!undefinedOrNull(gameList[gameKey].a) &&
 										gameList[gameKey].a.length >= 1 &&
 										gameList[gameKey].a[0].id === currentPlayerId) {
@@ -119,26 +119,22 @@ function pollGamesData() {
 									listToUpdate[listId][gameKey] = null; // deleting values that do not contain 'gameData' key
 									logException(getISOTimestamp(), gameList[gameKey], 'actors array is missing or corrupt');
 								}
-							/*} else {
-								listToUpdate[listId][gameKey] = null; // deleting values that do not contain 'gameData' key
-								logException(getISOTimestamp(), gameList[gameKey], 'Game ' + gameKey + ' value is undefinedOrNull');
-							}*/
-						} else {
-							if (!listToLoad.hasOwnProperty(userKey)) {
-								listToLoad[userKey] = [];
-							}
-							listToLoad[userKey].push(gameKey);
+					} else {
+						if (!listToLoad.hasOwnProperty(userKey)) {
+							listToLoad[userKey] = [];
 						}
+						listToLoad[userKey].push(gameKey);
 					}
 				}
+			}
 for (userKey in listToLoad) {
 	if (listToLoad.hasOwnProperty(userKey)) {
 		listId = getGamesListId(userKey);
 		listToUpdate[listId] = {};
 		gameList = getSharedGroupData(listId, listToLoad[userKey]);
+		logException(getISOTimestamp(), gameList, "list of games in" + listId);
 		for (gameKey in listToLoad[userKey]) {
 			if (gameList.hasOwnProperty(gameKey)) {
-				//if (!undefinedOrNull(gameList[gameKey])) {
 					if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
 							gameList[gameKey].s === GameStates.UnmatchedWaiting) {
 							if (checkMatchmakingTimeOut(gameList[gameKey].ts)) {
@@ -167,10 +163,6 @@ for (userKey in listToLoad) {
 									listToUpdate[listId][gameKey] = null;
 									logException(getISOTimestamp(), gameList[gameKey], 'actors array is missing or corrupt');
 								}
-							/*} else {
-								listToUpdate[listId][gameKey] = null;
-								logException(getISOTimestamp(), gameList[gameKey], 'Game ' + gameKey + ' value is undefinedOrNull');
-							}*/
 						} else if (listToLoad[userKey].includes(gameKey)) {
 							listToUpdate[getGamesListId()][gameKey] = null;
 							logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + currentPlayerId);
