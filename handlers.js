@@ -167,6 +167,8 @@ for (userKey in listToLoad) {
 						} else if (listToLoad[userKey].includes(gameKey)) {
 							listToUpdate[getGamesListId()][gameKey] = null;
 							logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + currentPlayerId);
+						} else {
+							logException(getISOTimestamp(), {GameList: gameList, ListToLoad: listToLoad[userKey]}, 'game '+ gameKey + ' from gamesList of user=' + userKey);
 						}
 					}
 				}
