@@ -133,7 +133,8 @@ for (userKey in listToLoad) {
 		listToUpdate[listId] = {};
 		gameList = getSharedGroupData(listId, listToLoad[userKey]);
 		logException(getISOTimestamp(), gameList, "list of games in " + listId);
-		for (gameKey in listToLoad[userKey]) {
+		for (var i=0; i<listToLoad[userKey].length;i++) {
+			gameKey = listToLoad[userKey][i];
 			if (gameList.hasOwnProperty(gameKey)) {
 					if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
 							gameList[gameKey].s === GameStates.UnmatchedWaiting) {
