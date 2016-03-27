@@ -97,8 +97,8 @@ function onEndOfTurn(args, data) {
 function onEndOfRound(args, data) {
 	try {var eventData = args.Data; // TODO: test args and eventData
 	data = addMoveToGame(data, args.ActorNr, eventData.m);
-	eventData.r.m = [{}, {}];
 	data.r.push(eventData.r);
+	data.r[eventData.m.r + 1].m = [{}, {}];
 	data.t += args.ActorNr;
 	data.s = GameStates.Playing;
 // TODO : send push
