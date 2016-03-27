@@ -132,7 +132,7 @@ for (userKey in listToLoad) {
 		listId = getGamesListId(userKey);
 		listToUpdate[listId] = {};
 		gameList = getSharedGroupData(listId, listToLoad[userKey]);
-		logException(getISOTimestamp(), gameList, "list of games in" + listId);
+		logException(getISOTimestamp(), gameList, "list of games in " + listId);
 		for (gameKey in listToLoad[userKey]) {
 			if (gameList.hasOwnProperty(gameKey)) {
 					if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
@@ -157,6 +157,7 @@ for (userKey in listToLoad) {
 										gameList[gameKey].a.length === 2 &&
 										gameList[gameKey].a[0].id === userKey &&
 										gameList[gameKey].a[1].id === currentPlayerId) {
+											logException(getISOTimestamp(), gameList[gameKey], 'game added');
 									data[gameKey] = gameList[gameKey];
 									data[gameKey].pn = 2;
 								} else {
