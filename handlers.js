@@ -51,7 +51,7 @@ handlers.onLogin = function (args) {
 						if (undefinedOrNull(diff)) {
 							delete gameData.State;
 							delete gameData.Cache;
-							data.r[gamekey] = gameData;
+							data.r[gameKey] = gameData;
 						} else {
 							data.u[gameKey] = diff;
 						}
@@ -296,7 +296,7 @@ handlers.pollData = function (args) {
 					if (undefinedOrNull(diff)) {
 						delete gameData.State;
 						delete gameData.Cache;
-						data.r[gamekey] = gameData;
+						data.r[gameKey] = gameData;
 					} else {
 						data.u[gameKey] = diff;
 					}
