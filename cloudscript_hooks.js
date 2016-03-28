@@ -66,16 +66,17 @@ function onJoinGame(args, data) {
 	data.s += 2;
 	//data.a.push({id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w});
 	data.a[1] = {id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: eventData.w};
+	eventData.id = args.UserId; // temporary solution?!
+	eventData.n = args.Nickname; // temporary solution?!
 	return addToEventsCache(args, data);} catch (e) { throw e;}
-
 }
 
 function onWordukenUsed(args, data) {
 	try {  var eventData = args.Data; // TODO: test args and eventData
 	// TODO : test if worduken use is legit/legal
 		data.a[args.ActorNr - 1].w[eventData.wi] = eventData;
-		return addToEventsCache(args, data);} catch (e) { throw e;}
-
+		return data; // do not cache this event
+	} catch (e) { throw e;}
 }
 
 function onEndOfTurn(args, data) {
@@ -97,8 +98,9 @@ function onEndOfTurn(args, data) {
 function onEndOfRound(args, data) {
 	try {var eventData = args.Data; // TODO: test args and eventData
 	data = addMoveToGame(data, args.ActorNr, eventData.m);
-	data.r.push(eventData.r);
-	data.r[eventData.m.r + 1].m = [{}, {}];
+	var newRoundNr = eventData.r.r; // eventData.m.r + 1;
+	data.r[newRoundNr] = eventData.r;
+	data.r[newRoundNr].m = [{}, {}];
 	data.t += args.ActorNr;
 	data.s = GameStates.Playing;
 // TODO : send push
@@ -122,8 +124,7 @@ function onEndOfGame(args, data) {
 
 }
 
-var CustomEventCodes = {Undefined : 0, InitGame : 1, JoinGame : 2, WordukenUsed : 3, EndOfTurn : 4, EndOfRound : 5, EndOfGame : 6,
-												JoinGameAck: 7, WordukenUsedAck: 8, EndOfTurnAck: 9, EndOfRoundAck: 10, EndOfGameAck: 11};
+var CustomEventCodes = {Undefined : 0, InitGame : 1, JoinGame : 2, WordukenUsed : 3, EndOfTurn : 4, EndOfRound : 5, EndOfGame : 6};
 var MAX_ROUNDS_PER_GAME = 5;
 var MAX_TURNS_PER_GAME = 3 * MAX_ROUNDS_PER_GAME;
 
@@ -161,7 +162,7 @@ function removeFromEventsCache(args, data) {
 		}
 		for(var i=0; i < data.Cache[args.ActorNr].length; i++) {
 				var event = data.Cache[args.ActorNr][i];
-				if (event[1] === args.EvCode - 5 && args.EvCode > 6) {
+				if (event[1] === args.EvCode) {
 					var foundFlag = true;
 					for(var key in filter) {
 							if (filter.hasOwnProperty(key) && !event[2].hasOwnProperty(key)) {
@@ -214,8 +215,8 @@ function onEventReceived(args, data) {
 						throw new PhotonException(5, "Custom EndOfGame event: wrong turnNr", getISOTimestamp(), { webhook: args, gameData: data });
 				}
         return onEndOfGame(args, data);
-		default:
-				return removeFromEventsCache(args, data);
+		default: // TODO: Unexpected throw error?
+				return data;
 	}
 } catch (e) {
 	throw e;

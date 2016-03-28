@@ -55,6 +55,8 @@ handlers.onLogin = function (args) {
 						} else {
 							data.u[gameKey] = diff;
 						}
+					} else if (!isEmpty(gameData.Cache)) {
+						// TODO: remove cached events no longer needed
 					}
 				}
 			}
@@ -194,7 +196,10 @@ function getDiffData(gameData, clientGame) {
 		}
 		diff.s = gameData.s;
 		if (x === opponentNr) { // player should be missing one opponent move
-			if (gameData.t % 3 === 0 && clientGame.s === GameStates.Playing + actorNr) {
+			if (clientGame.s === GameStates.UnmatchedPlaying && gameData.t === 2) {
+					diff.e = gameData.Cache[actorNr];
+			}
+			else if (gameData.t % 3 === 0 && clientGame.s === GameStates.Playing + actorNr) {
 					// player should be missing last move in a round
 					diff.e = gameData.Cache[actorNr];
 			} else if (gameData.t % 3 === opponentNr && clientGame.s === GameStates.Playing) {
@@ -202,6 +207,8 @@ function getDiffData(gameData, clientGame) {
 					diff.e = gameData.Cache[actorNr];
 			}
 			return null;
+		} else if (gameData.t === 5 && clientGame.s === GameStates.UnmatchedWaiting) {
+				diff.e = gameData.Cache[actorNr];
 		} else if (x === 2 * opponentNr && clientGame.s === GameStates.Playing + actorNr && gameData.t % 3 === opponentNr) {
 				// player should be missing two opponent moves
 				diff.e = gameData.Cache[actorNr];
@@ -214,12 +221,13 @@ function getDiffData(gameData, clientGame) {
 	}
 	else if (gameData.s !== clientGame.s) {
 		diff.s = gameData.s;
-		if (clientGame.s === GameStates.Playing || clientGame.s === GameStates.P1Waiting) { // player should be missing join event
+		if (gameData.s != GameStates.MatchmakingTimedOut && (clientGame.s === GameStates.UnmatchedPlaying || clientGame.s === GameStates.UnmatchedWaiting)) { // player should be missing join event
 			diff.e = gameData.Cache[actorNr];
 		}
 	}
-	return diff;} catch (e) {}
-
+	return diff;} catch (e) {
+		throw e;
+	}
 }
 
 function deleteOrFlagGames(games) {
@@ -271,8 +279,7 @@ function deleteOrFlagGames(games) {
 		if (listToUpdate.hasOwnProperty(listId) && !isEmpty(listToUpdate[listId])) {
 			updateSharedGroupData(listId, listToUpdate[listId]);
 		}
-	}} catch(e) {}
-
+	}} catch(e) {throw e;}
 }
 
 // expects {} in 'g' with <gameID> : {s: <gameState>, t: <turn#>}
@@ -283,7 +290,7 @@ handlers.pollData = function (args) {
 	gameData = {},
 	gameState = {},
 	data = {u: {}, n: {}, r: {}, ni: {}, ui: {}}; // TODO: remove r, n
-	logException(getISOTimestamp(), {s:serverGamesData, c:args}, "PollingGameData");
+	//logException(getISOTimestamp(), {s:serverGamesData, c:args}, "PollingGameData");
 	for (gameKey in serverGamesData) {
 		if (serverGamesData.hasOwnProperty(gameKey)) {
 			gameData = serverGamesData[gameKey];
@@ -304,12 +311,13 @@ handlers.pollData = function (args) {
 					} else {
 						data.u[gameKey] = diff;
 					}
+				} else if (!isEmpty(gameData.Cache)) {
+					// TODO: remove cached events no longer needed
 				}
 			}
 		}
 	}
 	return {ResultCode: 0, Data: data};} catch(e) {throw e;}
-
 };
 
 // expects d:[] of gameIDs to delete, c:{<gameId>:[[cachedEvent]]} to clear
@@ -328,8 +336,18 @@ handlers.deleteGames = function (args) {
 		}
 	}
 	return {ResultCode: 0};} catch (e) {throw e;}
-
 };
+
+/*
+handlers.removeCachedEvent = function (args) {
+	try {
+
+		return {ResultCode: 0};
+	} catch(e) {
+
+	}
+};
+*/
 
 // expects gameID in 'g' & actorNr in 'pn'
 handlers.resign = function (args) {
@@ -347,5 +365,4 @@ handlers.resign = function (args) {
 	} else {
 		return {ResultCode: 1, Data:args, Message: 'Cannot resign from game'};
 	}} catch (e) {throw e;}
-
 };
