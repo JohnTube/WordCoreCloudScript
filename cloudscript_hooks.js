@@ -55,7 +55,7 @@ function onInitGame(args, data) {
 	try {var eventData = args.Data;
 		data = {a: [{id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: eventData.w}],
 				s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
-		data.r = [{gs: eventData.r.gs, ts: eventData.r.ts, r: eventData.r.r, m: [{}, {}]}];
+		data.r = [{gs: eventData.r.gs, ts: eventData.r.ts, r: 0, m: [{}, {}]}];
 		return data; // do not cache this event
 	} catch (e) { throw e;}
 }
@@ -66,9 +66,11 @@ function onJoinGame(args, data) {
 	data.s += 2;
 	//data.a.push({id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w});
 	data.a[1] = {id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: eventData.w};
-	eventData.id = args.UserId; // temporary solution?!
+	return data; // do not cache this event
+	/*eventData.id = args.UserId; // temporary solution?!
 	eventData.n = args.Nickname; // temporary solution?!
-	return addToEventsCache(args, data);} catch (e) { throw e;}
+	return addToEventsCache(args, data);*/
+	} catch (e) { throw e;}
 }
 
 function onWordukenUsed(args, data) {
@@ -81,6 +83,10 @@ function onWordukenUsed(args, data) {
 
 function onEndOfTurn(args, data) {
 	try {  var eventData = args.Data; // TODO: test args and eventData
+		// TODO: detecting 'concurrence' issue!! when 2 players send 'first' move in a round and game gets stuck!!
+		if (data.t % 3 !== 0) {
+			logException(getISOTimestamp(), {w: args, d: data}, 'Concurrence issue: 2 players send first move in a round and game gets stuck, GameId='+ args.GameId);
+		}
 		data = addMoveToGame(data, args.ActorNr, eventData);
 		data.t += args.ActorNr;
 		if (args.ActorNr === 1 && data.s === GameStates.UnmatchedPlaying) {
@@ -89,9 +95,6 @@ function onEndOfTurn(args, data) {
    		data.s = GameStates.Playing + args.ActorNr;
 		}
 		// TODO : send push?
-		if (data.s === GameStates.UnmatchedWaiting) { // cache this directly in Photon
-			return data;
-		}
 		return addToEventsCache(args, data);} catch (e) { throw e;}
 }
 
@@ -104,7 +107,7 @@ function onEndOfRound(args, data) {
 	data.t += args.ActorNr;
 	data.s = GameStates.Playing;
 // TODO : send push
-return addToEventsCache(args, data);} catch (e) { throw e;}
+	return addToEventsCache(args, data);} catch (e) { throw e;}
 }
 
 function onEndOfGame(args, data) {
@@ -136,52 +139,19 @@ function addToEventsCache(args, data) {
 		if (!data.hasOwnProperty('Cache')) {
 			data.Cache = {};
 		}
-		if (!data.Cache.hasOwnProperty((3 - args.ActorNr))) {
-			data.Cache[3 - args.ActorNr] = [];
-		}
 		// TODO: test if opponent is inactive
 		var cachedEvent = [
 			args.ActorNr,
 			args.EvCode,
 			args.Data
 		];
-		data.Cache[3 - args.ActorNr].push(cachedEvent);
+		data.Cache.push(cachedEvent);
 		return data;
 	} catch (e) {
 		throw e;
 	}
 }
 
-// args = PathEvent webhook args, you need args.EvCode and args.Data (event data).
-// data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
-function removeFromEventsCache(args, data) {
-	try {
-		var filter = args.Data;
-		if (!data.hasOwnProperty('Cache') && !data.Cache.hasOwnProperty(args.ActorNr)) {
-			// TODO: throw error
-		}
-		for(var i=0; i < data.Cache[args.ActorNr].length; i++) {
-				var event = data.Cache[args.ActorNr][i];
-				if (event[1] === args.EvCode) {
-					var foundFlag = true;
-					for(var key in filter) {
-							if (filter.hasOwnProperty(key) && !event[2].hasOwnProperty(key)) {
-									foundFlag = false;
-									break;
-							}
-					}
-					if (foundFlag === true) {
-						data.Cache[args.ActorNr].Splice(i, 1);
-						return data;
-					}
-				}
-		}
-		// TODO: throw error
-		return data;
-	} catch (e) {
-		throw e;
-	}
-}
 
 // args = PathEvent webhook args, you need args.EvCode and args.Data (event data).
 // data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.

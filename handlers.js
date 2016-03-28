@@ -28,49 +28,7 @@ handlers.onLogin = function (args) {
 			createSharedGroup(getGamesListId());
 			return {ResultCode: 0};
 		}
-		var serverGamesData = pollGamesData(),
-		clientGamesList = args.g,
-		gameKey = '',
-		gameData = {},
-		gameState = {},
-		data = {u: {}, o: [], n: {}, r: {}, ni: {}, ui: {}};
-		//logException(getISOTimestamp(), {s:serverGamesData, c:args}, "PollingGameData_OnLogin");
-		for (gameKey in serverGamesData) {
-			if (serverGamesData.hasOwnProperty(gameKey)) {
-				gameData = serverGamesData[gameKey];
-				if (undefinedOrNull(clientGamesList) || !clientGamesList.hasOwnProperty(gameKey)) {
-					if (gameData.s < GameStates.P1Resigned && gameData.s > GameStates.MatchmakingTimedOut) {
-						delete gameData.State;
-						delete gameData.Cache;
-						data.n[gameKey] = gameData;
-					}
-				} else {
-					gameState = clientGamesList[gameKey];
-					if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
-						var diff = getDiffData(gameData, gameState);
-						if (undefinedOrNull(diff)) {
-							delete gameData.State;
-							delete gameData.Cache;
-							data.r[gameKey] = gameData;
-						} else {
-							data.u[gameKey] = diff;
-						}
-					} else if (!isEmpty(gameData.Cache)) {
-						// TODO: remove cached events no longer needed
-					}
-				}
-			}
-		}
-		// sending to client array of 'old/outdated' gameIDs that should be deleted [from cache] locally
-		if (!isEmpty(clientGamesList)) {
-			for (gameKey in clientGamesList) {
-				if (clientGamesList.hasOwnProperty(gameKey)) {
-					if (!serverGamesData.hasOwnProperty(gameKey)) {
-						data.o.push(gameKey);
-					}
-				}
-			}
-		}
+		var data = getPollResponse(args.g);
 		return {ResultCode: 0, Data: data};
 	} catch (e){
 		logException(getISOTimestamp(), e, "Error in onLogin handler");
@@ -79,19 +37,61 @@ handlers.onLogin = function (args) {
 	}
 };
 
+function getPollResponse(clientGamesList) {
+	var serverGamesData = pollGamesData(),
+	gameKey = '',
+	gameData = {},
+	gameState = {},
+	data = {u: {}, o: [], n: {}, r: {}, ni: {}, ui: {}};
+	//logException(getISOTimestamp(), {s:serverGamesData, c:args}, "PollingGameData");
+	for (gameKey in serverGamesData) {
+		if (serverGamesData.hasOwnProperty(gameKey)) {
+			gameData = serverGamesData[gameKey];
+			if (undefinedOrNull(clientGamesList) || !clientGamesList.hasOwnProperty(gameKey)) {
+				if (gameData.s < GameStates.P1Resigned && gameData.s > GameStates.MatchmakingTimedOut) {
+					delete gameData.State;
+					delete gameData.Cache;
+					data.n[gameKey] = gameData;
+				}
+			} else {
+				gameState = clientGamesList[gameKey];
+				if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
+					var diff = getDiffData(gameData, gameState);
+					if (undefinedOrNull(diff)) {
+						logException(getISOTimestamp(), {s: gameData, c: clientGame}, 'Client State > Server State, GameId=' + gameKey);
+					} else {
+						data.u[gameKey] = diff;
+					}
+				}
+			}
+		}
+	}
+	// sending to client array of 'old/outdated' gameIDs that should be deleted [from cache] locally
+	if (!isEmpty(clientGamesList)) {
+		for (gameKey in clientGamesList) {
+			if (clientGamesList.hasOwnProperty(gameKey)) {
+				if (!serverGamesData.hasOwnProperty(gameKey)) {
+					data.o.push(gameKey);
+				}
+			}
+		}
+	}
+	return data;
+}
+
 function pollGamesData() {
 	try {
-	var gameList = {},
-		listId = getGamesListId(),
-		listToLoad = {},
-		listToUpdate = {},
-		gameKey = '',
-		userKey = '',
-		data = {};
-		gameList = getSharedGroupData(listId);
-		listToUpdate[listId] = {};
-		//logException(getISOTimestamp(), gameList, "list of games in " + listId);
-	for (gameKey in gameList) {
+		var gameList = {},
+			listId = getGamesListId(),
+			listToLoad = {},
+			listToUpdate = {},
+			gameKey = '',
+			userKey = '',
+			data = {};
+			gameList = getSharedGroupData(listId);
+			listToUpdate[listId] = {};
+			//logException(getISOTimestamp(), gameList, "list of games in " + listId);
+			for (gameKey in gameList) {
 		if (gameList.hasOwnProperty(gameKey)) {
 			userKey = getCreatorId(gameKey);
 			if (userKey === currentPlayerId) {
@@ -129,7 +129,7 @@ function pollGamesData() {
 					}
 				}
 			}
-for (userKey in listToLoad) {
+			for (userKey in listToLoad) {
 	if (listToLoad.hasOwnProperty(userKey)) {
 		listId = getGamesListId(userKey);
 		listToUpdate[listId] = {};
@@ -182,49 +182,23 @@ for (userKey in listToLoad) {
 		}
 	}
 	return data;
-} catch (e) {throw e;}
+	} catch (e) {throw e;}
 }
 
 function getDiffData(gameData, clientGame) {
-	try {if (!gameData.hasOwnProperty('Cache')) {return null;} // TODO: remove or add log when moving to prod
+	try {//if (!gameData.hasOwnProperty('Cache')) {return null;} // TODO: remove or add log when moving to prod
 	var diff = {}, x = gameData.t - clientGame.t, actorNr = 1;
 	if (gameData.a[0].id !== currentPlayerId) {actorNr = 2;}
-	var opponentNr = 3 - actorNr;
-	if (x > 0) {
-		if (gameData.s === clientGame.s) {
-				return null;
-		}
+	var opponentNr = 3 - actorNr, clientRound = clientGame.t / 3;
+	if (gameData.s > 6 || gameData.s === GameStates.MatchmakingTimedOut) {
 		diff.s = gameData.s;
-		if (x === opponentNr) { // player should be missing one opponent move
-			if (clientGame.s === GameStates.UnmatchedPlaying && gameData.t === 2) {
-					diff.e = gameData.Cache[actorNr];
-			}
-			else if (gameData.t % 3 === 0 && clientGame.s === GameStates.Playing + actorNr) {
-					// player should be missing last move in a round
-					diff.e = gameData.Cache[actorNr];
-			} else if (gameData.t % 3 === opponentNr && clientGame.s === GameStates.Playing) {
-					// player should be missing first move in a round
-					diff.e = gameData.Cache[actorNr];
-			}
-			return null;
-		} else if (gameData.t === 5 && clientGame.s === GameStates.UnmatchedWaiting) {
-				diff.e = gameData.Cache[actorNr];
-		} else if (x === 2 * opponentNr && clientGame.s === GameStates.Playing + actorNr && gameData.t % 3 === opponentNr) {
-				// player should be missing two opponent moves
-				diff.e = gameData.Cache[actorNr];
-		} else {
-			return null;
-		}
-		diff.t = gameData.t;
-	} else if (x < 0) {
-		throw new PhotonException(5, "Unexpected: clientTurnNr > serverTurnNr", getISOTimestamp(), { serverData: gameData, clientData: clientGame });
 	}
-	else if (gameData.s !== clientGame.s) {
-		diff.s = gameData.s;
-		if (gameData.s != GameStates.MatchmakingTimedOut && (clientGame.s === GameStates.UnmatchedPlaying || clientGame.s === GameStates.UnmatchedWaiting)) { // player should be missing join event
-			diff.e = gameData.Cache[actorNr];
-		}
-	}
+	if (x === 0) { return diff; }
+	else if ( x < 0) {
+		return null; }
+	var n = x * 2 / 3;
+	if (x % 3 !== 0) { n++; }
+	diff.e = gameData.Cache.slice(-n);
 	return diff;} catch (e) {
 		throw e;
 	}
@@ -284,70 +258,18 @@ function deleteOrFlagGames(games) {
 
 // expects {} in 'g' with <gameID> : {s: <gameState>, t: <turn#>}
 handlers.pollData = function (args) {
-	try {var serverGamesData = pollGamesData(),
-	clientGamesList = args.g,
-	gameKey = '',
-	gameData = {},
-	gameState = {},
-	data = {u: {}, n: {}, r: {}, ni: {}, ui: {}}; // TODO: remove r, n
-	//logException(getISOTimestamp(), {s:serverGamesData, c:args}, "PollingGameData");
-	for (gameKey in serverGamesData) {
-		if (serverGamesData.hasOwnProperty(gameKey)) {
-			gameData = serverGamesData[gameKey];
-			if (undefinedOrNull(clientGamesList) || !clientGamesList.hasOwnProperty(gameKey)) {
-				if (gameData.s < GameStates.P1Resigned && gameData.s > GameStates.MatchmakingTimedOut) {
-					delete gameData.State;
-					delete gameData.Cache;
-					data.n[gameKey] = gameData;
-				}
-			} else {
-				gameState = clientGamesList[gameKey];
-				if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
-					var diff = getDiffData(gameData, gameState);
-					if (undefinedOrNull(diff)) {
-						delete gameData.State;
-						delete gameData.Cache;
-						data.r[gameKey] = gameData;
-					} else {
-						data.u[gameKey] = diff;
-					}
-				} else if (!isEmpty(gameData.Cache)) {
-					// TODO: remove cached events no longer needed
-				}
-			}
-		}
-	}
+	try {
+		var data = getPollResponse(args.g);
 	return {ResultCode: 0, Data: data};} catch(e) {throw e;}
 };
 
-// expects d:[] of gameIDs to delete, c:{<gameId>:[[cachedEvent]]} to clear
-handlers.deleteGames = function (args) {
-	try {deleteOrFlagGames(args.d);
-	var gamesData = pollGamesData();
-	var cachePerGame = args.c;
-	for(var game in cachePerGame) {
-		if (cachePerGame.hasOwnProperty(game)) {
-			var cachedEvents = cachePerGame[game];
-			for(var i = 0; i < cachedEvents.length; i++) {
-				var cachedEvent = cachedEvents[i];
-				gamesData[game] = removeFromEventsCache({EvCode: cachedEvent[1], ActorNr: 3 - cachedEvent[0], Data: cachedEvent[2]}, gamesData[game]);
-				saveGameData(game, gamesData[game]); // TODO; update batch
-			}
-		}
-	}
+// expects [] of gameIDs to delete
+handlers.deleteGames = function (gamesToDelete) {
+	try {
+		deleteOrFlagGames(gamesToDelete);
 	return {ResultCode: 0};} catch (e) {throw e;}
 };
 
-/*
-handlers.removeCachedEvent = function (args) {
-	try {
-
-		return {ResultCode: 0};
-	} catch(e) {
-
-	}
-};
-*/
 
 // expects gameID in 'g' & actorNr in 'pn'
 handlers.resign = function (args) {
