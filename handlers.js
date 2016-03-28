@@ -271,18 +271,22 @@ handlers.deleteGames = function (gamesToDelete) {
 };
 
 
-// expects gameID in 'g' & actorNr in 'pn'
+// expects gameID in 'GameId'
 handlers.resign = function (args) {
-	try {var gameData = loadGameData(args.g);
-	if (gameData.a[args.pn - 1].id === currentPlayerId &&
-		gameData.s > GameStates.UnmatchedPlaying &&
-		gameData.s < GameStates.P1Resigned) {
-		gameData.s = GameStates.P2Waiting + args.pn;
-		//gameData.deletionFlag = args.pn;
-		saveGameData(args.g, gameData);
-		/*if (args.pn === 2) {
-			deleteSharedGroupEntry(getGamesListId(), args.g);
-		}*/
+	try {
+		var gameData = loadGameData(args.GameId), actorNr = 1;
+		if (currentPlayerId !== getCreatorId(args.GameId)) {
+			actorNr = 2;
+		}
+		if (gameData.a[actorNr - 1].id === currentPlayerId &&
+			gameData.s > GameStates.UnmatchedPlaying &&
+			gameData.s < GameStates.P1Resigned) {
+			gameData.s = GameStates.P2Waiting + actorNr;
+			gameData.deletionFlag = actorNr;
+			saveGameData(args.g, gameData);
+			if (actorNr === 2) {
+				deleteSharedGroupEntry(getGamesListId(), args.GameId);
+			}
 		return {ResultCode: 0, Data:args};
 	} else {
 		return {ResultCode: 1, Data:args, Message: 'Cannot resign from game'};

@@ -121,7 +121,10 @@ function onEndOfGame(args, data) {
 		} else {
 			data.s = GameStates.EndedP2Won;
 		}
-	  deleteOrFlagGames([args.GameId]);
+		data.deletionFlag = args.ActorNr;
+		if (args.ActorNr === 2) {
+			deleteSharedGroupEntry(getGamesListId(), args.GameId);
+		}
 		// TODO : send push
 		return addToEventsCache(args, data);} catch (e) { throw e;}
 
