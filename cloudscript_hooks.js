@@ -137,7 +137,7 @@ var MAX_TURNS_PER_GAME = 3 * MAX_ROUNDS_PER_GAME;
 function addToEventsCache(args, data) {
 	try {
 		if (!data.hasOwnProperty('Cache')) {
-			data.Cache = {};
+			data.Cache = [];
 		}
 		// TODO: test if opponent is inactive
 		var cachedEvent = [
