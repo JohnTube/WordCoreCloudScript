@@ -58,7 +58,7 @@ function getPollResponse(clientGamesList) {
 				if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
 					var diff = getDiffData(gameData, gameState);
 					if (undefinedOrNull(diff)) {
-						logException(getISOTimestamp(), {s: gameData, c: clientGame}, 'Client State > Server State, GameId=' + gameKey);
+						logException(getISOTimestamp(), {s: gameData, c: gameState}, 'Client State > Server State, GameId=' + gameKey);
 					} else {
 						data.u[gameKey] = diff;
 					}
