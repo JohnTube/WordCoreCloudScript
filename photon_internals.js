@@ -160,7 +160,7 @@ function saveGameData(gameId, data) {
     try {
         delete data.pn; // temporary TODO: remove later
         updateSharedGroupEntry(getGamesListId(getCreatorId(gameId)), gameId, data);
-    } catch (e) { logException(getISOTimestamp(), e, 'saveGameData:' + gameId + ',' + JSON.stringify(data)); throw e; }
+    } catch (e) { logException(getISOTimestamp(), {error: e, d:data}, 'error saving GameId:' + gameId); throw e; }
 }
 
 function stripRoomState(state) {
