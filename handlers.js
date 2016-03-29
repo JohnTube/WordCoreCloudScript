@@ -187,10 +187,12 @@ function pollGamesData() {
 
 function getDiffData(gameData, clientGame) {
 	try {//if (!gameData.hasOwnProperty('Cache')) {return null;} // TODO: remove or add log when moving to prod
-	var diff = {}, x = gameData.t - clientGame.t, actorNr = 1;
-	if (gameData.a[0].id !== currentPlayerId) {actorNr = 2;}
-	var opponentNr = 3 - actorNr, clientRound = clientGame.t / 3;
-	if (gameData.s > 6 || gameData.s === GameStates.MatchmakingTimedOut) {
+	var diff = {}, x = gameData.t - clientGame.t;
+	if (gameData.s !== clientGame.s) {
+		if (clientGame.s < GameStates.Playing && gameData.s > GameStates.UnmatchedWaiting) {
+				diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: gameData.a[1].w };
+		}
+			// TODO: more tests please
 		diff.s = gameData.s;
 	}
 	if (x === 0) { return diff; }
