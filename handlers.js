@@ -285,7 +285,7 @@ handlers.resign = function (args) {
 			gameData.s < GameStates.P1Resigned) {
 			gameData.s = GameStates.P2Waiting + actorNr;
 			gameData.deletionFlag = actorNr;
-			saveGameData(args.g, gameData);
+			saveGameData(args.GameId, gameData);
 			if (actorNr === 2) {
 				deleteSharedGroupEntry(getGamesListId(), args.GameId);
 			}
