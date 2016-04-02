@@ -164,11 +164,11 @@ function saveGameData(gameId, data) {
 }
 
 function stripRoomState(state) {
-	delete state.DebugInfo;
+	/*delete state.DebugInfo;
 	delete state.CustomProperties;
 	state.ActorList.forEach(function(actor) {
     delete actor.DEBUG_BINARY;
-	});
+	});*/
 	return state;
 }
 
