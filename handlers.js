@@ -31,7 +31,7 @@ handlers.onLogin = function (args) {
 		var data = getPollResponse(args.g);
 		return {ResultCode: 0, Data: data};
 	} catch (e){
-		if (e.error === "InvalidSharedGroupId"){
+		if (!undefinedOrNull(e.Error) && e.Error.error === "InvalidSharedGroupId"){
 			createSharedGroup(getGamesListId());
 		} else {
 			logException(getISOTimestamp(), e, "Error in onLogin handler");
