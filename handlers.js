@@ -31,8 +31,11 @@ handlers.onLogin = function (args) {
 		var data = getPollResponse(args.g);
 		return {ResultCode: 0, Data: data};
 	} catch (e){
-		logException(getISOTimestamp(), e, "Error in onLogin handler");
-		createSharedGroup(getGamesListId());
+		if (e.error === "InvalidSharedGroupId"){
+			createSharedGroup(getGamesListId());
+		} else {
+			logException(getISOTimestamp(), e, "Error in onLogin handler");
+		}
 		return {ResultCode: 0};
 	}
 };
