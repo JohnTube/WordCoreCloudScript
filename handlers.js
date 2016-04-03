@@ -36,6 +36,9 @@ handlers.onLogin = function (args) {
 		} else {
 			logException(getISOTimestamp(), e, "Error in onLogin handler");
 		}
+		if (!isEmpty(args.g)){
+			return {ResultCode:0, Data: {o: Object.getOwnPropertyNames(args.g)}};
+		}
 		return {ResultCode: 0};
 	}
 };
