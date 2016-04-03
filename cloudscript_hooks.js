@@ -102,8 +102,7 @@ function onEndOfRound(args, data) {
 	try {var eventData = args.Data; // TODO: test args and eventData
 	data = addMoveToGame(data, args.ActorNr, eventData.m);
 	var newRoundNr = eventData.r.r; // eventData.m.r + 1;
-	data.r[newRoundNr] = eventData.r;
-	data.r[newRoundNr].m = [{}, {}];
+	data.r[newRoundNr] = { r: eventData.r.r, gs: eventData.r.gs, ts: eventData.r.ts, m: [{}, {}] };
 	data.t += args.ActorNr;
 	data.s = GameStates.Playing;
 // TODO : send push
