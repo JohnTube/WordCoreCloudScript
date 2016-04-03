@@ -201,7 +201,7 @@ function getDiffData(gameData, clientGame) {
 	if (x === 0) { return diff; }
 	else if ( x < 0) {
 		return null; }
-	var n = x * 2 / 3;
+	var n = 2 * (x / 3);
 	if (x % 3 !== 0) { n++; }
 	diff.e = gameData.Cache.slice(-n);
 	return diff;} catch (e) {
