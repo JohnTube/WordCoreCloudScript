@@ -199,7 +199,18 @@ function getDiffData(gameData, clientGame) {
 			case GameStates.UnmatchedPlaying:
 				if (gameData.s === GameStates.UnmatchedWaiting) {
 					break;
+				} else if (gameData.s === GameStates.MatchmakingTimedOut){
+					diff.s = gameData.s;
 				}
+				else if (gameData.s >= GameStates.Playing) {
+					diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: gameData.a[1].w };
+					if (gameData.s >= GameStates.P1Resigned) {
+						diff.s = gameData.s;
+					}
+				} else {
+					return null;
+				}
+				break;
 			case GameStates.UnmatchedWaiting:
 				if (gameData.s === GameStates.MatchmakingTimedOut){
 					diff.s = gameData.s;
@@ -209,7 +220,7 @@ function getDiffData(gameData, clientGame) {
 					if (gameData.s >= GameStates.P1Resigned) {
 						diff.s = gameData.s;
 					}
-				} else if (gameData.s === GameStates.UnmatchedPlaying) {
+				} else {
 					return null;
 				}
 				break;
