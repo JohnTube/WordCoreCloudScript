@@ -64,7 +64,7 @@ function getPollResponse(clientGamesList) {
 				if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
 					var diff = getDiffData(gameData, gameState);
 					if (undefinedOrNull(diff)) {
-						logException(getISOTimestamp(), {s: gameData, c: gameState}, 'Client State > Server State, GameId=' + gameKey);
+						logException(getISOTimestamp(), {s: gameData, c: gameState}, 'Client State/Turn > Server State/Turn, GameId=' + gameKey);
 					} else {
 						data.u[gameKey] = diff;
 					}
@@ -195,11 +195,36 @@ function getDiffData(gameData, clientGame) {
 	try {//if (!gameData.hasOwnProperty('Cache')) {return null;} // TODO: remove or add log when moving to prod
 	var diff = {}, x = gameData.t - clientGame.t;
 	if (gameData.s !== clientGame.s) {
-		if (clientGame.s < GameStates.Playing && gameData.s > GameStates.UnmatchedWaiting) {
-				diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: gameData.a[1].w };
+		switch (clientGame.s) {
+			case GameStates.UnmatchedPlaying:
+				if (gameData.s === GameStates.UnmatchedWaiting) {
+					break;
+				}
+			case GameStates.UnmatchedWaiting:
+				if (gameData.s === GameStates.MatchmakingTimedOut){
+					diff.s = gameData.s;
+				}
+				else if (gameData.s >= GameStates.Playing) {
+					diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: gameData.a[1].w };
+					if (gameData.s >= GameStates.P1Resigned) {
+						diff.s = gameData.s;
+					}
+				} else if (gameData.s === GameStates.UnmatchedPlaying) {
+					return null;
+				}
+				break;
+			case GameStates.Playing:
+			case GameStates.P1Waiting:
+			case GameStates.P2Waiting:
+				if (gameData.s >= GameStates.P1Resigned) {
+					diff.s = gameData.s;
+				}
+				break;
+			default:
+			// logException
+			return null;
 		}
-			// TODO: more tests please
-		diff.s = gameData.s;
+		// TODO: more tests please
 	}
 	if (x === 0) { return diff; }
 	else if ( x < 0) {
