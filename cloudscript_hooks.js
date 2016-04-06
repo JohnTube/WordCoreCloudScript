@@ -183,7 +183,7 @@ function onEventReceived(args, data) {
 				}
         return onEndOfRound(args, data);
     case CustomEventCodes.EndOfGame: // args.Data.t === MAX_TURNS_PER_GAME
-				if (args.Data.t % 3 !== MAX_TURNS_PER_GAME) {
+				if (args.Data.t !== MAX_TURNS_PER_GAME) {
 						throw new PhotonException(5, "Custom EndOfGame event: wrong turnNr", getISOTimestamp(), { webhook: args, gameData: data });
 				}
         return onEndOfGame(args, data);
