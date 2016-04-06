@@ -6,6 +6,9 @@ function getGamesListId(playerId) {
 }
 
 function getCreatorId(gameId) {
+    if (undefinedOrNull(gameId)) {
+      return gameId;
+    }
 		return gameId.split('-')[4];
 }
 
