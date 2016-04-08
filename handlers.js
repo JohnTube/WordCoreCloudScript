@@ -310,6 +310,9 @@ handlers.pollData = function (args) {
 // expects [] of gameIDs to delete
 handlers.deleteGames = function (gamesToDelete) {
 	try {
+		if (gamesToDelete.hasOwnProperty('g')) { // temporary
+			gamesToDelete = gamesToDelete.g;
+		}
 		deleteOrFlagGames(gamesToDelete);
 	return {ResultCode: 0};} catch (e) {throw e;}
 };
