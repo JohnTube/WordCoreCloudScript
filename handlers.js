@@ -193,7 +193,7 @@ function pollGamesData() {
 
 function getDiffData(gameData, clientGame) {
 	try {//if (!gameData.hasOwnProperty('Cache')) {return null;} // TODO: remove or add log when moving to prod
-	var diff = {}, x = gameData.t - clientGame.t;
+	var diff = {};
 	if (gameData.s !== clientGame.s) {
 		switch (clientGame.s) {
 			case GameStates.UnmatchedPlaying:
@@ -237,13 +237,28 @@ function getDiffData(gameData, clientGame) {
 		}
 		// TODO: more tests please
 	}
-	if (x === 0) { return diff; }
-	else if ( x < 0) {
-		return null; }
-	var n = 2 * (x / 3);
-	if (gameData.t % 3 !== 0) { n++; }
-	if (clientGame.t % 3 !== 0) { n--; }
-	diff.e = gameData.Cache.slice(-n);
+	if (gameData.t !== clientGame.t) {
+		var n, dR = gameData.t / 3 - clientGame.t / 3,
+					cD = clientGame.t % 3, sD = gameData.t % 3;
+		if (dR === 0) { // same round
+			if (cD === 0 &&  sD !== 0) {
+				n = 1;
+			} else {
+				return null;
+			}
+		} else if (dR > 0) {
+			n = dR * 2;
+			if (cD % 3 === 0 && sD % 3 !== 0) {
+				n++;
+			} else if (cD % 3 !== 0 && sD % 3 === 0) {
+				n--;
+			}
+		} else {
+			// logException
+			return null;
+		}
+		diff.e = gameData.Cache.slice(-n);
+	}
 	return diff;} catch (e) {
 		throw e;
 	}
