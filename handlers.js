@@ -330,7 +330,10 @@ handlers.deleteGames = function (gamesToDelete) {
 			gamesToDelete = gamesToDelete.g;
 		}
 		deleteOrFlagGames(gamesToDelete);
-	return {ResultCode: 0};} catch (e) {throw e;}
+	return {ResultCode: 0};} catch (e) {
+		logException(getISOTimestamp(), {err: e, g: gamesToDelete}, 'deleteGames');
+		//throw e;
+	}
 };
 
 
