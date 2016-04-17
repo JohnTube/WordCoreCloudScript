@@ -1,5 +1,5 @@
 var MATCHMAKING_TIME_OUT = 60 * 60 * 1000, // 1 hour in milliseconds, "ClosedRoomTTL" with Photon AsyncRandomLobby !
-ROUND_TIME_OUT = 2 * 24 * MATCHMAKING_TIME_OUT; // DEV : 1 week ==> PROD : 2 days in milliseconds
+ROUND_TIME_OUT = /*2 * 24 **/ MATCHMAKING_TIME_OUT; // DEV : 1 week ==> PROD : 2 days in milliseconds
 
 
 function checkTimeOut(timestamp, THRESHOLD) {
