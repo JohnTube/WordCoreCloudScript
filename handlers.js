@@ -1,5 +1,5 @@
 var MATCHMAKING_TIME_OUT = 60 * 60 * 1000, // 1 hour in milliseconds, "ClosedRoomTTL" with Photon AsyncRandomLobby !
-ROUND_TIME_OUT = 7 * 24 * MATCHMAKING_TIME_OUT; // DEV : 1 week ==> PROD : 2 days in milliseconds
+ROUND_TIME_OUT = 2 * 24 * MATCHMAKING_TIME_OUT; // DEV : 1 week ==> PROD : 2 days in milliseconds
 
 
 function checkTimeOut(timestamp, THRESHOLD) {
@@ -22,8 +22,11 @@ function checkMatchmakingTimeOut(timestamp){
 	return checkTimeOut(timestamp, MATCHMAKING_TIME_OUT);
 }
 
-handlers.onLogin = function (args) {
+handlers.onLogin = function (args, context) {
 	try { // temporary
+		if (!undefinedOrNull(context)) {
+			logException(getISOTimestamp(), context, "new context param in handlers");
+		}
 		if (args.c === true) {
 			createSharedGroup(getGamesListId());
 			return {ResultCode: 0};
