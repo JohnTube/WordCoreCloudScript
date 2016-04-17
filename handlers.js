@@ -67,7 +67,8 @@ function getPollResponse(clientGamesList) {
 				if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
 					var diff = getDiffData(gameData, gameState);
 					if (undefinedOrNull(diff)) {
-						logException(getISOTimestamp(), {s: gameData, c: gameState}, 'Client State/Turn > Server State/Turn, GameId=' + gameKey);
+						//logException(getISOTimestamp(), {s: gameData, c: gameState}, 'Client State/Turn > Server State/Turn, GameId=' + gameKey);
+						data.m[gameKey] = {t: gameData.t, s: gameData.s};
 					} else {
 						data.u[gameKey] = diff;
 					}
@@ -232,6 +233,8 @@ function getDiffData(gameData, clientGame) {
 			case GameStates.P2Waiting:
 				if (gameData.s >= GameStates.P1Resigned) {
 					diff.s = gameData.s;
+				} else if (gameData.s <= GameStates.UnmatchedWaiting) {
+					return null;
 				}
 				break;
 			default:
