@@ -31,7 +31,7 @@ handlers.onLogin = function (args, context) {
 			createSharedGroup(getGamesListId(args.UserId));
 			return {ResultCode: 0};
 		}
-		var data = getPollResponse(args.g);
+		var data = getPollResponse(args.g, args.UserId);
 		return {ResultCode: 0, Data: data};
 	} catch (e){
 		if (!undefinedOrNull(e.Error) && e.Error.error === "InvalidSharedGroupId"){
@@ -46,8 +46,8 @@ handlers.onLogin = function (args, context) {
 	}
 };
 
-function getPollResponse(clientGamesList) {
-	var serverGamesData = pollGamesData(),
+function getPollResponse(clientGamesList, userId) {
+	var serverGamesData = pollGamesData(userId),
 	gameKey = '',
 	gameData = {},
 	gameState = {},
@@ -89,10 +89,10 @@ function getPollResponse(clientGamesList) {
 	return data;
 }
 
-function pollGamesData() {
+function pollGamesData(userId) {
 	try {
 		var gameList = {},
-			listId = getGamesListId(),
+			listId = getGamesListId(userId),
 			listToLoad = {},
 			listToUpdate = {},
 			gameKey = '',
@@ -178,7 +178,7 @@ function pollGamesData() {
 												logException(getISOTimestamp(), gameList[gameKey], 'actors array is missing or corrupt');
 											}
 									} else if (listToLoad[userKey].includes(gameKey)) {
-										listToUpdate[getGamesListId()][gameKey] = null;
+										listToUpdate[getGamesListId(userId)][gameKey] = null;
 										logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + currentPlayerId);
 									} else {
 										logException(getISOTimestamp(), {GameList: gameList, ListToLoad: listToLoad[userKey]}, 'game '+ gameKey + ' from gamesList of user=' + userKey);
@@ -310,7 +310,7 @@ function deleteOrFlagGames(games, userId) {
 							listToUpdate[listId][gameKey] = gameData;
 						}
 					} else if (listToLoad[userKey].hasOwnProperty(gameKey)) {
-						listToUpdate[getGamesListId()][gameKey] = null;
+						listToUpdate[getGamesListId(userId)][gameKey] = null;
 						logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + currentPlayerId);
 					}
 				}
@@ -327,7 +327,7 @@ function deleteOrFlagGames(games, userId) {
 // expects {} in 'g' with <gameID> : {s: <gameState>, t: <turn#>}
 handlers.pollData = function (args) {
 	try {
-		var data = getPollResponse(args.g);
+		var data = getPollResponse(args.g, args.UserId);
 	return {ResultCode: 0, Data: data};} catch(e) {throw e;}
 };
 
@@ -362,7 +362,7 @@ handlers.resign = function (args) {
 			gameData.deletionFlag = actorNr;
 			saveGameData(args.GameId, gameData);
 			if (actorNr === 2) {
-				deleteSharedGroupEntry(getGamesListId(), args.GameId);
+				deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
 			}
 		return {ResultCode: 0, Data:args};
 	} else {

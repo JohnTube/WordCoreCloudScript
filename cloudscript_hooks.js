@@ -125,7 +125,7 @@ function onEndOfGame(args, data) {
 		}
 		data.deletionFlag = args.ActorNr;
 		if (args.ActorNr === 2) {
-			deleteSharedGroupEntry(getGamesListId(), args.GameId);
+			deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
 		}
 		// TODO : send push
 		return addToEventsCache(args, data);} catch (e) { throw e;}

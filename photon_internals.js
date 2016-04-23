@@ -1,6 +1,6 @@
 function getGamesListId(playerId) {
     if (undefinedOrNull(playerId)) {
-        playerId = handlers.currentPlayerId;
+        logException(getISOTimestamp(), null, 'playerId is undefinedOrNull');
     }
     return playerId + '_GamesList';
 }
