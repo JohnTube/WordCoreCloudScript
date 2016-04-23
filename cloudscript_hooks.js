@@ -87,15 +87,18 @@ function onEndOfTurn(args, data) {
 		if (data.t % 3 !== 0) {
 			logException(getISOTimestamp(), {w: args, d: data}, 'Concurrence issue: 2 players send first move in a round and game gets stuck, GameId='+ args.GameId);
 		}
-		data = addMoveToGame(data, args.ActorNr, eventData);
-		data.t += args.ActorNr;
 		if (args.ActorNr === 1 && data.s === GameStates.UnmatchedPlaying) {
 			data.s = GameStates.UnmatchedWaiting;
-		} else {
+		} else if (data.s === GameStates.Playing) {
    		data.s = GameStates.Playing + args.ActorNr;
+		} else {
+			logException(getISOTimestamp(), {w: args, d: data}, 'Unexpected GameState (' + data.s + ') in EndOfTurn, GameId=' + args.GameId);
 		}
+		data = addMoveToGame(data, args.ActorNr, eventData);
+		data.t += args.ActorNr;
 		// TODO : send push?
-		return addToEventsCache(args, data);} catch (e) { throw e;}
+		return addToEventsCache(args, data);
+	} catch (e) { throw e;}
 }
 
 function onEndOfRound(args, data) {

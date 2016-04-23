@@ -28,14 +28,14 @@ handlers.onLogin = function (args, context) {
 			logException(getISOTimestamp(), context, "new context param in handlers");
 		}
 		if (args.c === true) {
-			createSharedGroup(getGamesListId());
+			createSharedGroup(getGamesListId(args.UserId));
 			return {ResultCode: 0};
 		}
 		var data = getPollResponse(args.g);
 		return {ResultCode: 0, Data: data};
 	} catch (e){
 		if (!undefinedOrNull(e.Error) && e.Error.error === "InvalidSharedGroupId"){
-			createSharedGroup(getGamesListId());
+			createSharedGroup(getGamesListId(args.UserId));
 		} else {
 			logException(getISOTimestamp(), e, "Error in onLogin handler");
 		}
@@ -270,10 +270,10 @@ function getDiffData(gameData, clientGame) {
 	}
 }
 
-function deleteOrFlagGames(games) {
+function deleteOrFlagGames(games, userId) {
 	try {
 		var gameKey, userKey = getCreatorId(gameKey), gameData,
-			listId = getGamesListId(), listToLoad = {}, listToUpdate = {},
+			listId = getGamesListId(userId), listToLoad = {}, listToUpdate = {},
 			gamesToDelete = getSharedGroupData(listId, games);
 			listToUpdate[listId] = {};
 		for(gameKey in gamesToDelete) {
@@ -339,7 +339,7 @@ handlers.deleteGames = function (gamesToDelete) {
 		} else {
 			gamesToDelete = gamesToDelete.RpcParams; // temporary
 		}
-		deleteOrFlagGames(gamesToDelete);
+		deleteOrFlagGames(gamesToDelete, args.UserId);
 		return {ResultCode: 0};
 	} catch (e) {
 		logException(getISOTimestamp(), {err: e, g: gamesToDelete}, 'deleteGames');
