@@ -100,7 +100,7 @@ function pollGamesData() {
 			data = {};
 			gameList = getSharedGroupData(listId);
 			listToUpdate[listId] = {};
-			//logException(getISOTimestamp(), gameList, "list of games in " + listId);
+			logException(getISOTimestamp(), gameList, "list of games in " + listId);
 			for (gameKey in gameList) {
 			if (gameList.hasOwnProperty(gameKey)) {
 				userKey = getCreatorId(gameKey);
