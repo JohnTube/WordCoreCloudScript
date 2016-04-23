@@ -1,6 +1,6 @@
 function getGamesListId(playerId) {
     if (undefinedOrNull(playerId)) {
-        playerId = currentPlayerId;
+        playerId = handlers.currentPlayerId;
     }
     return playerId + '_GamesList';
 }

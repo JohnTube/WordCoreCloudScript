@@ -159,6 +159,10 @@ function addToEventsCache(args, data) {
 // data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
 function onEventReceived(args, data) {
 	try {
+		if (args.ActorNr < 1 || args.ActorNr > 2) {
+			logException(getISOTimestamp(), {w: args, d: data}, "Unexpected ActorNr = " + args.ActorNr);
+			return;
+		}
   switch (args.EvCode) {
     case CustomEventCodes.InitGame: // args.ActorNr === 1
 				if (args.ActorNr !== 1) {

@@ -271,55 +271,57 @@ function getDiffData(gameData, clientGame) {
 }
 
 function deleteOrFlagGames(games) {
-	try {var gameKey, userKey = getCreatorId(gameKey), gameData,
-		listId = getGamesListId(), listToLoad = {}, listToUpdate = {},
-	gamesToDelete = getSharedGroupData(listId, games);
-	listToUpdate[listId] = {};
-	for(gameKey in gamesToDelete) {
-		if (gamesToDelete.hasOwnProperty(gameKey)) {
-			gameData = gamesToDelete[gameKey];
-			if (userKey === currentPlayerId) {
-				if (gameData.s === GameStates.MatchmakingTimedOut || gameData.deletionFlag === 2) {
-					listToUpdate[listId][gameKey] = null;
-				} else {
-					gameData.deletionFlag = 1;
-					listToUpdate[listId][gameKey] = gameData;
-				}
-			} else {
-				if (!listToLoad.hasOwnProperty(userKey)) {
-					listToLoad[userKey] = [];
-				}
-				listToLoad[userKey].push(gameKey);
-				listToUpdate[listId][gameKey] = null;
-			}
-		}
-	}
-	for(userKey in listToLoad) {
-		if (listToLoad.hasOwnProperty(userKey)) {
-			listId = getGamesListId(userKey);
+	try {
+		var gameKey, userKey = getCreatorId(gameKey), gameData,
+			listId = getGamesListId(), listToLoad = {}, listToUpdate = {},
+			gamesToDelete = getSharedGroupData(listId, games);
 			listToUpdate[listId] = {};
-			gamesToDelete = getSharedGroupData(listId, listToLoad[userKey]);
-			for(gameKey in listToLoad[userKey]) {
-				if (gamesToDelete.hasOwnProperty(gameKey)) {
-					gameData = gamesToDelete[gameKey];
-					if (gameData.deletionFlag === 1) {
+		for(gameKey in gamesToDelete) {
+			if (gamesToDelete.hasOwnProperty(gameKey)) {
+				gameData = gamesToDelete[gameKey];
+				if (userKey === currentPlayerId) {
+					if (gameData.s === GameStates.MatchmakingTimedOut || gameData.deletionFlag === 2) {
 						listToUpdate[listId][gameKey] = null;
 					} else {
-						gameData.deletionFlag = 2;
+						gameData.deletionFlag = 1;
 						listToUpdate[listId][gameKey] = gameData;
 					}
-				} else if (listToLoad[userKey].hasOwnProperty(gameKey)) {
-					listToUpdate[getGamesListId()][gameKey] = null;
-					logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + currentPlayerId);
+				} else {
+					if (!listToLoad.hasOwnProperty(userKey)) {
+						listToLoad[userKey] = [];
+					}
+					listToLoad[userKey].push(gameKey);
+					listToUpdate[listId][gameKey] = null;
 				}
 			}
 		}
-	}
-	for (listId in listToUpdate) {
-		if (listToUpdate.hasOwnProperty(listId) && !isEmpty(listToUpdate[listId])) {
-			updateSharedGroupData(listId, listToUpdate[listId]);
+		for(userKey in listToLoad) {
+			if (listToLoad.hasOwnProperty(userKey)) {
+				listId = getGamesListId(userKey);
+				listToUpdate[listId] = {};
+				gamesToDelete = getSharedGroupData(listId, listToLoad[userKey]);
+				for(gameKey in listToLoad[userKey]) {
+					if (gamesToDelete.hasOwnProperty(gameKey)) {
+						gameData = gamesToDelete[gameKey];
+						if (gameData.deletionFlag === 1) {
+							listToUpdate[listId][gameKey] = null;
+						} else {
+							gameData.deletionFlag = 2;
+							listToUpdate[listId][gameKey] = gameData;
+						}
+					} else if (listToLoad[userKey].hasOwnProperty(gameKey)) {
+						listToUpdate[getGamesListId()][gameKey] = null;
+						logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + currentPlayerId);
+					}
+				}
+			}
 		}
-	}} catch(e) {throw e;}
+		for (listId in listToUpdate) {
+			if (listToUpdate.hasOwnProperty(listId) && !isEmpty(listToUpdate[listId])) {
+				updateSharedGroupData(listId, listToUpdate[listId]);
+			}
+		}
+	} catch(e) {throw e;}
 }
 
 // expects {} in 'g' with <gameID> : {s: <gameState>, t: <turn#>}
@@ -338,7 +340,8 @@ handlers.deleteGames = function (gamesToDelete) {
 			gamesToDelete = gamesToDelete.RpcParams; // temporary
 		}
 		deleteOrFlagGames(gamesToDelete);
-	return {ResultCode: 0};} catch (e) {
+		return {ResultCode: 0};
+	} catch (e) {
 		logException(getISOTimestamp(), {err: e, g: gamesToDelete}, 'deleteGames');
 		//throw e;
 	}
