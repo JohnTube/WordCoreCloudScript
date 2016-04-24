@@ -246,7 +246,7 @@ function getDiffData(gameData, clientGame) {
 	if (gameData.t !== clientGame.t) {
 		var n, dR = Math.floor(gameData.t / 3) - Math.floor(clientGame.t / 3) ,
 					cD = clientGame.t % 3, sD = gameData.t % 3;
-					logException(getISOTimestamp(), {dr: dR, cd: cD, sd: sD}, 'checking values');
+					//logException(getISOTimestamp(), {dr: dR, cd: cD, sd: sD}, 'checking values');
 		if (dR === 0) { // same round
 			if (cD === 0 && sD !== 0) { // EndOfTurn
 				n = 1;
