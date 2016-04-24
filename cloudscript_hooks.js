@@ -18,17 +18,22 @@ var WordukenType = { NoWorduken : 0, BestMove : 1, WildCard : 2, SingleColor : 3
 
 function addMoveToGame(gameData, actorNr, move) {
 	try {	// TODO : test if move is legit/legal
-		gameData.r[move.r].m[actorNr - 1] = move;
+		var actorIndex = actorNr - 1;
 		if (move.wt !== 0) {
-			gameData.a[actorNr - 1].w[move.wi].v = true; // validate worduken use (if any)
-			if (move.wt === WordukenType.Incrementor) { gameData.a[actorNr - 1].m += 1; }
+			gameData.a[actorIndex].w[move.wi].v = true; // validate worduken use (if any)
+			if (move.wt === WordukenType.Incrementor) { gameData.a[actorIndex].m += 1; }
 		}
-		var mp = getMovePoints(move.mw);
-		if (mp > gameData.a[actorNr - 1].p) {
-	        gameData.a[actorNr - 1].p = mp;
-	        gameData.a[actorNr - 1].m += 1;
-	    }
-		gameData.a[actorNr - 1].s += (mp + getLengthBonus(move.mw));
+		move.lv = getMovePoints(move.mw);
+		move.lb = getLengthBonus(move.mw);
+		move.mb = gameData.a[actorIndex].m;
+		move.ts = move.lv * move.mb + move.lb;
+		move.pb = gameData.a[actorIndex].p;
+		if (move.lv > move.pb) {
+        gameData.a[actorIndex].p = mp;
+        gameData.a[actorIndex].m += 1;
+    }
+		gameData.r[move.r].m[actorIndex] = move;
+		gameData.a[actorIndex].s += move.ts;
 		return gameData;} catch (e) { throw e;}
 }
 
@@ -67,9 +72,6 @@ function onJoinGame(args, data) {
 	//data.a.push({id: args.UserId, n: eventData.n, p: 0, s: 0, m: 1, w: eventData.w});
 	data.a[1] = {id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: eventData.w};
 	return data; // do not cache this event
-	/*eventData.id = args.UserId; // temporary solution?!
-	eventData.n = args.Nickname; // temporary solution?!
-	return addToEventsCache(args, data);*/
 	} catch (e) { throw e;}
 }
 
@@ -125,7 +127,7 @@ function onEndOfGame(args, data) {
 		}
 		data.deletionFlag = args.ActorNr;
 		if (args.ActorNr === 2) {
-			deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
+			deleteOrFlagGames([args.GameId], args.UserId);
 		}
 		// TODO : send push
 		return addToEventsCache(args, data);} catch (e) { throw e;}
