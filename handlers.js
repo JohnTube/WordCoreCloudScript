@@ -102,42 +102,42 @@ function pollGamesData(userId) {
 			listToUpdate[listId] = {};
 			//logException(getISOTimestamp(), gameList, "list of games in " + listId);
 			for (gameKey in gameList) {
-			if (gameList.hasOwnProperty(gameKey)) {
-				userKey = getCreatorId(gameKey);
-				if (userKey === currentPlayerId) {
-						if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
-								gameList[gameKey].s === GameStates.UnmatchedWaiting) {
-								if (checkMatchmakingTimeOut(gameList[gameKey].ts)) {
-									gameList[gameKey].s = GameStates.MatchmakingTimedOut;
-								}
-							} else if (gameList[gameKey].s > GameStates.UnmatchedWaiting &&
-												gameList[gameKey].s < GameStates.P1Resigned) {
-												//gameList[gameKey].t / 3
-												if (gameList[gameKey].r.length > 0 &&
-													  checkRoundTimeOut(gameList[gameKey].r[gameList[gameKey].r.length - 1].ts)) {
-														gameList[gameKey].s = GameStates.TimedOutDraw;
-														if (gameList[gameKey].t % 3 !== 0) {
-															gameList[gameKey].s += (3- gameList[gameKey].t % 3);
-														}
-														listToUpdate[listId][gameKey] = gameList[gameKey];
-													}
-										}
-									if (!undefinedOrNull(gameList[gameKey].a) &&
-											gameList[gameKey].a.length >= 1 &&
-											gameList[gameKey].a[0].id === currentPlayerId) {
-												data[gameKey] = gameList[gameKey];
-												data[gameKey].pn = 1;
-									} else {
-										listToUpdate[listId][gameKey] = null; // deleting values that do not contain 'gameData' key
-										logException(getISOTimestamp(), gameList[gameKey], 'actors array is missing or corrupt');
+				if (gameList.hasOwnProperty(gameKey)) {
+					userKey = getCreatorId(gameKey);
+					if (userKey === currentPlayerId) {
+							if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
+									gameList[gameKey].s === GameStates.UnmatchedWaiting) {
+									if (checkMatchmakingTimeOut(gameList[gameKey].ts)) {
+										gameList[gameKey].s = GameStates.MatchmakingTimedOut;
 									}
-						} else {
-							if (!listToLoad.hasOwnProperty(userKey)) {
-								listToLoad[userKey] = [];
+								} else if (gameList[gameKey].s > GameStates.UnmatchedWaiting &&
+													gameList[gameKey].s < GameStates.P1Resigned) {
+													//gameList[gameKey].t / 3
+													if (gameList[gameKey].r.length > 0 &&
+														  checkRoundTimeOut(gameList[gameKey].r[gameList[gameKey].r.length - 1].ts)) {
+															gameList[gameKey].s = GameStates.TimedOutDraw;
+															if (gameList[gameKey].t % 3 !== 0) {
+																gameList[gameKey].s += (3- gameList[gameKey].t % 3);
+															}
+															listToUpdate[listId][gameKey] = gameList[gameKey];
+														}
+											}
+										if (!undefinedOrNull(gameList[gameKey].a) &&
+												gameList[gameKey].a.length >= 1 &&
+												gameList[gameKey].a[0].id === currentPlayerId) {
+													data[gameKey] = gameList[gameKey];
+													data[gameKey].pn = 1;
+										} else {
+											listToUpdate[listId][gameKey] = null; // deleting values that do not contain 'gameData' key
+											logException(getISOTimestamp(), gameList[gameKey], 'actors array is missing or corrupt');
+										}
+							} else {
+								if (!listToLoad.hasOwnProperty(userKey)) {
+									listToLoad[userKey] = [];
+								}
+								listToLoad[userKey].push(gameKey);
 							}
-							listToLoad[userKey].push(gameKey);
 						}
-					}
 				}
 			for (userKey in listToLoad) {
 				if (listToLoad.hasOwnProperty(userKey)) {
@@ -300,7 +300,8 @@ function deleteOrFlagGames(games, userId) {
 				listId = getGamesListId(userKey);
 				listToUpdate[listId] = {};
 				gamesToDelete = getSharedGroupData(listId, listToLoad[userKey]);
-				for(gameKey in listToLoad[userKey]) {
+				for (var i=0; i<listToLoad[userKey].length;i++) {
+					gameKey = listToLoad[userKey][i];
 					if (gamesToDelete.hasOwnProperty(gameKey)) {
 						gameData = gamesToDelete[gameKey];
 						if (gameData.deletionFlag === 1) {
@@ -309,9 +310,11 @@ function deleteOrFlagGames(games, userId) {
 							gameData.deletionFlag = 2;
 							listToUpdate[listId][gameKey] = gameData;
 						}
-					} else if (listToLoad[userKey].hasOwnProperty(gameKey)) {
+					} else if (listToLoad[userKey].includes(gameKey)) {
 						listToUpdate[getGamesListId(userId)][gameKey] = null;
 						logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + currentPlayerId);
+					} else {
+						
 					}
 				}
 			}
