@@ -1,5 +1,5 @@
 var MATCHMAKING_TIME_OUT = 60 * 60 * 1000, // 1 hour in milliseconds, "ClosedRoomTTL" with Photon AsyncRandomLobby !
-ROUND_TIME_OUT = /*2 * 24 **/ MATCHMAKING_TIME_OUT; // DEV : 1 week ==> PROD : 2 days in milliseconds
+ROUND_TIME_OUT = 2 * 24 * MATCHMAKING_TIME_OUT; // DEV : 1 week ==> PROD : 2 days in milliseconds
 
 
 function checkTimeOut(timestamp, THRESHOLD) {
@@ -244,7 +244,7 @@ function getDiffData(gameData, clientGame) {
 		// TODO: more tests please
 	}
 	if (gameData.t !== clientGame.t) {
-		var n, dR = gameData.t / 3 - clientGame.t / 3,
+		var n, dR = Math.floor((gameData.t - clientGame.t) / 3),
 					cD = clientGame.t % 3, sD = gameData.t % 3;
 		if (dR === 0) { // same round
 			if (cD === 0 &&  sD !== 0) {
@@ -261,6 +261,10 @@ function getDiffData(gameData, clientGame) {
 			}
 		} else {
 			// logException
+			return null;
+		}
+		if (n <= 0 || n > MAX_ROUNDS_PER_GAME * 2) {
+			logException(getISOTimestamp(), {c: clientGame, d: gameData}, 'Calculated # of missing moves ('+n+') is unexpected');
 			return null;
 		}
 		diff.e = gameData.Cache.slice(-n);
@@ -314,7 +318,7 @@ function deleteOrFlagGames(games, userId) {
 						listToUpdate[getGamesListId(userId)][gameKey] = null;
 						logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + currentPlayerId);
 					} else {
-						
+
 					}
 				}
 			}
