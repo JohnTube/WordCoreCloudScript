@@ -4,7 +4,6 @@ function getLengthBonus(word) {
 	if (length > 8) { lengthBonus += length - 8; } // double point for each Letter > 8
 	if (length > 12) { lengthBonus += length - 12; } // triple point for each Letter > 12
 	return lengthBonus;} catch (e) { throw e;}
-
 }
 
 function getMovePoints(word) {
@@ -28,7 +27,7 @@ function addMoveToGame(gameData, actorNr, move) {
 		move.mb = gameData.a[actorIndex].m;
 		move.pb = gameData.a[actorIndex].p;
 		if (move.lv >= move.pb) {
-        gameData.a[actorIndex].p = move.lv;
+        gameData.a[actorIndex].p = move.lv + 1;
         if (move.pb > 0) { gameData.a[actorIndex].m += 1; }
     }
 		move.ts = move.lv * gameData.a[actorIndex].m + move.lb;
