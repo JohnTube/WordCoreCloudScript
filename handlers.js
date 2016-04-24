@@ -67,8 +67,8 @@ function getPollResponse(clientGamesList, userId) {
 				if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
 					var diff = getDiffData(gameData, gameState);
 					if (undefinedOrNull(diff)) {
-						//logException(getISOTimestamp(), {s: gameData, c: gameState}, 'Client State/Turn > Server State/Turn, GameId=' + gameKey);
-						data.m[gameKey] = {t: gameData.t, s: gameData.s};
+						logException(getISOTimestamp(), {s: gameData, c: gameState}, 'Client State/Turn > Server State/Turn, GameId=' + gameKey);
+						//data.m[gameKey] = {t: gameData.t, s: gameData.s};
 					} else {
 						data.u[gameKey] = diff;
 					}
@@ -246,6 +246,7 @@ function getDiffData(gameData, clientGame) {
 	if (gameData.t !== clientGame.t) {
 		var n, dR = Math.floor((gameData.t - clientGame.t) / 3),
 					cD = clientGame.t % 3, sD = gameData.t % 3;
+					logException(getISOTimestamp(), {dr: dR, cd: cD, sd: sD}, 'checking values');
 		if (dR === 0) { // same round
 			if (cD === 0 &&  sD !== 0) {
 				n = 1;
