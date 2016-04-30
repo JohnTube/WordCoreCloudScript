@@ -167,7 +167,12 @@ function saveGameData(gameId, data) {
 }
 
 function stripRoomState(state) {
-	delete state.DebugInfo;
+  if (state.DebugInfo.hasOwnProperty('DEBUG_EVENTS_19')){
+    state.DebugInfo = state.DebugInfo.DEBUG_EVENTS_19;
+  }
+  else {
+    delete state.DebugInfo;
+  }
 	delete state.CustomProperties;
 	state.ActorList.forEach(function(actor) {
     delete actor.DEBUG_BINARY;

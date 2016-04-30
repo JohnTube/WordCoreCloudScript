@@ -51,7 +51,7 @@ function getPollResponse(clientGamesList, userId) {
 	gameKey = '',
 	gameData = {},
 	gameState = {},
-	data = {u: {}, o: [], n: {}, r: {}, ni: {}, ui: {}};
+	data = {};
 	//logException(getISOTimestamp(), {s:Object.getOwnPropertyNames(serverGamesData), c:Object.getOwnPropertyNames(clientGamesList)}, "getPollResponse");
 	for (gameKey in serverGamesData) {
 		if (serverGamesData.hasOwnProperty(gameKey)) {
@@ -60,6 +60,7 @@ function getPollResponse(clientGamesList, userId) {
 				if (gameData.s < GameStates.P1Resigned && gameData.s > GameStates.MatchmakingTimedOut) {
 					delete gameData.State;
 					delete gameData.Cache;
+					if (!data.hasOwnProperty('n')) { data.n = {};}
 					data.n[gameKey] = gameData;
 				}
 			} else {
@@ -68,8 +69,10 @@ function getPollResponse(clientGamesList, userId) {
 					var diff = getDiffData(gameData, gameState);
 					if (undefinedOrNull(diff)) {
 						logException(getISOTimestamp(), {s: gameData, c: gameState}, 'Client State/Turn > Server State/Turn, GameId=' + gameKey);
-						//data.m[gameKey] = {t: gameData.t, s: gameData.s};
+						if (!data.hasOwnProperty('u')) { data.u = {};}
+						data.m[gameKey] = {t: gameData.t, s: gameData.s};
 					} else {
+						if (!data.hasOwnProperty('u')) { data.u = {};}
 						data.u[gameKey] = diff;
 					}
 				}
@@ -81,6 +84,7 @@ function getPollResponse(clientGamesList, userId) {
 		for (gameKey in clientGamesList) {
 			if (clientGamesList.hasOwnProperty(gameKey)) {
 				if (!serverGamesData.hasOwnProperty(gameKey)) {
+					if (!data.hasOwnProperty('o')) { data.o = [];}
 					data.o.push(gameKey);
 				}
 			}
