@@ -47,7 +47,7 @@ handlers.onLogin = function (args, context) {
 };
 
 function getPollResponse(clientGamesList, userId) {
-	var serverGamesData = pollGamesData(userId, clientData),
+	var serverGamesData = pollGamesData(userId, clientGamesList),
 	gameKey = '',
 	gameData = {},
 	gameState = {},
