@@ -109,7 +109,7 @@ function pollGamesData(userId, clientData) {
 				if (gameList.hasOwnProperty(gameKey)) {
 					userKey = getCreatorId(gameKey);
 					if (userKey === currentPlayerId) {
-						if (clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
+						if (!undefinedOrNull(clientData) && clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
 							addMissingEvents(clientData[gameKey].e, gameList[gameKey]);
 							listToUpdate[listId][gameKey] = gameList[gameKey];
 						}
@@ -156,7 +156,7 @@ function pollGamesData(userId, clientData) {
 					for (var i=0; i<listToLoad[userKey].length;i++) {
 						gameKey = listToLoad[userKey][i];
 						if (gameList.hasOwnProperty(gameKey)) {
-								if (clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
+								if (!undefinedOrNull(clientData) && clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
 									addMissingEvents(clientData[gameKey].e, gameList[gameKey]);
 									listToUpdate[listId][gameKey] = gameList[gameKey];
 								}
