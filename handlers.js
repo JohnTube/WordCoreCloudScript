@@ -47,7 +47,7 @@ handlers.onLogin = function (args, context) {
 };
 
 function getPollResponse(clientGamesList, userId) {
-	var serverGamesData = pollGamesData(userId),
+	var serverGamesData = pollGamesData(userId, clientData),
 	gameKey = '',
 	gameData = {},
 	gameState = {},
@@ -93,7 +93,7 @@ function getPollResponse(clientGamesList, userId) {
 	return data;
 }
 
-function pollGamesData(userId) {
+function pollGamesData(userId, clientData) {
 	try {
 		var gameList = {},
 			listId = getGamesListId(userId),
@@ -109,6 +109,10 @@ function pollGamesData(userId) {
 				if (gameList.hasOwnProperty(gameKey)) {
 					userKey = getCreatorId(gameKey);
 					if (userKey === currentPlayerId) {
+						if (clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
+							addMissingEvents(clientData[gameKey].e, gameList[gameKey]);
+							listToUpdate[listId][gameKey] = gameList[gameKey];
+						}
 							if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
 									gameList[gameKey].s === GameStates.UnmatchedWaiting) {
 									if (checkMatchmakingTimeOut(gameList[gameKey].ts)) {
@@ -152,6 +156,10 @@ function pollGamesData(userId) {
 					for (var i=0; i<listToLoad[userKey].length;i++) {
 						gameKey = listToLoad[userKey][i];
 						if (gameList.hasOwnProperty(gameKey)) {
+								if (clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
+									addMissingEvents(clientData[gameKey].e, gameList[gameKey]);
+									listToUpdate[listId][gameKey] = gameList[gameKey];
+								}
 								if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
 										gameList[gameKey].s === GameStates.UnmatchedWaiting) {
 										if (checkMatchmakingTimeOut(gameList[gameKey].ts)) {
@@ -335,6 +343,17 @@ function deleteOrFlagGames(games, userId) {
 		}
 	} catch(e) {throw e;}
 }
+
+// add pending local client cached events to a game before processing polling diff. to return
+// events: array of GameEvent webhook like args
+// data: gameData
+function addMissingEvents(events, data) {
+    if (undefinedOrNull(events)) {return;}
+		for(var i=0; i<events.length; i++){
+			onEventReceived(events[i], data);
+		}
+}
+
 
 // expects {} in 'g' with <gameID> : {s: <gameState>, t: <turn#>}
 handlers.pollData = function (args) {
