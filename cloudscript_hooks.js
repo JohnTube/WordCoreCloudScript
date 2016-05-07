@@ -7,10 +7,12 @@ function getLengthBonus(word) {
 }
 
 function getMovePoints(word) {
-	try {var LETTERS_POINTS = {A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1, J: 8, K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1, S: 1, T: 1, U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10}, i = 0, score = 0;
-word = word.toUpperCase();
-for (i; i < word.length; i += 1) { score +=  LETTERS_POINTS[word.charAt(i)]; }
-return score;} catch (e) { throw e;}
+	try {
+		var LETTERS_POINTS = {A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1, J: 8, K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1, S: 1, T: 1, U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10}, i = 0, score = 0;
+		word = word.toUpperCase();
+		for (i; i < word.length; i += 1) { score +=  LETTERS_POINTS[word.charAt(i)]; }
+		return score;
+	} catch (e) { throw e;}
 }
 
 var WordukenType = { NoWorduken : 0, BestMove : 1, WildCard : 2, SingleColor : 3, Shuffler : 4, Incrementor : 5};
@@ -45,14 +47,15 @@ var GameStates = {
     Playing : 4, // 4
     P1Waiting : 5, // 5
     P2Waiting : 6,
-    P1Resigned : 7,
-    P2Resigned : 8,
-    TimedOutDraw : 9,
-    TimedOutP1Won : 10,
-    TimedOutP2Won : 11,
-    EndedDraw : 12,
-    EndedP1Won : 13,
-    EndedP2Won : 14
+		Blocked : 7,
+    P1Resigned : 8,
+    P2Resigned : 9,
+    TimedOutDraw : 10,
+    TimedOutP1Won : 11,
+    TimedOutP2Won : 12,
+    EndedDraw : 13,
+    EndedP1Won : 14,
+    EndedP2Won : 15
 };
 
 function onInitGame(args, data) {
@@ -87,8 +90,9 @@ function onEndOfTurn(args, data) {
 		// TODO: detecting 'concurrence' issue!! when 2 players send 'first' move in a round and game gets stuck!!
 		if (data.t % 3 !== 0) {
 			logException(getISOTimestamp(), {w: args, d: data}, 'Concurrence issue: 2 players send first move in a round and game gets stuck, GameId='+ args.GameId);
+			data.s = GameStates.Blocked;
 		}
-		if (args.ActorNr === 1 && data.s === GameStates.UnmatchedPlaying) {
+		else if (args.ActorNr === 1 && data.s === GameStates.UnmatchedPlaying) {
 			data.s = GameStates.UnmatchedWaiting;
 		} else if (data.s === GameStates.Playing) {
    		data.s = GameStates.Playing + args.ActorNr;
@@ -103,18 +107,21 @@ function onEndOfTurn(args, data) {
 }
 
 function onEndOfRound(args, data) {
-	try {var eventData = args.Data; // TODO: test args and eventData
-	data = addMoveToGame(data, args.ActorNr, eventData.m);
-	var newRoundNr = eventData.r.r; // eventData.m.r + 1;
-	data.r[newRoundNr] = { r: eventData.r.r, gs: eventData.r.gs, ts: eventData.r.ts, m: [{}, {}] };
-	data.t += args.ActorNr;
-	data.s = GameStates.Playing;
-// TODO : send push
-	return addToEventsCache(args, data);} catch (e) { throw e;}
+	try {
+		var eventData = args.Data; // TODO: test args and eventData
+		data = addMoveToGame(data, args.ActorNr, eventData.m);
+		var newRoundNr = eventData.r.r; // eventData.m.r + 1;
+		data.r[newRoundNr] = { r: eventData.r.r, gs: eventData.r.gs, ts: eventData.r.ts, m: [{}, {}] };
+		data.t += args.ActorNr;
+		data.s = GameStates.Playing;
+		// TODO : send push
+		return addToEventsCache(args, data);
+	} catch (e) { throw e;}
 }
 
 function onEndOfGame(args, data) {
-	try {    var eventData = args.Data; // TODO: test args and eventData
+	try {
+		var eventData = args.Data; // TODO: test args and eventData
 		  data = addMoveToGame(data, args.ActorNr, eventData);
 	    data.t += args.ActorNr;
 		if (data.a[0].s === data.a[1].s) {
@@ -129,11 +136,42 @@ function onEndOfGame(args, data) {
 			deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
 		}
 		// TODO : send push
-		return addToEventsCache(args, data);} catch (e) { throw e;}
+		return addToEventsCache(args, data);
+	} catch (e) { throw e;}
 
 }
 
-var CustomEventCodes = {Undefined : 0, InitGame : 1, JoinGame : 2, WordukenUsed : 3, EndOfTurn : 4, EndOfRound : 5, EndOfGame : 6};
+function onNewRound(args, data){
+	if (data.s !== GameStates.Blocked){
+		throw new PhotonException(5, "Unexpected GameState onNewRound", getISOTimestamp(), { webhook: args, gameData: data });
+	}
+	try {
+		var eventData = args.Data; // TODO: test args and eventData
+		var newRoundNr = eventData.r.r; // eventData.m.r + 1;
+		data.r[newRoundNr] = { r: eventData.r.r, gs: eventData.r.gs, ts: eventData.r.ts, m: [{}, {}] };
+		data.s = GameStates.Playing;
+		data.Cache[data.Cache.length - 1][1] = CustomEventCodes.EndOfRound;
+		data.Cache[data.Cache.length - 1][2] = {m:data.Cache[data.Cache.length - 1][2], r:eventData};
+		return data;
+	} catch (e) {throw e;}
+}
+
+
+function onResign(args, gameData){
+	var actorNr = args.ActorNr;
+	if (gameData.a[actorNr - 1].id === args.UserId &&
+		gameData.s > GameStates.UnmatchedPlaying &&
+		gameData.s < GameStates.P1Resigned) {
+		gameData.s = GameStates.Blocked + actorNr;
+		gameData.deletionFlag = actorNr;
+		if (actorNr === 2) {
+			deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
+		}
+	}
+	return gameData;
+}
+
+var CustomEventCodes = {Undefined : 0, InitGame : 1, JoinGame : 2, WordukenUsed : 3, EndOfTurn : 4, EndOfRound : 5, EndOfGame : 6, NewRound : 7, Resign: 8};
 var MAX_ROUNDS_PER_GAME = 5;
 var MAX_TURNS_PER_GAME = 3 * MAX_ROUNDS_PER_GAME;
 
@@ -167,38 +205,42 @@ function onEventReceived(args, data) {
 			logException(getISOTimestamp(), {w: args, d: data}, "Unexpected ActorNr = " + args.ActorNr);
 			return;
 		}
-  switch (args.EvCode) {
-    case CustomEventCodes.InitGame: // args.ActorNr === 1
-				if (args.ActorNr !== 1) {
-						throw new PhotonException(5, "Custom InitGame event: Wrong actorNr", getISOTimestamp(), { webhook: args, gameData: data });
-				}
-        return onInitGame(args, data);
-    case CustomEventCodes.JoinGame: // args.ActorNr === 2
-				if (args.ActorNr !== 2 || data.a.length !== 1) {
-						throw new PhotonException(5, "Custom JoinGame event: Wrong actorNr or duplicate event", getISOTimestamp(), { webhook: args, gameData: data });
-				}
-        return onJoinGame(args, data);
-    case CustomEventCodes.WordukenUsed:
-        return onWordukenUsed(args, data);
-    case CustomEventCodes.EndOfTurn: // args.Data.t % 3 !== 0
-				if (args.Data.t % 3 === 0 || args.Data.t < 1 || args.Data.t >= MAX_TURNS_PER_GAME) {
-						throw new PhotonException(5, "Custom EndOfTurn event: wrong turnNr", getISOTimestamp(), { webhook: args, gameData: data });
-				}
-        return onEndOfTurn(args, data);
-    case CustomEventCodes.EndOfRound: // args.Data.t % 3 === 0
-				if (args.Data.m.t % 3 !== 0 || args.Data.m.t < 3 || args.Data.m.t > MAX_TURNS_PER_GAME) {
-						throw new PhotonException(5, "Custom EndOfRound event: wrong turnNr", getISOTimestamp(), { webhook: args, gameData: data });
-				}
-        return onEndOfRound(args, data);
-    case CustomEventCodes.EndOfGame: // args.Data.t === MAX_TURNS_PER_GAME
-				if (args.Data.t !== MAX_TURNS_PER_GAME) {
-						throw new PhotonException(5, "Custom EndOfGame event: wrong turnNr", getISOTimestamp(), { webhook: args, gameData: data });
-				}
-        return onEndOfGame(args, data);
-		default: // TODO: Unexpected throw error?
-				return data;
+	  switch (args.EvCode) {
+	    case CustomEventCodes.InitGame: // args.ActorNr === 1
+					if (args.ActorNr !== 1) {
+							throw new PhotonException(5, "Custom InitGame event: Wrong actorNr", getISOTimestamp(), { webhook: args, gameData: data });
+					}
+	        return onInitGame(args, data);
+	    case CustomEventCodes.JoinGame: // args.ActorNr === 2
+					if (args.ActorNr !== 2 || data.a.length !== 1) {
+							throw new PhotonException(5, "Custom JoinGame event: Wrong actorNr or duplicate event", getISOTimestamp(), { webhook: args, gameData: data });
+					}
+	        return onJoinGame(args, data);
+	    case CustomEventCodes.WordukenUsed:
+	        return onWordukenUsed(args, data);
+	    case CustomEventCodes.EndOfTurn: // args.Data.t % 3 !== 0
+					if (args.Data.t % 3 === 0 || args.Data.t < 1 || args.Data.t >= MAX_TURNS_PER_GAME) {
+							throw new PhotonException(5, "Custom EndOfTurn event: wrong turnNr", getISOTimestamp(), { webhook: args, gameData: data });
+					}
+	        return onEndOfTurn(args, data);
+	    case CustomEventCodes.EndOfRound: // args.Data.t % 3 === 0
+					if (args.Data.m.t % 3 !== 0 || args.Data.m.t < 3 || args.Data.m.t > MAX_TURNS_PER_GAME) {
+							throw new PhotonException(5, "Custom EndOfRound event: wrong turnNr", getISOTimestamp(), { webhook: args, gameData: data });
+					}
+	        return onEndOfRound(args, data);
+	    case CustomEventCodes.EndOfGame: // args.Data.t === MAX_TURNS_PER_GAME
+					if (args.Data.t !== MAX_TURNS_PER_GAME) {
+							throw new PhotonException(5, "Custom EndOfGame event: wrong turnNr", getISOTimestamp(), { webhook: args, gameData: data });
+					}
+	        return onEndOfGame(args, data);
+			case CustomEventCodes.NewRound:
+					return onNewRound(args, data);
+			case CustomEventCodes.Resign:
+					return onResign(args, data);
+			default: // TODO: Unexpected throw error?
+					return data;
+		}
+	} catch (e) {
+		throw e;
 	}
-} catch (e) {
-	throw e;
-}
 }

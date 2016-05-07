@@ -52,6 +52,7 @@ function getPollResponse(clientGamesList, userId) {
 	gameData = {},
 	gameState = {},
 	data = {};
+	data.a = constructEventsAcks(clientGamesList);
 	//logException(getISOTimestamp(), {s:Object.getOwnPropertyNames(serverGamesData), c:Object.getOwnPropertyNames(clientGamesList)}, "getPollResponse");
 	for (gameKey in serverGamesData) {
 		if (serverGamesData.hasOwnProperty(gameKey)) {
@@ -60,7 +61,7 @@ function getPollResponse(clientGamesList, userId) {
 				if (gameData.s < GameStates.P1Resigned && gameData.s > GameStates.MatchmakingTimedOut) {
 					delete gameData.State;
 					delete gameData.Cache;
-					if (!data.hasOwnProperty('n')) { data.n = {};}
+					if (!data.hasOwnProperty('n')) { data.n = {}; }
 					data.n[gameKey] = gameData;
 				}
 			} else {
@@ -91,6 +92,40 @@ function getPollResponse(clientGamesList, userId) {
 		}
 	}
 	return data;
+}
+
+function constructEventsAcks(clientData) {
+	try {
+		var a = {};
+		if (!isEmpty(clientData)){
+			for(var game in clientData){
+				if (clientData.hasOwnProperty(game) && !isEmpty(clientData[game].e)){
+					a[game] = [];
+					for(var i=0; i<clientData[game].e.length; i++){
+						var e = clientData[game].e[i];
+						switch (e.EvCode) {
+							case CustomEventCodes.InitGame:
+							case CustomEventCodes.JoinGame:
+							case CustomEventCodes.EndOfRound:
+							case CustomEventCodes.NewRound:
+							case CustomEventCodes.Resign:
+								a[game].push([e.EvCode]);
+								break;
+							case CustomEventCodes.EndOfTurn:
+							case CustomEventCodes.WordukenUsed:
+								a[game].push([e.EvCode, e.Data.t]);
+								break;
+							default:
+								break;
+						}
+					}
+				}
+			}
+		}
+		return a;
+	} catch (ex) {
+		throw ex;
+	}
 }
 
 function pollGamesData(userId, clientData) {
@@ -247,6 +282,14 @@ function getDiffData(gameData, clientGame) {
 					diff.s = gameData.s;
 				} else if (gameData.s <= GameStates.UnmatchedWaiting) {
 					return null;
+				} // else if (gameData.s === GameStats.Blocked) {}
+				break;
+			case GameStates.Blocked:
+				if (gameData.s === GameStates.Playing){
+					diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 1][2].r]];
+          return diff;
+				} else if (gameData.s !== GameStates.Blocked){
+					return null;
 				}
 				break;
 			default:
@@ -348,8 +391,8 @@ function deleteOrFlagGames(games, userId) {
 // events: array of GameEvent webhook like args
 // data: gameData
 function addMissingEvents(events, data) {
-    if (undefinedOrNull(events)) {return;}
-		for(var i=0; i<events.length; i++){
+    if (undefinedOrNull(events)) { return; }
+		for(var i=0; i<events.length; i++) {
 			onEventReceived(events[i], data);
 		}
 }
@@ -384,13 +427,13 @@ handlers.deleteGames = function (args) {
 handlers.resign = function (args) {
 	try {
 		var gameData = loadGameData(args.GameId), actorNr = 1;
-		if (currentPlayerId !== getCreatorId(args.GameId)) {
+		if (args.UserId !== getCreatorId(args.GameId)) {
 			actorNr = 2;
 		}
-		if (gameData.a[actorNr - 1].id === currentPlayerId &&
+		if (gameData.a[actorNr - 1].id === args.UserId &&
 			gameData.s > GameStates.UnmatchedPlaying &&
 			gameData.s < GameStates.P1Resigned) {
-			gameData.s = GameStates.P2Waiting + actorNr;
+			gameData.s = GameStates.Blocked + actorNr;
 			gameData.deletionFlag = actorNr;
 			saveGameData(args.GameId, gameData);
 			if (actorNr === 2) {
@@ -400,4 +443,13 @@ handlers.resign = function (args) {
 	} else {
 		return {ResultCode: 1, Data:args, Message: 'Cannot resign from game'};
 	}} catch (e) {throw e;}
+};
+
+handlers.fixRound = function (args) {
+	try {
+		var gameData = loadGameData(args.GameId);
+		onNewRound(args, gameData);
+		saveGameData(args.GameId, gameData);
+		return {ResultCode: 0, Data:{GameId: args.GameId, r: gameData.Cache[gameData.Cache.length - 1][2].r}};
+	} catch (e) {throw e;}
 };
