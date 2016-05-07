@@ -70,7 +70,7 @@ function getPollResponse(clientGamesList, userId) {
 					var diff = getDiffData(gameData, gameState);
 					if (undefinedOrNull(diff)) {
 						logException(getISOTimestamp(), {s: gameData, c: gameState}, 'Client State/Turn > Server State/Turn, GameId=' + gameKey);
-						if (!data.hasOwnProperty('u')) { data.u = {};}
+						if (!data.hasOwnProperty('m')) { data.m = {};}
 						data.m[gameKey] = {t: gameData.t, s: gameData.s};
 					} else {
 						if (!data.hasOwnProperty('u')) { data.u = {};}
