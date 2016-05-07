@@ -104,13 +104,20 @@ function constructEventsAcks(clientData) {
 					for(var i=0; i<clientData[game].e.length; i++){
 						var e = clientData[game].e[i];
 						switch (e.EvCode) {
+
+
 							case CustomEventCodes.InitGame:
 							case CustomEventCodes.JoinGame:
-							case CustomEventCodes.EndOfRound:
-							case CustomEventCodes.NewRound:
 							case CustomEventCodes.Resign:
 								a[game].push([e.EvCode]);
 								break;
+							case CustomEventCodes.EndOfRound:
+								a[game].push([e.EvCode, e.Data.r.r]);
+								break;
+							case CustomEventCodes.NewRound:
+								a[game].push([e.EvCode, e.Data.r]);
+								break;
+							case CustomEventCodes.EndOfGame:
 							case CustomEventCodes.EndOfTurn:
 								a[game].push([e.EvCode, e.Data.t]);
 								break;
