@@ -112,8 +112,10 @@ function constructEventsAcks(clientData) {
 								a[game].push([e.EvCode]);
 								break;
 							case CustomEventCodes.EndOfTurn:
-							case CustomEventCodes.WordukenUsed:
 								a[game].push([e.EvCode, e.Data.t]);
+								break;
+							case CustomEventCodes.WordukenUsed:
+								a[game].push([e.EvCode, e.Data.wi]);
 								break;
 							default:
 								break;
