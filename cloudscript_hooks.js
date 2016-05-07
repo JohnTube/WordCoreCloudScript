@@ -179,11 +179,11 @@ function onNewRound(args, data){
 	}
 	try {
 		var eventData = args.Data; // TODO: test args and eventData
-		var newRoundNr = eventData.r.r; // eventData.m.r + 1;
-		data.r[newRoundNr] = { r: eventData.r.r, gs: eventData.r.gs, ts: eventData.r.ts, m: [{}, {}] };
+		var newRoundNr = eventData.r; // eventData.m.r + 1;
+		data.r[newRoundNr] = { r: eventData.r, gs: eventData.gs, ts: eventData.ts, m: [{}, {}] };
 		data.s = GameStates.Playing;
 		data.Cache[data.Cache.length - 1][1] = CustomEventCodes.EndOfRound;
-		data.Cache[data.Cache.length - 1][2] = {m:data.Cache[data.Cache.length - 1][2], r:eventData};
+		data.Cache[data.Cache.length - 1][2] = { m: data.Cache[data.Cache.length - 1][2], r: eventData };
 		return data;
 	} catch (e) {throw e;}
 }
