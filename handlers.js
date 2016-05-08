@@ -104,8 +104,6 @@ function constructEventsAcks(clientData) {
 					for(var i=0; i<clientData[game].e.length; i++){
 						var e = clientData[game].e[i];
 						switch (e.EvCode) {
-
-
 							case CustomEventCodes.InitGame:
 							case CustomEventCodes.JoinGame:
 							case CustomEventCodes.Resign:
@@ -291,7 +289,10 @@ function getDiffData(gameData, clientGame) {
 					diff.s = gameData.s;
 				} else if (gameData.s <= GameStates.UnmatchedWaiting) {
 					return null;
-				} // else if (gameData.s === GameStats.Blocked) {}
+				}  else if (gameData.s === GameStats.Blocked) {
+					diff.e = gameData.Cache.slice(-2);
+          return diff;
+				}
 				break;
 			case GameStates.Blocked:
 				if (gameData.s === GameStates.Playing){
