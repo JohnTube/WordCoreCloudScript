@@ -184,7 +184,7 @@ function onNewRound(args, data){
 		data.s = GameStates.Playing;
 		data.Cache[data.Cache.length - 1][1] = CustomEventCodes.EndOfRound;
 		data.Cache[data.Cache.length - 1][2] = { m: data.Cache[data.Cache.length - 1][2], r: eventData };
-		data.Cache[data.Cache.length - 1][2].m.t = data.t;
+		//data.Cache[data.Cache.length - 1][2].m.t = data.t;
 		return data;
 	} catch (e) {throw e;}
 }
