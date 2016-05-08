@@ -417,7 +417,7 @@ handlers.pollData = function (args) {
 		var data = getPollResponse(args.g, args.UserId);
 		return {ResultCode: 0, Data: data};
 	} catch(e) {
-		throw e;
+		logException(getISOTimestamp(), {err: e, args: args}, 'pollData');
 	}
 };
 
