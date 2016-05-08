@@ -216,7 +216,26 @@ function addToEventsCache(args, data) {
 			data.Cache = [];
 		}
 		// TODO: test if opponent is inactive
-		// TODO: avoid adding duplicate events to cache!!
+		for(var i=0; i<data.Cache.length; i++){
+			var cv = data.Cache[i];
+			if (cv[0] === args.ActorNr && cv[1] === args.EvCode) {
+				switch (cv[1]) {
+					case CustomEventCodes.EndOfTurn:
+					case CustomEventCodes.EndOfGame:
+						if (cv[2].t === args.Data.t) {
+							throw new PhotonException(5, "Trying to cache duplicate event", getISOTimestamp(), { w: args, d: data });
+						}
+						break;
+					case CustomEventCodes.EndOfRound:
+						if (cv[2].r.r === args.Data.r.r) {
+							throw new PhotonException(5, "Trying to cache duplicate event", getISOTimestamp(), { w: args, d: data });
+						}
+						break;
+					default:
+
+				}
+			}
+		}
 		var cachedEvent = [
 			args.ActorNr,
 			args.EvCode,
