@@ -327,9 +327,14 @@ function getDiffData(gameData, clientGame) {
 						break;
 					case CustomEventCodes.EndOfRound:
 						eR = Math.floor(ce[2].m.t / 3);
-						if (clientGame.t < ce[2].m.t || // old event
-							(eR === cR && clientGame.t !== ce[2].m.t)) { // event of opponent in same round
+						if (clientGame.t < ce[2].m.t) {
+							diff.e.push(ce);
+						} else if	(eR === cR && clientGame.t % 3 !== 0) { // event of opponent in same round
+							if (clientGame.t !== t) { // event of opponent in same round
 								diff.e.push(ce);
+							} else if (clientGame.t === t) {
+								diff.e.push([0, CustomEventCodes.NewRound, ce[2].r]);
+							}
 						}
 						break;
 					default:
