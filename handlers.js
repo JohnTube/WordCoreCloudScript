@@ -305,6 +305,8 @@ function getDiffData(gameData, clientGame) {
 						diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 1][2].r]];
 	          return diff;
 					}
+				} else if (gameData.s >= GameStates.P1Resigned) {
+					diff.s = gameData.s;
 				} else if (gameData.s !== GameStates.Blocked){
 					return null;
 				}
