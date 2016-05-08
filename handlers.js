@@ -289,15 +289,22 @@ function getDiffData(gameData, clientGame) {
 					diff.s = gameData.s;
 				} else if (gameData.s <= GameStates.UnmatchedWaiting) {
 					return null;
-				}  else if (gameData.s === GameStates.Blocked) {
-					diff.e = gameData.Cache.slice(-2);
-          return diff;
+				} else if (gameData.s === GameStates.Blocked) {
+					if (gameData.t - clientGame.t < 3) {
+						diff.e = gameData.Cache.slice(-1);
+						if (diff.e[0][0] !== gameData.t - clientGame.t) {
+							diff.e = [gameData.Cache[gameData.Cache.length - 2]];
+						}
+						return diff;
+					}
 				}
 				break;
 			case GameStates.Blocked:
 				if (gameData.s === GameStates.Playing){
-					diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 1][2].r]];
-          return diff;
+					if (gameData.t === clientGame.t) {
+						diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 1][2].r]];
+	          return diff;
+					}
 				} else if (gameData.s !== GameStates.Blocked){
 					return null;
 				}
