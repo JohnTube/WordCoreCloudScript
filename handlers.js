@@ -421,7 +421,10 @@ function addMissingEvents(events, data) {
 handlers.pollData = function (args) {
 	try {
 		var data = getPollResponse(args.g, args.UserId);
-	return {ResultCode: 0, Data: data};} catch(e) {throw e;}
+		return {ResultCode: 0, Data: data};
+	} catch(e) {
+		throw e;
+	}
 };
 
 // expects [] of gameIDs to delete
