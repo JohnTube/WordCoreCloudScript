@@ -252,100 +252,93 @@ function pollGamesData(userId, clientData) {
 
 function getDiffData(gameData, clientGame) {
 	try {//if (!gameData.hasOwnProperty('Cache')) {return null;} // TODO: remove or add log when moving to prod
-	var diff = {};
-	if (gameData.s !== clientGame.s) {
-		switch (clientGame.s) {
-			case GameStates.UnmatchedPlaying:
-				if (gameData.s === GameStates.UnmatchedWaiting) {
-					break;
-				} else if (gameData.s === GameStates.MatchmakingTimedOut){
-					diff.s = gameData.s;
-				}
-				else if (gameData.s >= GameStates.Playing) {
-					diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: gameData.a[1].w };
-					if (gameData.s >= GameStates.P1Resigned) {
+		var diff = {};
+		if (gameData.s !== clientGame.s) {
+			switch (clientGame.s) {
+				case GameStates.UnmatchedPlaying:
+					if (gameData.s === GameStates.UnmatchedWaiting) {
+						break;
+					} else if (gameData.s === GameStates.MatchmakingTimedOut){
 						diff.s = gameData.s;
 					}
-				} else {
-					return null;
-				}
-				break;
-			case GameStates.UnmatchedWaiting:
-				if (gameData.s === GameStates.MatchmakingTimedOut){
-					diff.s = gameData.s;
-				}
-				else if (gameData.s >= GameStates.Playing) {
-					diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: gameData.a[1].w };
-					if (gameData.s >= GameStates.P1Resigned) {
-						diff.s = gameData.s;
-					}
-				} else {
-					return null;
-				}
-				break;
-			case GameStates.Playing:
-			case GameStates.P1Waiting:
-			case GameStates.P2Waiting:
-				if (gameData.s >= GameStates.P1Resigned) {
-					diff.s = gameData.s;
-				} else if (gameData.s <= GameStates.UnmatchedWaiting) {
-					return null;
-				} else if (gameData.s === GameStates.Blocked) {
-					if (gameData.t - clientGame.t < 3) {
-						diff.e = gameData.Cache.slice(-1);
-						if (diff.e[0][0] !== gameData.t - clientGame.t) {
-							diff.e = [gameData.Cache[gameData.Cache.length - 2]];
+					else if (gameData.s >= GameStates.Playing) {
+						diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: gameData.a[1].w };
+						if (gameData.s >= GameStates.P1Resigned) {
+							diff.s = gameData.s;
 						}
-						return diff;
+					} else {
+						return null;
 					}
-				}
-				break;
-			case GameStates.Blocked:
-				if (gameData.s === GameStates.Playing){
-					if (gameData.t === clientGame.t) {
-						diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 1][2].r]];
-	          return diff;
+					break;
+				case GameStates.UnmatchedWaiting:
+					if (gameData.s === GameStates.MatchmakingTimedOut){
+						diff.s = gameData.s;
 					}
-				} else if (gameData.s >= GameStates.P1Resigned) {
-					diff.s = gameData.s;
-				} else if (gameData.s !== GameStates.Blocked){
-					return null;
-				}
-				break;
-			default:
-			// logException
-			return null;
-		}
-		// TODO: more tests please
-	}
-	if (gameData.t !== clientGame.t) {
-		var n, dR = Math.floor(gameData.t / 3) - Math.floor(clientGame.t / 3) ,
-					cD = clientGame.t % 3, sD = gameData.t % 3;
-					//logException(getISOTimestamp(), {dr: dR, cd: cD, sd: sD}, 'checking values');
-		if (dR === 0) { // same round
-			if (cD === 0 && sD !== 0) { // EndOfTurn
-				n = 1;
-			} else {
+					else if (gameData.s >= GameStates.Playing) {
+						diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: gameData.a[1].w };
+						if (gameData.s >= GameStates.P1Resigned) {
+							diff.s = gameData.s;
+						}
+					} else {
+						return null;
+					}
+					break;
+				case GameStates.Playing:
+				case GameStates.P1Waiting:
+				case GameStates.P2Waiting:
+					if (gameData.s >= GameStates.P1Resigned) {
+						diff.s = gameData.s;
+					} else if (gameData.s <= GameStates.UnmatchedWaiting) {
+						return null;
+					}
+					break;
+				case GameStates.Blocked:
+					if (gameData.s === GameStates.Playing){
+						if (gameData.t === clientGame.t) {
+							diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 1][2].r]];
+		          return diff;
+						}
+					} else if (gameData.s >= GameStates.P1Resigned) {
+						diff.s = gameData.s;
+					} else if (gameData.s !== GameStates.Blocked){
+						return null;
+					}
+					break;
+				default:
+				// logException
 				return null;
 			}
-		} else if (dR > 0) {
-			n = dR * 2;
-			if (cD % 3 === 0 && sD % 3 !== 0) {
-				n++;
-			} else if (cD % 3 !== 0 && sD % 3 === 0) {
-				n--;
+			// TODO: more tests please
+		}
+		if (data.t > clientGame.t) {
+			var cR = Math.floor(clientGame.t / 3);
+			for(var i=0; i<data.Cache.length; i++) {
+				var ce = data.Cache[i];
+				switch (ce[1]) {
+					case CustomEventCodes.EndOfGame:
+						diff.e.push(ce);
+						break;
+					case CustomEventCodes.EndOfTurn:
+						var eR = Math.floor(ce[2].t / 3);
+						if (clientGame.t < ce[2].t || // old event
+							(eR === cR && clientGame.t !== ce[2].t)) { // event of opponent in same round
+								diff.e.push(ce);
+						}
+						break;
+					case CustomEventCodes.EndOfRound:
+						eR = Math.floor(ce[2].m.t / 3);
+						if (clientGame.t < ce[2].m.t || // old event
+							(eR === cR && clientGame.t !== ce[2].m.t)) { // event of opponent in same round
+								diff.e.push(ce);
+						}
+						break;
+					default:
+
+				}
 			}
-		} else {
-			// logException
-			return null;
 		}
-		if (n <= 0 || n > MAX_ROUNDS_PER_GAME * 2) {
-			logException(getISOTimestamp(), {c: clientGame, d: gameData}, 'Calculated # of missing moves ('+n+') is unexpected');
-			return null;
-		}
-		diff.e = gameData.Cache.slice(-n);
-	}
-	return diff;} catch (e) {
+		return diff;
+	} catch (e) {
 		throw e;
 	}
 }
