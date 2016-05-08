@@ -289,7 +289,7 @@ function getDiffData(gameData, clientGame) {
 					diff.s = gameData.s;
 				} else if (gameData.s <= GameStates.UnmatchedWaiting) {
 					return null;
-				}  else if (gameData.s === GameStats.Blocked) {
+				}  else if (gameData.s === GameStates.Blocked) {
 					diff.e = gameData.Cache.slice(-2);
           return diff;
 				}
