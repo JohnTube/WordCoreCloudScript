@@ -97,9 +97,10 @@ function getPollResponse(clientGamesList, userId) {
 function constructEventsAcks(clientData) {
 	try {
 		if (!isEmpty(clientData)){
-			var a = {};
+			var a;
 			for(var game in clientData){
 				if (clientData.hasOwnProperty(game) && !isEmpty(clientData[game].e)){
+					if (undefinedOrNull(a)) { a = {}; }
 					a[game] = [];
 					for(var i=0; i<clientData[game].e.length; i++){
 						var e = clientData[game].e[i];
@@ -129,7 +130,7 @@ function constructEventsAcks(clientData) {
 				}
 			}
 			return a;
-		} 
+		}
 	} catch (ex) {
 		throw ex;
 	}
