@@ -111,41 +111,41 @@ function pollGamesData(clientData, userId) {
 						if (!undefinedOrNull(clientData) && clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
 							acks[gameKey] = addMissingEvents(clientData[gameKey].e, gameList[gameKey]);
 							listToUpdate[listId][gameKey] = gameList[gameKey];
-							}
-							if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
-									gameList[gameKey].s === GameStates.UnmatchedWaiting) {
-									if (checkMatchmakingTimeOut(gameList[gameKey].ts)) {
-										gameList[gameKey].s = GameStates.MatchmakingTimedOut;
-									}
-								} else if (gameList[gameKey].s > GameStates.UnmatchedWaiting &&
-													gameList[gameKey].s < GameStates.P1Resigned) {
-													//gameList[gameKey].t / 3
-													if (gameList[gameKey].r.length > 0 &&
-														  checkRoundTimeOut(gameList[gameKey].r[gameList[gameKey].r.length - 1].ts)) {
-															gameList[gameKey].s = GameStates.TimedOutDraw;
-															if (gameList[gameKey].t % 3 !== 0) {
-																gameList[gameKey].s += (3- gameList[gameKey].t % 3);
-															}
-															listToUpdate[listId][gameKey] = gameList[gameKey];
-														}
-											}
-										if (!undefinedOrNull(gameList[gameKey].a) &&
-												gameList[gameKey].a.length >= 1 &&
-												gameList[gameKey].a[0].id === currentPlayerId) {
-													data[gameKey] = gameList[gameKey];
-													data[gameKey].pn = 1;
-										} else {
-											listToUpdate[listId][gameKey] = null; // deleting values that do not contain 'gameData' key
-											logException(getISOTimestamp(), gameList[gameKey], 'actors array is missing or corrupt');
-										}
-							} else {
-								if (!listToLoad.hasOwnProperty(userKey)) {
-									listToLoad[userKey] = [];
+						}
+						if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
+								gameList[gameKey].s === GameStates.UnmatchedWaiting) {
+								if (checkMatchmakingTimeOut(gameList[gameKey].ts)) {
+									gameList[gameKey].s = GameStates.MatchmakingTimedOut;
 								}
-								listToLoad[userKey].push(gameKey);
+						} else if (gameList[gameKey].s > GameStates.UnmatchedWaiting &&
+											gameList[gameKey].s < GameStates.P1Resigned) {
+											//gameList[gameKey].t / 3
+							if (gameList[gameKey].r.length > 0 &&
+								  checkRoundTimeOut(gameList[gameKey].r[gameList[gameKey].r.length - 1].ts)) {
+								gameList[gameKey].s = GameStates.TimedOutDraw;
+								if (gameList[gameKey].t % 3 !== 0) {
+									gameList[gameKey].s += (3- gameList[gameKey].t % 3);
+								}
+								listToUpdate[listId][gameKey] = gameList[gameKey];
 							}
 						}
+						if (!undefinedOrNull(gameList[gameKey].a) &&
+								gameList[gameKey].a.length >= 1 &&
+								gameList[gameKey].a[0].id === currentPlayerId) {
+									data[gameKey] = gameList[gameKey];
+									data[gameKey].pn = 1;
+						} else {
+							listToUpdate[listId][gameKey] = null; // deleting values that do not contain 'gameData' key
+							logException(getISOTimestamp(), gameList[gameKey], 'actors array is missing or corrupt');
+						}
+					} else {
+						if (!listToLoad.hasOwnProperty(userKey)) {
+							listToLoad[userKey] = [];
+						}
+						listToLoad[userKey].push(gameKey);
+					}
 				}
+			} 
 			for (userKey in listToLoad) {
 				if (listToLoad.hasOwnProperty(userKey)) {
 					listId = getGamesListId(userKey);
@@ -156,7 +156,7 @@ function pollGamesData(clientData, userId) {
 						gameKey = listToLoad[userKey][i];
 						if (gameList.hasOwnProperty(gameKey)) {
 								if (!undefinedOrNull(clientData) && clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
-									 = addMissingEvents(clientData[gameKey].e, gameList[gameKey]);
+									acks[gameKey] = addMissingEvents(clientData[gameKey], gameList[gameKey]);
 									listToUpdate[listId][gameKey] = gameList[gameKey];
 								}
 								if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
@@ -364,9 +364,9 @@ function deleteOrFlagGames(games, userId) {
 // add pending local client cached events to a game before processing polling diff. to return
 // events: array of GameEvent webhook like args
 // data: gameData
-function addMissingEvents(events, data) {
-    if (isEmpty(events)) { return; }
-	var acks = [];
+function addMissingEvents(clientData, data) {
+    //if (undefinedOrNull(clientData) || isEmpty(clientData.e)) { return; }
+	var events = clientData.e, acks = [];
 	for(var i=0; i<events.length; i++) {
 		var e = events[i], eAck = [true, e.EvCode];
 		switch (e.EvCode) {
@@ -394,8 +394,28 @@ function addMissingEvents(events, data) {
 		} else {
 			try  {
 				data = onEventReceived(e, data);
-			} catch (e) {
+			} catch (ex) {
 				eAck[0] = false;
+				switch (e.EvCode) {
+					case CustomEventCodes.EndOfGame:
+					case CustomEventCodes.EndOfRound:
+						clientData.t = e.Data.t - e.ActorNr;
+						clientData.s = GameStates.Playing + (3 - e.ActorNr);
+						break;
+					case CustomEventCodes.EndOfTurn:
+						clientData.t = e.Data.t - e.ActorNr;
+						clientData.s = GameStates.Playing;
+						break;
+					case CustomEventCodes.NewRound:
+					case CustomEventCodes.WordukenUsed:
+						// nothing to fix, same TurnNumber, same GameState
+						break;
+					case CustomEventCodes.InitGame:
+					case CustomEventCodes.JoinGame:
+					case CustomEventCodes.Resign:
+					default:
+						break;
+				}
 			}
 		}
 		acks.push(eAck);
