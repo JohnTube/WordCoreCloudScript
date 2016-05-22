@@ -28,6 +28,7 @@ handlers.onLogin = function (args) {
 			createSharedGroup(getGamesListId(args.UserId));
 			return {ResultCode: 0};
 		}
+		logException(getISOTimestamp(), args, "onLogin");
 		var data = getPollResponse(args.g, args.UserId);
 		return {ResultCode: 0, Data: data};
 	} catch (e){
@@ -50,7 +51,7 @@ function getPollResponse(clientGamesList, userId) {
 	gameState = {},
 	data = {a: serverGamesData.a},
 	serverGamesData = serverGamesData.d;
-	//logException(getISOTimestamp(), {s:Object.getOwnPropertyNames(serverGamesData), c:Object.getOwnPropertyNames(clientGamesList)}, "getPollResponse");
+	logException(getISOTimestamp(), {s:Object.getOwnPropertyNames(serverGamesData), c:Object.getOwnPropertyNames(clientGamesList)}, "getPollResponse");
 	for (gameKey in serverGamesData) {
 		if (serverGamesData.hasOwnProperty(gameKey)) {
 			gameData = serverGamesData[gameKey];
@@ -103,7 +104,7 @@ function pollGamesData(clientData, userId) {
 			acks = {};
 			gameList = getSharedGroupData(listId);
 			listToUpdate[listId] = {};
-			//logException(getISOTimestamp(), gameList, "list of games in " + listId);
+			logException(getISOTimestamp(), gameList, "list of games in " + listId);
 			for (gameKey in gameList) {
 				if (gameList.hasOwnProperty(gameKey)) {
 					userKey = getCreatorId(gameKey);

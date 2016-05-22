@@ -47,7 +47,7 @@ var GameStates = {
     Playing : 4, // 4
     P1Waiting : 5, // 5
     P2Waiting : 6,
-		Blocked : 7,
+	Blocked : 7,
     P1Resigned : 8,
     P2Resigned : 9,
     TimedOutDraw : 10,
