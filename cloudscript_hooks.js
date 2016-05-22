@@ -270,12 +270,12 @@ function onEventReceived(args, data) {
 	        return onEndOfRound(args, data);
 	    case CustomEventCodes.EndOfGame: // args.Data.t === MAX_TURNS_PER_GAME
 	        return onEndOfGame(args, data);
-			case CustomEventCodes.NewRound:
-					return onNewRound(args, data);
-			case CustomEventCodes.Resign:
-					return onResign(args, data);
-			default: // TODO: Unexpected throw error?
-					return data;
+		case CustomEventCodes.NewRound:
+			return onNewRound(args, data);
+		case CustomEventCodes.Resign:
+			return onResign(args, data);
+		default: // TODO: Unexpected throw error?
+			return data;
 		}
 	} catch (e) {
 		throw e;

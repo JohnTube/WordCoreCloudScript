@@ -22,11 +22,8 @@ function checkMatchmakingTimeOut(timestamp){
 	return checkTimeOut(timestamp, MATCHMAKING_TIME_OUT);
 }
 
-handlers.onLogin = function (args, context) {
-	try { // temporary
-		if (!undefinedOrNull(context)) {
-			logException(getISOTimestamp(), context, "new context param in handlers");
-		}
+handlers.onLogin = function (args) {
+	try { 
 		if (args.c === true) {
 			createSharedGroup(getGamesListId(args.UserId));
 			return {ResultCode: 0};
@@ -47,12 +44,12 @@ handlers.onLogin = function (args, context) {
 };
 
 function getPollResponse(clientGamesList, userId) {
-	var serverGamesData = pollGamesData(userId, clientGamesList),
+	var serverGamesData = pollGamesData(clientGamesList, userId),
 	gameKey = '',
 	gameData = {},
 	gameState = {},
-	data = {};
-	data.a = constructEventsAcks(clientGamesList);
+	data = {a: serverGamesData.a},
+	serverGamesData = serverGamesData.d;
 	//logException(getISOTimestamp(), {s:Object.getOwnPropertyNames(serverGamesData), c:Object.getOwnPropertyNames(clientGamesList)}, "getPollResponse");
 	for (gameKey in serverGamesData) {
 		if (serverGamesData.hasOwnProperty(gameKey)) {
@@ -94,49 +91,7 @@ function getPollResponse(clientGamesList, userId) {
 	return data;
 }
 
-function constructEventsAcks(clientData) {
-	try {
-		if (!isEmpty(clientData)){
-			var a;
-			for(var game in clientData){
-				if (clientData.hasOwnProperty(game) && !isEmpty(clientData[game].e)){
-					if (undefinedOrNull(a)) { a = {}; }
-					a[game] = [];
-					for(var i=0; i<clientData[game].e.length; i++){
-						var e = clientData[game].e[i];
-						switch (e.EvCode) {
-							case CustomEventCodes.InitGame:
-							case CustomEventCodes.JoinGame:
-							case CustomEventCodes.Resign:
-								a[game].push([e.EvCode]);
-								break;
-							case CustomEventCodes.EndOfRound:
-								a[game].push([e.EvCode, e.Data.r.r]);
-								break;
-							case CustomEventCodes.NewRound:
-								a[game].push([e.EvCode, e.Data.r]);
-								break;
-							case CustomEventCodes.EndOfGame:
-							case CustomEventCodes.EndOfTurn:
-								a[game].push([e.EvCode, e.Data.t]);
-								break;
-							case CustomEventCodes.WordukenUsed:
-								a[game].push([e.EvCode, e.Data.wi]);
-								break;
-							default:
-								break;
-						}
-					}
-				}
-			}
-			return a;
-		}
-	} catch (ex) {
-		throw ex;
-	}
-}
-
-function pollGamesData(userId, clientData) {
+function pollGamesData(clientData, userId) {
 	try {
 		var gameList = {},
 			listId = getGamesListId(userId),
@@ -144,7 +99,8 @@ function pollGamesData(userId, clientData) {
 			listToUpdate = {},
 			gameKey = '',
 			userKey = '',
-			data = {};
+			data = {},
+			acks = {};
 			gameList = getSharedGroupData(listId);
 			listToUpdate[listId] = {};
 			//logException(getISOTimestamp(), gameList, "list of games in " + listId);
@@ -153,9 +109,9 @@ function pollGamesData(userId, clientData) {
 					userKey = getCreatorId(gameKey);
 					if (userKey === currentPlayerId) {
 						if (!undefinedOrNull(clientData) && clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
-							addMissingEvents(clientData[gameKey].e, gameList[gameKey]);
+							acks[gameKey] = addMissingEvents(clientData[gameKey].e, gameList[gameKey]);
 							listToUpdate[listId][gameKey] = gameList[gameKey];
-						}
+							}
 							if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
 									gameList[gameKey].s === GameStates.UnmatchedWaiting) {
 									if (checkMatchmakingTimeOut(gameList[gameKey].ts)) {
@@ -200,7 +156,7 @@ function pollGamesData(userId, clientData) {
 						gameKey = listToLoad[userKey][i];
 						if (gameList.hasOwnProperty(gameKey)) {
 								if (!undefinedOrNull(clientData) && clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
-									addMissingEvents(clientData[gameKey].e, gameList[gameKey]);
+									 = addMissingEvents(clientData[gameKey].e, gameList[gameKey]);
 									listToUpdate[listId][gameKey] = gameList[gameKey];
 								}
 								if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
@@ -246,7 +202,7 @@ function pollGamesData(userId, clientData) {
 						updateSharedGroupData(listId, listToUpdate[listId]);
 					}
 				}
-				return data;
+				return {d:data, a:acks};
 	} catch (e) {throw e;}
 }
 
@@ -409,10 +365,42 @@ function deleteOrFlagGames(games, userId) {
 // events: array of GameEvent webhook like args
 // data: gameData
 function addMissingEvents(events, data) {
-    if (undefinedOrNull(events)) { return; }
-		for(var i=0; i<events.length; i++) {
-			onEventReceived(events[i], data);
+    if (isEmpty(events)) { return; }
+	var acks = [];
+	for(var i=0; i<events.length; i++) {
+		var e = events[i], eAck = [true, e.EvCode];
+		switch (e.EvCode) {
+			case CustomEventCodes.EndOfRound:
+				eAck.push(e.Data.r.r);
+				break;
+			case CustomEventCodes.NewRound:
+				eAck.push(e.Data.r);
+				break;
+			case CustomEventCodes.EndOfGame:
+			case CustomEventCodes.EndOfTurn:
+				eAck.push(e.Data.t);
+				break;
+			case CustomEventCodes.WordukenUsed:
+				eAck.push(e.Data.wi);
+				break;
+			case CustomEventCodes.InitGame:
+			case CustomEventCodes.JoinGame:
+			case CustomEventCodes.Resign:
+			default:
+				break;
 		}
+		if (i>0 && acks[i - 1][0] === false) {
+			eAck[0] = false;
+		} else {
+			try  {
+				data = onEventReceived(e, data);
+			} catch (e) {
+				eAck[0] = false;
+			}
+		}
+		acks.push(eAck);
+	}
+	return acks;//{d: data, a: acks};
 }
 
 
