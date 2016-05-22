@@ -49,7 +49,10 @@ function getPollResponse(clientGamesList, userId) {
 	gameKey = '',
 	gameData = {},
 	gameState = {},
-	data = {a: serverGamesData.a},
+	data = {},
+	if (!isEmpty(serverGamesData.a)){
+		data.a = serverGamesData.a;
+	}
 	serverGamesData = serverGamesData.d;
 	logException(getISOTimestamp(), {s:Object.getOwnPropertyNames(serverGamesData), c:Object.getOwnPropertyNames(clientGamesList)}, "getPollResponse");
 	for (gameKey in serverGamesData) {
