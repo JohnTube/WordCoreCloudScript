@@ -49,7 +49,8 @@ function getPollResponse(clientGamesList, userId) {
 	gameKey = '',
 	gameData = {},
 	gameState = {},
-	data = {},
+	serverGamesData = {},
+	data = {};
 	if (!isEmpty(serverGamesData.a)){
 		data.a = serverGamesData.a;
 	}
