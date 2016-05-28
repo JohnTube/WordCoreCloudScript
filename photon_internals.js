@@ -1,8 +1,10 @@
 function getGamesListId(playerId) {
     if (undefinedOrNull(playerId)) {
-        logException(getISOTimestamp(), null, 'playerId is undefinedOrNull');
-    }
-    return playerId + '_GamesList';
+        //logException(getISOTimestamp(), null, 'playerId is undefinedOrNull');
+		throw new PhotonException(11, 'getGamesListId: playerId is undefinedOrNull', null);
+    } else {
+		return playerId + '_GamesList';
+	}
 }
 
 function getCreatorId(gameId) {
