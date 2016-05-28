@@ -102,8 +102,8 @@ function pollGamesData(clientData, userId) {
 					userKey = getCreatorId(gameKey);
 					if (userKey === currentPlayerId) {
 						if (!undefinedOrNull(clientData) && clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
-							/*acks[gameKey] = addMissingEvents(clientData[gameKey].e, gameList[gameKey]);
-							listToUpdate[listId][gameKey] = gameList[gameKey];*/
+							acks[gameKey] = addMissingEvents(clientData[gameKey].e, gameList[gameKey]);
+							listToUpdate[listId][gameKey] = gameList[gameKey];
 						}
 						if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
 								gameList[gameKey].s === GameStates.UnmatchedWaiting) {
@@ -393,6 +393,7 @@ function addMissingEvents(clientData, data) {
 					data = onEventReceived(e, data);
 				} catch (ex) {
 					if (ex instanceof PhotonException && ex.ResultCode === 5){
+						logException(getISOTimestamp(), ex, 'addMissingEvents handled onEventReceived error');
 						eAck[0] = false;
 						switch (e.EvCode) {
 							case CustomEventCodes.EndOfGame:
@@ -415,7 +416,8 @@ function addMissingEvents(clientData, data) {
 								break;
 						}
 					} else {
-						throw ex;
+						logException(getISOTimestamp(), ex, 'addMissingEvents UNHANDLED onEventReceived error');
+						//throw ex;
 					}
 				}
 			}
@@ -423,7 +425,8 @@ function addMissingEvents(clientData, data) {
 		}
 		return acks;//{d: data, a: acks};
 	} catch (error) {
-		throw error;
+		logException(getISOTimestamp(), error, 'addMissingEvents error');
+		//throw error;
 	}
 }
 
