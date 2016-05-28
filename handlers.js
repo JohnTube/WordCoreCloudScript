@@ -248,7 +248,7 @@ function getDiffData(gameData, clientGame) {
 					if (gameData.s === GameStates.Playing){
 						if (gameData.t === clientGame.t) {
 							diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 1][2].r]];
-		          return diff;
+							return diff;
 						}
 					} else if (gameData.s >= GameStates.P1Resigned) {
 						diff.s = gameData.s;
@@ -268,23 +268,28 @@ function getDiffData(gameData, clientGame) {
 				var ce = gameData.Cache[i];
 				switch (ce[1]) {
 					case CustomEventCodes.EndOfGame:
+						if (isEmpty(diff.e)) {diff.e = [];}
 						diff.e.push(ce);
 						break;
 					case CustomEventCodes.EndOfTurn:
 						var eR = Math.floor(ce[2].t / 3);
 						if (clientGame.t < ce[2].t || // old event
 							(eR === cR && clientGame.t !== ce[2].t)) { // event of opponent in same round
+								if (isEmpty(diff.e)) {diff.e = [];}
 								diff.e.push(ce);
 						}
 						break;
 					case CustomEventCodes.EndOfRound:
 						eR = Math.floor(ce[2].m.t / 3);
 						if (clientGame.t < ce[2].m.t) {
+							if (isEmpty(diff.e)) {diff.e = [];}
 							diff.e.push(ce);
 						} else if	(eR === cR && clientGame.t % 3 !== 0) { // event of opponent in same round
 							if (clientGame.t !== t) { // event of opponent in same round
+								if (isEmpty(diff.e)) {diff.e = [];}
 								diff.e.push(ce);
 							} else if (clientGame.t === t) {
+								if (isEmpty(diff.e)) {diff.e = [];}
 								diff.e.push([0, CustomEventCodes.NewRound, ce[2].r]);
 							}
 						}
