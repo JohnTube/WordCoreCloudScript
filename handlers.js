@@ -1,4 +1,4 @@
-var MATCHMAKING_TIME_OUT = 60 * 60 * 1000, // 1 hour in milliseconds, "ClosedRoomTTL" with Photon AsyncRandomLobby !
+var MATCHMAKING_TIME_OUT = 60 * 60 * 1000, // 1 hour in milliseconds, 'ClosedRoomTTL' with Photon AsyncRandomLobby !
 ROUND_TIME_OUT = 2 * 24 * MATCHMAKING_TIME_OUT; // DEV : 1 week ==> PROD : 2 days in milliseconds
 
 
@@ -38,41 +38,41 @@ function getPollResponse(clientGamesList, userId) {
 			} else {
 				serverGamesData = {};
 			}
-		}
-		//logException(getISOTimestamp(), {s:Object.getOwnPropertyNames(serverGamesData), c:Object.getOwnPropertyNames(clientGamesList)}, "getPollResponse");
-		for (gameKey in serverGamesData) {
-			if (serverGamesData.hasOwnProperty(gameKey)) {
-				gameData = serverGamesData[gameKey];
-				if (undefinedOrNull(clientGamesList) || !clientGamesList.hasOwnProperty(gameKey)) {
-					if (gameData.s < GameStates.P1Resigned && gameData.s > GameStates.MatchmakingTimedOut) {
-						delete gameData.State;
-						delete gameData.Cache;
-						if (!data.hasOwnProperty('n')) { data.n = {}; }
-						data.n[gameKey] = gameData;
-					}
-				} else {
-					gameState = clientGamesList[gameKey];
-					if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
-						var diff = getDiffData(gameData, gameState);
-						if (undefinedOrNull(diff)) {
-							logException(getISOTimestamp(), {s: gameData, c: gameState}, 'Client State/Turn > Server State/Turn, GameId=' + gameKey);
-							if (!data.hasOwnProperty('m')) { data.m = {};}
-							data.m[gameKey] = {t: gameData.t, s: gameData.s};
-						} else {
-							if (!data.hasOwnProperty('u')) { data.u = {};}
-							data.u[gameKey] = diff;
+			//logException(getISOTimestamp(), {s:Object.getOwnPropertyNames(serverGamesData), c:Object.getOwnPropertyNames(clientGamesList)}, 'getPollResponse');
+			for (gameKey in serverGamesData) {
+				if (serverGamesData.hasOwnProperty(gameKey)) {
+					gameData = serverGamesData[gameKey];
+					if (undefinedOrNull(clientGamesList) || !clientGamesList.hasOwnProperty(gameKey)) {
+						if (gameData.s < GameStates.P1Resigned && gameData.s > GameStates.MatchmakingTimedOut) {
+							delete gameData.State;
+							delete gameData.Cache;
+							if (!data.hasOwnProperty('n')) { data.n = {}; }
+							data.n[gameKey] = gameData;
+						}
+					} else {
+						gameState = clientGamesList[gameKey];
+						if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
+							var diff = getDiffData(gameData, gameState);
+							if (undefinedOrNull(diff)) {
+								logException(getISOTimestamp(), {s: gameData, c: gameState}, 'Client State/Turn > Server State/Turn, GameId=' + gameKey);
+								if (!data.hasOwnProperty('m')) { data.m = {};}
+								data.m[gameKey] = {t: gameData.t, s: gameData.s};
+							} else {
+								if (!data.hasOwnProperty('u')) { data.u = {};}
+								data.u[gameKey] = diff;
+							}
 						}
 					}
 				}
 			}
-		}
-		// sending to client array of 'old/outdated' gameIDs that should be deleted [from cache] locally
-		if (!isEmpty(clientGamesList)) {
-			for (gameKey in clientGamesList) {
-				if (clientGamesList.hasOwnProperty(gameKey)) {
-					if (!serverGamesData.hasOwnProperty(gameKey)) {
-						if (!data.hasOwnProperty('o')) { data.o = [];}
-						data.o.push(gameKey);
+			// sending to client array of 'old/outdated' gameIDs that should be deleted [from cache] locally
+			if (!isEmpty(clientGamesList)) {
+				for (gameKey in clientGamesList) {
+					if (clientGamesList.hasOwnProperty(gameKey)) {
+						if (!serverGamesData.hasOwnProperty(gameKey)) {
+							if (!data.hasOwnProperty('o')) { data.o = [];}
+							data.o.push(gameKey);
+						}
 					}
 				}
 			}
@@ -96,7 +96,7 @@ function pollGamesData(clientData, userId) {
 			acks = {};
 			gameList = getSharedGroupData(listId);
 			listToUpdate[listId] = {};
-			//logException(getISOTimestamp(), gameList, "list of games in " + listId);
+			//logException(getISOTimestamp(), gameList, 'list of games in ' + listId);
 			for (gameKey in gameList) {
 				if (gameList.hasOwnProperty(gameKey)) {
 					userKey = getCreatorId(gameKey);
@@ -144,7 +144,7 @@ function pollGamesData(clientData, userId) {
 					listId = getGamesListId(userKey);
 					listToUpdate[listId] = {};
 					gameList = getSharedGroupData(listId, listToLoad[userKey]);
-					//logException(getISOTimestamp(), gameList, "list of games in " + listId);
+					//logException(getISOTimestamp(), gameList, 'list of games in ' + listId);
 					for (var i=0; i<listToLoad[userKey].length; i++) {
 						gameKey = listToLoad[userKey][i];
 						if (gameList.hasOwnProperty(gameKey)) {
@@ -436,14 +436,14 @@ handlers.onLogin = function (args) {
 			createSharedGroup(getGamesListId(args.UserId));
 			return {ResultCode: 0};
 		}
-		//logException(getISOTimestamp(), args, "onLogin");
+		//logException(getISOTimestamp(), args, 'onLogin');
 		var data = getPollResponse(args.g, args.UserId);
 		return {ResultCode: 0, Data: data};
 	} catch (e) {
-		if (!undefinedOrNull(e.Error) && e.Error.error === "InvalidSharedGroupId"){
+		if (!undefinedOrNull(e.Error) && e.Error.error === 'InvalidSharedGroupId'){
 			createSharedGroup(getGamesListId(args.UserId));
 		} else {
-			logException(getISOTimestamp(), e, "Error in onLogin handler");
+			logException(getISOTimestamp(), e, 'Error in onLogin handler');
 		}
 		/*if (!isEmpty(args.g)){
 			return {ResultCode:0, Data: {o: Object.getOwnPropertyNames(args.g)}};
