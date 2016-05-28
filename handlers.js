@@ -403,7 +403,11 @@ function addMissingEvents(clientData, data) {
 								break;
 							case CustomEventCodes.EndOfTurn:
 								clientData.t = e.Data.t - e.ActorNr;
-								clientData.s = GameStates.Playing;
+								if (e.Data.s > GameStates.UnmatchedWaiting) {
+									clientData.s = GameStates.Playing;
+								} else {
+									clientData.s = GameStates.UnmatchedPlaying;
+								}
 								break;
 							case CustomEventCodes.NewRound:
 							case CustomEventCodes.WordukenUsed:
