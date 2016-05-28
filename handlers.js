@@ -102,7 +102,7 @@ function pollGamesData(clientData, userId) {
 					userKey = getCreatorId(gameKey);
 					if (userKey === currentPlayerId) {
 						if (!undefinedOrNull(clientData) && clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
-							acks[gameKey] = addMissingEvents(clientData[gameKey].e, gameList[gameKey]);
+							acks[gameKey] = addMissingEvents(clientData[gameKey], gameList[gameKey]);
 							listToUpdate[listId][gameKey] = gameList[gameKey];
 						}
 						if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
@@ -362,7 +362,7 @@ function deleteOrFlagGames(games, userId) {
 // data: gameData
 function addMissingEvents(clientData, data) {
 	try {
-		//if (undefinedOrNull(clientData) || isEmpty(clientData.e)) { return; }
+		if (undefinedOrNull(clientData) || isEmpty(clientData.e)) { return; }
 		var events = clientData.e, acks = [];
 		for(var i=0; i<events.length; i++) {
 			var e = events[i], eAck = [true, e.EvCode];
