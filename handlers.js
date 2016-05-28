@@ -226,7 +226,7 @@ function getDiffData(gameData, clientGame) {
 					if (gameData.s === GameStates.MatchmakingTimedOut){
 						diff.s = gameData.s;
 					}
-					else if (gameData.s >= GameStates.Playing) {
+					else if (gameData.s >= GameStates.Playing && gameData.a.length === 2) {
 						diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: gameData.a[1].w };
 						if (gameData.s >= GameStates.P1Resigned) {
 							diff.s = gameData.s;
