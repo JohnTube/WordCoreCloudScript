@@ -23,54 +23,65 @@ function checkMatchmakingTimeOut(timestamp){
 }
 
 function getPollResponse(clientGamesList, userId) {
-	var serverGamesData = pollGamesData(clientGamesList, userId),
-	gameKey = '',
-	gameData = {},
-	gameState = {},
-	data = {};
-	if (!isEmpty(serverGamesData.a)){
-		data.a = serverGamesData.a;
-	}
-	serverGamesData = serverGamesData.d;
-	//logException(getISOTimestamp(), {s:Object.getOwnPropertyNames(serverGamesData), c:Object.getOwnPropertyNames(clientGamesList)}, "getPollResponse");
-	for (gameKey in serverGamesData) {
-		if (serverGamesData.hasOwnProperty(gameKey)) {
-			gameData = serverGamesData[gameKey];
-			if (undefinedOrNull(clientGamesList) || !clientGamesList.hasOwnProperty(gameKey)) {
-				if (gameData.s < GameStates.P1Resigned && gameData.s > GameStates.MatchmakingTimedOut) {
-					delete gameData.State;
-					delete gameData.Cache;
-					if (!data.hasOwnProperty('n')) { data.n = {}; }
-					data.n[gameKey] = gameData;
-				}
+	try {
+		var serverGamesData = pollGamesData(clientGamesList, userId),
+		gameKey = '',
+		gameData = {},
+		gameState = {},
+		data = {};
+		if (!undefinedOrNull(serverGamesData)){
+			if (!isEmpty(serverGamesData.a)) {
+				data.a = serverGamesData.a;
+			}
+			if (!undefinedOrNull(serverGamesData.d)) {
+				serverGamesData = serverGamesData.d;
 			} else {
-				gameState = clientGamesList[gameKey];
-				if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
-					var diff = getDiffData(gameData, gameState);
-					if (undefinedOrNull(diff)) {
-						logException(getISOTimestamp(), {s: gameData, c: gameState}, 'Client State/Turn > Server State/Turn, GameId=' + gameKey);
-						if (!data.hasOwnProperty('m')) { data.m = {};}
-						data.m[gameKey] = {t: gameData.t, s: gameData.s};
-					} else {
-						if (!data.hasOwnProperty('u')) { data.u = {};}
-						data.u[gameKey] = diff;
+				serverGamesData = {};
+			}
+		}
+		//logException(getISOTimestamp(), {s:Object.getOwnPropertyNames(serverGamesData), c:Object.getOwnPropertyNames(clientGamesList)}, "getPollResponse");
+		for (gameKey in serverGamesData) {
+			if (serverGamesData.hasOwnProperty(gameKey)) {
+				gameData = serverGamesData[gameKey];
+				if (undefinedOrNull(clientGamesList) || !clientGamesList.hasOwnProperty(gameKey)) {
+					if (gameData.s < GameStates.P1Resigned && gameData.s > GameStates.MatchmakingTimedOut) {
+						delete gameData.State;
+						delete gameData.Cache;
+						if (!data.hasOwnProperty('n')) { data.n = {}; }
+						data.n[gameKey] = gameData;
+					}
+				} else {
+					gameState = clientGamesList[gameKey];
+					if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
+						var diff = getDiffData(gameData, gameState);
+						if (undefinedOrNull(diff)) {
+							logException(getISOTimestamp(), {s: gameData, c: gameState}, 'Client State/Turn > Server State/Turn, GameId=' + gameKey);
+							if (!data.hasOwnProperty('m')) { data.m = {};}
+							data.m[gameKey] = {t: gameData.t, s: gameData.s};
+						} else {
+							if (!data.hasOwnProperty('u')) { data.u = {};}
+							data.u[gameKey] = diff;
+						}
 					}
 				}
 			}
 		}
-	}
-	// sending to client array of 'old/outdated' gameIDs that should be deleted [from cache] locally
-	if (!isEmpty(clientGamesList)) {
-		for (gameKey in clientGamesList) {
-			if (clientGamesList.hasOwnProperty(gameKey)) {
-				if (!serverGamesData.hasOwnProperty(gameKey)) {
-					if (!data.hasOwnProperty('o')) { data.o = [];}
-					data.o.push(gameKey);
+		// sending to client array of 'old/outdated' gameIDs that should be deleted [from cache] locally
+		if (!isEmpty(clientGamesList)) {
+			for (gameKey in clientGamesList) {
+				if (clientGamesList.hasOwnProperty(gameKey)) {
+					if (!serverGamesData.hasOwnProperty(gameKey)) {
+						if (!data.hasOwnProperty('o')) { data.o = [];}
+						data.o.push(gameKey);
+					}
 				}
 			}
 		}
+		return data;
+	} catch(e) {
+		throw e;
 	}
-	return data;
+	//return {};
 }
 
 function pollGamesData(clientData, userId) {
@@ -185,7 +196,10 @@ function pollGamesData(clientData, userId) {
 					}
 				}
 				return {d:data, a:acks};
-	} catch (e) {throw e;}
+	} catch (e) {
+		throw e;
+	}
+	//return {d:{}, a:{}};
 }
 
 function getDiffData(gameData, clientGame) {
@@ -347,62 +361,66 @@ function deleteOrFlagGames(games, userId) {
 // events: array of GameEvent webhook like args
 // data: gameData
 function addMissingEvents(clientData, data) {
-    //if (undefinedOrNull(clientData) || isEmpty(clientData.e)) { return; }
-	var events = clientData.e, acks = [];
-	for(var i=0; i<events.length; i++) {
-		var e = events[i], eAck = [true, e.EvCode];
-		switch (e.EvCode) {
-			case CustomEventCodes.EndOfRound:
-				eAck.push(e.Data.r.r);
-				break;
-			case CustomEventCodes.NewRound:
-				eAck.push(e.Data.r);
-				break;
-			case CustomEventCodes.EndOfGame:
-			case CustomEventCodes.EndOfTurn:
-				eAck.push(e.Data.t);
-				break;
-			case CustomEventCodes.WordukenUsed:
-				eAck.push(e.Data.wi);
-				break;
-			case CustomEventCodes.InitGame:
-			case CustomEventCodes.JoinGame:
-			case CustomEventCodes.Resign:
-			default:
-				break;
-		}
-		if (i>0 && acks[i - 1][0] === false) {
-			eAck[0] = false;
-		} else {
-			try  {
-				data = onEventReceived(e, data);
-			} catch (ex) {
+	try {
+		//if (undefinedOrNull(clientData) || isEmpty(clientData.e)) { return; }
+		var events = clientData.e, acks = [];
+		for(var i=0; i<events.length; i++) {
+			var e = events[i], eAck = [true, e.EvCode];
+			switch (e.EvCode) {
+				case CustomEventCodes.EndOfRound:
+					eAck.push(e.Data.r.r);
+					break;
+				case CustomEventCodes.NewRound:
+					eAck.push(e.Data.r);
+					break;
+				case CustomEventCodes.EndOfGame:
+				case CustomEventCodes.EndOfTurn:
+					eAck.push(e.Data.t);
+					break;
+				case CustomEventCodes.WordukenUsed:
+					eAck.push(e.Data.wi);
+					break;
+				case CustomEventCodes.InitGame:
+				case CustomEventCodes.JoinGame:
+				case CustomEventCodes.Resign:
+				default:
+					break;
+			}
+			if (i>0 && acks[i - 1][0] === false) {
 				eAck[0] = false;
-				switch (e.EvCode) {
-					case CustomEventCodes.EndOfGame:
-					case CustomEventCodes.EndOfRound:
-						clientData.t = e.Data.t - e.ActorNr;
-						clientData.s = GameStates.Playing + (3 - e.ActorNr);
-						break;
-					case CustomEventCodes.EndOfTurn:
-						clientData.t = e.Data.t - e.ActorNr;
-						clientData.s = GameStates.Playing;
-						break;
-					case CustomEventCodes.NewRound:
-					case CustomEventCodes.WordukenUsed:
-						// nothing to fix, same TurnNumber, same GameState
-						break;
-					case CustomEventCodes.InitGame:
-					case CustomEventCodes.JoinGame:
-					case CustomEventCodes.Resign:
-					default:
-						break;
+			} else {
+				try  {
+					data = onEventReceived(e, data);
+				} catch (ex) {
+					eAck[0] = false;
+					switch (e.EvCode) {
+						case CustomEventCodes.EndOfGame:
+						case CustomEventCodes.EndOfRound:
+							clientData.t = e.Data.t - e.ActorNr;
+							clientData.s = GameStates.Playing + (3 - e.ActorNr);
+							break;
+						case CustomEventCodes.EndOfTurn:
+							clientData.t = e.Data.t - e.ActorNr;
+							clientData.s = GameStates.Playing;
+							break;
+						case CustomEventCodes.NewRound:
+						case CustomEventCodes.WordukenUsed:
+							// nothing to fix, same TurnNumber, same GameState
+							break;
+						case CustomEventCodes.InitGame:
+						case CustomEventCodes.JoinGame:
+						case CustomEventCodes.Resign:
+						default:
+							break;
+					}
 				}
 			}
+			acks.push(eAck);
 		}
-		acks.push(eAck);
+		return acks;//{d: data, a: acks};
+	} catch (e) {
+		throw e;
 	}
-	return acks;//{d: data, a: acks};
 }
 
 handlers.onLogin = function (args) {
@@ -429,7 +447,7 @@ handlers.onLogin = function (args) {
 };
 
 
-// expects {} in 'g' with <gameID> : {s: <gameState>, t: <turn#>}
+// expects {} in 'g' with <gameID> : {s: <gameState>, t: <turn#>, e:[<{cachedEvent}>]}
 handlers.pollData = function (args) {
 	try {
 		var data = getPollResponse(args.g, args.UserId);
