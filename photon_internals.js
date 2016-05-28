@@ -17,10 +17,10 @@ function getCreatorId(gameId) {
 function PhotonException(code, msg, timestamp, data) {
 	this.ResultCode = code;
 	this.Message = msg;
-  this.Timestamp = timestamp;
-  this.Data = data;
-  logException(timestamp, data, msg);
-  //this.Stack = (new Error()).stack;
+	this.Timestamp = timestamp;
+	this.Data = data;
+	logException(timestamp, data, msg);
+	//this.Stack = (new Error()).stack;
 }
 
 PhotonException.prototype = Object.create(Error.prototype);

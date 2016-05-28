@@ -392,34 +392,38 @@ function addMissingEvents(clientData, data) {
 				try  {
 					data = onEventReceived(e, data);
 				} catch (ex) {
-					eAck[0] = false;
-					switch (e.EvCode) {
-						case CustomEventCodes.EndOfGame:
-						case CustomEventCodes.EndOfRound:
-							clientData.t = e.Data.t - e.ActorNr;
-							clientData.s = GameStates.Playing + (3 - e.ActorNr);
-							break;
-						case CustomEventCodes.EndOfTurn:
-							clientData.t = e.Data.t - e.ActorNr;
-							clientData.s = GameStates.Playing;
-							break;
-						case CustomEventCodes.NewRound:
-						case CustomEventCodes.WordukenUsed:
-							// nothing to fix, same TurnNumber, same GameState
-							break;
-						case CustomEventCodes.InitGame:
-						case CustomEventCodes.JoinGame:
-						case CustomEventCodes.Resign:
-						default:
-							break;
+					if (ex instanceof PhotonException && ex.ResultCode === 5){
+						eAck[0] = false;
+						switch (e.EvCode) {
+							case CustomEventCodes.EndOfGame:
+							case CustomEventCodes.EndOfRound:
+								clientData.t = e.Data.t - e.ActorNr;
+								clientData.s = GameStates.Playing + (3 - e.ActorNr);
+								break;
+							case CustomEventCodes.EndOfTurn:
+								clientData.t = e.Data.t - e.ActorNr;
+								clientData.s = GameStates.Playing;
+								break;
+							case CustomEventCodes.NewRound:
+							case CustomEventCodes.WordukenUsed:
+								// nothing to fix, same TurnNumber, same GameState
+								break;
+							case CustomEventCodes.InitGame:
+							case CustomEventCodes.JoinGame:
+							case CustomEventCodes.Resign:
+							default:
+								break;
+						}
+					} else {
+						throw ex;
 					}
 				}
 			}
 			acks.push(eAck);
 		}
 		return acks;//{d: data, a: acks};
-	} catch (e) {
-		throw e;
+	} catch (error) {
+		throw error;
 	}
 }
 
