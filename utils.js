@@ -17,6 +17,20 @@ function getISOTimestamp() {
     return (new Date()).toISOString() + Math.random();
 }
 
+function replaceErrors(key, value) {
+    if (value instanceof Error) {
+        var error = {};
+
+        Object.getOwnPropertyNames(value).forEach(function (key) {
+            error[key] = value[key];
+        });
+
+        return error;
+    }
+
+    return value;
+}
+
 function logException(timestamp, data, message) {
     //TEMPORARY solution until log functions' output is available from GameManager
     /*return server.SetTitleData({
@@ -28,7 +42,7 @@ function logException(timestamp, data, message) {
 				ts: timestamp,
 				msg: message,
 				d: data
-			}),
+			}, replaceErrors),
 			'application/json');
 }
 
