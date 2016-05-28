@@ -102,8 +102,8 @@ function pollGamesData(clientData, userId) {
 					userKey = getCreatorId(gameKey);
 					if (userKey === currentPlayerId) {
 						if (!undefinedOrNull(clientData) && clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
-							acks[gameKey] = addMissingEvents(clientData[gameKey].e, gameList[gameKey]);
-							listToUpdate[listId][gameKey] = gameList[gameKey];
+							/*acks[gameKey] = addMissingEvents(clientData[gameKey].e, gameList[gameKey]);
+							listToUpdate[listId][gameKey] = gameList[gameKey];*/
 						}
 						if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
 								gameList[gameKey].s === GameStates.UnmatchedWaiting) {
@@ -145,7 +145,7 @@ function pollGamesData(clientData, userId) {
 					listToUpdate[listId] = {};
 					gameList = getSharedGroupData(listId, listToLoad[userKey]);
 					//logException(getISOTimestamp(), gameList, "list of games in " + listId);
-					for (var i=0; i<listToLoad[userKey].length;i++) {
+					for (var i=0; i<listToLoad[userKey].length; i++) {
 						gameKey = listToLoad[userKey][i];
 						if (gameList.hasOwnProperty(gameKey)) {
 								if (!undefinedOrNull(clientData) && clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
