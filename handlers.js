@@ -436,7 +436,7 @@ handlers.onLogin = function (args) {
 		//logException(getISOTimestamp(), args, "onLogin");
 		var data = getPollResponse(args.g, args.UserId);
 		return {ResultCode: 0, Data: data};
-	} catch (e){
+	} catch (e) {
 		if (!undefinedOrNull(e.Error) && e.Error.error === "InvalidSharedGroupId"){
 			createSharedGroup(getGamesListId(args.UserId));
 		} else {
@@ -446,7 +446,7 @@ handlers.onLogin = function (args) {
 			return {ResultCode:0, Data: {o: Object.getOwnPropertyNames(args.g)}};
 		}
 		return {ResultCode: 0};*/
-		return {ResultCode: 1, Message: 'Houston we have a problem'};
+		return {ResultCode: 1, Message: 'Houston we have a problem', Data: e};
 	}
 };
 
@@ -458,7 +458,7 @@ handlers.pollData = function (args) {
 		return {ResultCode: 0, Data: data};
 	} catch(e) {
 		logException(getISOTimestamp(), {err: e, args: args}, 'pollData');
-		return {ResultCode: 1, Message: 'Houston we have a problem'};
+		return {ResultCode: 1, Message: 'Houston we have a problem', Data: e};
 	}
 };
 
