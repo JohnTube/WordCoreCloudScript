@@ -22,35 +22,11 @@ function checkMatchmakingTimeOut(timestamp){
 	return checkTimeOut(timestamp, MATCHMAKING_TIME_OUT);
 }
 
-handlers.onLogin = function (args) {
-	try { 
-		if (args.c === true) {
-			createSharedGroup(getGamesListId(args.UserId));
-			return {ResultCode: 0};
-		}
-		//logException(getISOTimestamp(), args, "onLogin");
-		var data = getPollResponse(args.g, args.UserId);
-		return {ResultCode: 0, Data: data};
-	} catch (e){
-		if (!undefinedOrNull(e.Error) && e.Error.error === "InvalidSharedGroupId"){
-			createSharedGroup(getGamesListId(args.UserId));
-		} else {
-			logException(getISOTimestamp(), e, "Error in onLogin handler");
-		}
-		/*if (!isEmpty(args.g)){
-			return {ResultCode:0, Data: {o: Object.getOwnPropertyNames(args.g)}};
-		}
-		return {ResultCode: 0};*/
-		return {ResultCode: 1};
-	}
-};
-
 function getPollResponse(clientGamesList, userId) {
 	var serverGamesData = pollGamesData(clientGamesList, userId),
 	gameKey = '',
 	gameData = {},
 	gameState = {},
-	serverGamesData = {},
 	data = {};
 	if (!isEmpty(serverGamesData.a)){
 		data.a = serverGamesData.a;
@@ -429,6 +405,29 @@ function addMissingEvents(clientData, data) {
 	return acks;//{d: data, a: acks};
 }
 
+handlers.onLogin = function (args) {
+	try { 
+		if (args.c === true) {
+			createSharedGroup(getGamesListId(args.UserId));
+			return {ResultCode: 0};
+		}
+		//logException(getISOTimestamp(), args, "onLogin");
+		var data = getPollResponse(args.g, args.UserId);
+		return {ResultCode: 0, Data: data};
+	} catch (e){
+		if (!undefinedOrNull(e.Error) && e.Error.error === "InvalidSharedGroupId"){
+			createSharedGroup(getGamesListId(args.UserId));
+		} else {
+			logException(getISOTimestamp(), e, "Error in onLogin handler");
+		}
+		/*if (!isEmpty(args.g)){
+			return {ResultCode:0, Data: {o: Object.getOwnPropertyNames(args.g)}};
+		}
+		return {ResultCode: 0};*/
+		return {ResultCode: 1, Message: 'Houston we have a problem'};
+	}
+};
+
 
 // expects {} in 'g' with <gameID> : {s: <gameState>, t: <turn#>}
 handlers.pollData = function (args) {
@@ -437,7 +436,7 @@ handlers.pollData = function (args) {
 		return {ResultCode: 0, Data: data};
 	} catch(e) {
 		logException(getISOTimestamp(), {err: e, args: args}, 'pollData');
-		return {ResultCode: 1};
+		return {ResultCode: 1, Message: 'Houston we have a problem'};
 	}
 };
 
