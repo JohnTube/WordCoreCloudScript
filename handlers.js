@@ -105,7 +105,7 @@ function pollGamesData(clientData, userId) {
 			for (gameKey in gameList) {
 				if (gameList.hasOwnProperty(gameKey)) {
 					userKey = getCreatorId(gameKey);
-					if (userKey === currentPlayerId) {
+					if (userKey === userId) {
 						if (!undefinedOrNull(clientData) && clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
 							acks[gameKey] = addMissingEvents(clientData[gameKey], gameList[gameKey]);
 							listToUpdate[listId][gameKey] = gameList[gameKey];
@@ -133,7 +133,7 @@ function pollGamesData(clientData, userId) {
 						}
 						if (!undefinedOrNull(gameList[gameKey].a) &&
 								gameList[gameKey].a.length >= 1 &&
-								gameList[gameKey].a[0].id === currentPlayerId) {
+								gameList[gameKey].a[0].id === userId) {
 									data[gameKey] = gameList[gameKey];
 									data[gameKey].pn = 1;
 						} else {
@@ -182,7 +182,7 @@ function pollGamesData(clientData, userId) {
 											if (!undefinedOrNull(gameList[gameKey].a) &&
 													gameList[gameKey].a.length === 2 &&
 													gameList[gameKey].a[0].id === userKey &&
-													gameList[gameKey].a[1].id === currentPlayerId) {
+													gameList[gameKey].a[1].id === userId) {
 														//logException(getISOTimestamp(), gameList[gameKey], 'game added');
 												data[gameKey] = gameList[gameKey];
 												data[gameKey].pn = 2;
@@ -192,7 +192,7 @@ function pollGamesData(clientData, userId) {
 											}
 									} else if (listToLoad[userKey].includes(gameKey)) {
 										listToUpdate[getGamesListId(userId)][gameKey] = null;
-										logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + currentPlayerId);
+										logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + userId);
 									} else {
 										logException(getISOTimestamp(), {GameList: gameList, ListToLoad: listToLoad[userKey]}, 'game '+ gameKey + ' from gamesList of user=' + userKey);
 									}
@@ -323,7 +323,7 @@ function deleteOrFlagGames(games, userId) {
 		for(gameKey in gamesToDelete) {
 			if (gamesToDelete.hasOwnProperty(gameKey)) {
 				gameData = gamesToDelete[gameKey];
-				if (userKey === currentPlayerId) {
+				if (userKey === userId) {
 					if (gameData.s === GameStates.MatchmakingTimedOut || gameData.deletionFlag === 2) {
 						listToUpdate[listId][gameKey] = null;
 					} else {
@@ -356,7 +356,7 @@ function deleteOrFlagGames(games, userId) {
 						}
 					} else if (listToLoad[userKey].includes(gameKey)) {
 						listToUpdate[getGamesListId(userId)][gameKey] = null;
-						logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + currentPlayerId);
+						logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + userId);
 					} else {
 
 					}

@@ -154,10 +154,10 @@ function checkWebhookArgs(args, timestamp) {
 }
 
 function loadGameData(gameId) {
-		var result;
+	var result;
     try {
-				result = getSharedGroupEntry(getGamesListId(getCreatorId(gameId)), gameId);
-				return result;
+		result = getSharedGroupEntry(getGamesListId(getCreatorId(gameId)), gameId);
+		return result;
     } catch (e) { logException(getISOTimestamp(), {err: e, ret: result}, 'loadGameData:' + gameId + ', currentPlayerId=' + currentPlayerId); throw e; }
 }
 
