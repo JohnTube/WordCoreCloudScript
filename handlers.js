@@ -1,5 +1,6 @@
 var MATCHMAKING_TIME_OUT = 60 * 60 * 1000, // 1 hour in milliseconds, 'ClosedRoomTTL' with Photon AsyncRandomLobby !
-ROUND_TIME_OUT = 2 * 24 * MATCHMAKING_TIME_OUT; // DEV : 1 week ==> PROD : 2 days in milliseconds
+ROUND_TIME_OUT = 2 * 24 * MATCHMAKING_TIME_OUT,
+CLEAN_UP_TIME_OUT = 2 * ROUND_TIME_OUT; // DEV : 1 week ==> PROD : 2 days in milliseconds
 
 
 function checkTimeOut(timestamp, THRESHOLD) {
@@ -20,6 +21,10 @@ function checkRoundTimeOut(timestamp){
 // only called when turnnumber == -1 or == -2 && calling actorNr = 1
 function checkMatchmakingTimeOut(timestamp){
 	return checkTimeOut(timestamp, MATCHMAKING_TIME_OUT);
+}
+
+function checkLeftOversTimeOut(timestamp){
+	return checkTimeOut(timestamp, CLEAN_UP_TIME_OUT);
 }
 
 function getPollResponse(clientGamesList, userId) {
@@ -115,11 +120,15 @@ function pollGamesData(clientData, userId) {
 											//gameList[gameKey].t / 3
 							if (gameList[gameKey].r.length > 0 &&
 								  checkRoundTimeOut(gameList[gameKey].r[gameList[gameKey].r.length - 1].ts)) {
-								gameList[gameKey].s = GameStates.TimedOutDraw;
-								if (gameList[gameKey].t % 3 !== 0) {
-									gameList[gameKey].s += (3- gameList[gameKey].t % 3);
+								if (checkLeftOversTimeOut(gameList[gameKey].r[gameList[gameKey].r.length - 1].ts)){
+									listToUpdate[listId][gameKey] = null;
+								} else {
+									gameList[gameKey].s = GameStates.TimedOutDraw;
+									if (gameList[gameKey].t % 3 !== 0) {
+										gameList[gameKey].s += (3- gameList[gameKey].t % 3);
+									}
+									listToUpdate[listId][gameKey] = gameList[gameKey];  
 								}
-								listToUpdate[listId][gameKey] = gameList[gameKey];
 							}
 						}
 						if (!undefinedOrNull(gameList[gameKey].a) &&
@@ -284,7 +293,7 @@ function getDiffData(gameData, clientGame) {
 						if (clientGame.t < ce[2].m.t) {
 							if (isEmpty(diff.e)) {diff.e = [];}
 							diff.e.push(ce);
-						} else if	(eR === cR && clientGame.t % 3 !== 0) { // event of opponent in same round
+						} else if	(eR === cR && clientGame.t % 3 !== 0) { 
 							if (clientGame.t !== ce[2].m.t) { // event of opponent in same round
 								if (isEmpty(diff.e)) {diff.e = [];}
 								diff.e.push(ce);

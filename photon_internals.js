@@ -252,14 +252,14 @@ handlers.RoomEventRaised = function (args) {
           logException(getISOTimestamp(), args, "Ignoring cached event resent from server.");
           return {ResultCode: 0, Message: 'OK'};
         }
-				if (args.EvCode > CustomEventCodes.InitGame) {
-					data = loadGameData(args.GameId);
-				}
+		if (args.EvCode > CustomEventCodes.InitGame) {
+			data = loadGameData(args.GameId);
+		}
         data = onEventReceived(args, data);
         if (!undefinedOrNull(args.State)) {
         	data.State = stripRoomState(args.State);
         }
-				saveGameData(args.GameId, data);
+		saveGameData(args.GameId, data);
         return {ResultCode: 0, Message: 'OK'};
     } catch (e) {
         if (e instanceof PhotonException) {
