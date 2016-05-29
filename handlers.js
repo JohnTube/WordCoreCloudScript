@@ -192,7 +192,7 @@ function pollGamesData(clientData, userId) {
 											}
 									} else if (listToLoad[userKey].includes(gameKey)) {
 										listToUpdate[getGamesListId(userId)][gameKey] = null;
-										logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + userId);
+										logException(getISOTimestamp(), null, 'pollGamesData, '+ gameKey + ' save was not found, referenced from ' + userId);
 									} else {
 										logException(getISOTimestamp(), {GameList: gameList, ListToLoad: listToLoad[userKey]}, 'game '+ gameKey + ' from gamesList of user=' + userKey);
 									}
@@ -356,7 +356,7 @@ function deleteOrFlagGames(games, userId) {
 						}
 					} else if (listToLoad[userKey].includes(gameKey)) {
 						listToUpdate[getGamesListId(userId)][gameKey] = null;
-						logException(getISOTimestamp(), null, gameKey + ' save was not found, referenced from ' + userId);
+						logException(getISOTimestamp(), null, 'deleteOrFlagGames, '+ gameKey + ' save was not found, referenced from ' + userId);
 					} else {
 
 					}
