@@ -448,12 +448,13 @@ function addMissingEvents(clientData, data) {
 	}
 }
 
+// TODO: remove, replace calls to pollData
 handlers.onLogin = function (args) {
 	try { 
-		if (args.c === true) {
+		/*if (args.c === true) {
 			createSharedGroup(getGamesListId(args.UserId));
 			return {ResultCode: 0};
-		}
+		}*/
 		//logException(getISOTimestamp(), args, 'onLogin');
 		var data = getPollResponse(args.g, args.UserId);
 		return {ResultCode: 0, Data: data};
@@ -470,7 +471,6 @@ handlers.onLogin = function (args) {
 		return {ResultCode: 1, Message: 'Houston we have a problem', Data: e};
 	}
 };
-
 
 // expects {} in 'g' with <gameID> : {s: <gameState>, t: <turn#>, e:[<{cachedEvent}>]}
 handlers.pollData = function (args) {
@@ -535,5 +535,12 @@ handlers.fixRound = function (args) {
 handlers.onPlayerCreated = function(args, context){
 	try {
 		createSharedGroup(getGamesListId(currentPlayerId));
+		logException(getISOTimestamp(), {args: args, context: context}, 'onPlayerCreated');
 	} catch (e) {logException(getISOTimestamp(), {e: e, args: args, context: context}, 'onPlayerCreated');}
+};
+
+handlers.onPlayerLogin = function (args, context) {
+	try { 
+		logException(getISOTimestamp(), {args: args, context: context}, 'onLogin');
+	} catch (e) {logException(getISOTimestamp(), {e: e, args: args, context: context}, 'onLogin');}
 };
