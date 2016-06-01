@@ -535,12 +535,11 @@ handlers.fixRound = function (args) {
 handlers.onPlayerCreated = function(args, context){
 	try {
 		createSharedGroup(getGamesListId(currentPlayerId));
-		logException(getISOTimestamp(), {args: args, context: context}, 'onPlayerCreated');
 	} catch (e) {logException(getISOTimestamp(), {e: e, args: args, context: context}, 'onPlayerCreated');}
 };
 
 handlers.onPlayerLogin = function (args, context) {
 	try { 
-		logException(getISOTimestamp(), {args: args, context: context}, 'onLogin');
+		return currentPlayerId;
 	} catch (e) {logException(getISOTimestamp(), {e: e, args: args, context: context}, 'onLogin');}
 };
