@@ -495,8 +495,7 @@ handlers.deleteGames = function (args) {
 		deleteOrFlagGames(gamesToDelete, args.UserId);
 		return {ResultCode: 0};
 	} catch (e) {
-		logException(getISOTimestamp(), {err: e, g: gamesToDelete}, 'deleteGames');
-		//throw e;
+		logException(getISOTimestamp(), {e: e, args: args}, 'deleteGames');
 	}
 };
 
@@ -517,10 +516,11 @@ handlers.resign = function (args) {
 			if (actorNr === 2) {
 				deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
 			}
-		return {ResultCode: 0, Data:args};
-	} else {
-		return {ResultCode: 1, Data:args, Message: 'Cannot resign from game'};
-	}} catch (e) {throw e;}
+			return {ResultCode: 0, Data:args};
+		} else {
+			return {ResultCode: 1, Data:args, Message: 'Cannot resign from game'};
+		}
+	} catch (e) {logException(getISOTimestamp(), {e: e, args: args}, 'resign');}
 };
 
 handlers.fixRound = function (args) {
@@ -529,5 +529,11 @@ handlers.fixRound = function (args) {
 		onNewRound(args, gameData);
 		saveGameData(args.GameId, gameData);
 		return {ResultCode: 0, Data:{GameId: args.GameId, r: gameData.Cache[gameData.Cache.length - 1][2].r}};
-	} catch (e) {throw e;}
+	} catch (e) {logException(getISOTimestamp(), {e: e, args: args}, 'fixRound');}
+};
+
+handlers.onPlayerCreated = function(args, context){
+	try {
+		createSharedGroup(getGamesListId(currentPlayerId));
+	} catch (e) {logException(getISOTimestamp(), {e: e, args: args, context: context}, 'onPlayerCreated');}
 };
