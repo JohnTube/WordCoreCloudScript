@@ -540,6 +540,5 @@ handlers.onPlayerCreated = function(args, context){
 
 handlers.onPlayerLogin = function (args, context) {
 	try { 
-		return currentPlayerId;
 	} catch (e) {logException(getISOTimestamp(), {e: e, args: args, context: context}, 'onLogin');}
 };
