@@ -183,12 +183,26 @@ function stripRoomState(state) {
 	return state;
 }
 
+
+var MAX_GAMES_PER_PLAYER = 10;
+
 handlers.RoomCreated = function (args) {
     try {
         var timestamp = getISOTimestamp(),
             data = {};
         checkWebhookArgs(args, timestamp);
         if (args.Type === 'Create') {
+			var games = getSharedGroupData(getGamesListId(args.UserId));
+			var count = 0;
+			for(var gameId in games) {
+				if (games.hasOwnProperty(gameId) && getCreatorId(gameId) === args.UserId && !undefinedOrNull(games[gameId]) && 
+				games[gameId].s >= GameStates.Playing && games[gameId].s <= GameStats.P2Waiting) {
+					count++;
+				}
+			}
+			if (count > MAX_GAMES_PER_PLAYER) {
+				return {ResultCode: 110, Message: 'Maximum allowed games exceeded!'};
+			}
             return {ResultCode: 0, Message: 'OK'};
         } else if (args.Type === 'Load') {
             data = loadGameData(args.GameId);
