@@ -223,7 +223,7 @@ function getDiffData(gameData, clientGame) {
 						diff.s = gameData.s;
 					}
 					else if (gameData.s >= GameStates.Playing) {
-						diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: gameData.a[1].w };
+						diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: gameData.a[1].w, ts: gameData.a[1].ts };
 						if (gameData.s >= GameStates.P1Resigned) {
 							diff.s = gameData.s;
 						}
