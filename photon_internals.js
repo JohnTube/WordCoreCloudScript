@@ -184,7 +184,7 @@ function stripRoomState(state) {
 }
 
 
-var MAX_GAMES_PER_PLAYER = 0;
+var MAX_GAMES_PER_PLAYER = 10;
 
 handlers.RoomCreated = function (args) {
     try {
@@ -261,6 +261,7 @@ handlers.RoomLeft = function (args) {
 };
 
 handlers.RoomEventRaised = function (args) {
+	return {ResultCode: 100, Message: 'Test'};
     try {
         var timestamp = getISOTimestamp(),
             data = {};
