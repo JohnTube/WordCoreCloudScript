@@ -261,7 +261,6 @@ handlers.RoomLeft = function (args) {
 };
 
 handlers.RoomEventRaised = function (args) {
-	return {ResultCode: 100, Message: 'Test'};
     try {
         var timestamp = getISOTimestamp(),
             data = {};
