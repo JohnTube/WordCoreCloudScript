@@ -184,7 +184,7 @@ function stripRoomState(state) {
 }
 
 
-var MAX_GAMES_PER_PLAYER = 10;
+var MAX_GAMES_PER_PLAYER = 0;
 
 handlers.RoomCreated = function (args) {
     try {
