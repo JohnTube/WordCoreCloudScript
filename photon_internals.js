@@ -196,7 +196,7 @@ handlers.RoomCreated = function (args) {
 			var count = 0;
 			for(var gameId in games) {
 				if (games.hasOwnProperty(gameId) && getCreatorId(gameId) === args.UserId && !undefinedOrNull(games[gameId]) && 
-				games[gameId].s >= GameStates.Playing && games[gameId].s <= GameStats.P2Waiting) {
+				games[gameId].s >= GameStates.Playing && games[gameId].s <= GameStates.P2Waiting) {
 					count++;
 				}
 			}
