@@ -64,7 +64,7 @@ function onInitGame(args, data) {
 	}
 	try {
 		var eventData = args.Data;
-		data = {a: [{id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: eventData.w}],
+		data = {a: [{id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: eventData.w, ts: eventData.ts}],
 				s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
 		data.r = [{gs: eventData.r.gs, ts: eventData.r.ts, r: 0, m: [{}, {}]}];
 		return data; // do not cache this event
@@ -85,7 +85,8 @@ function onJoinGame(args, data) {
 		}
 		updateSharedGroupEntry(getGamesListId(args.UserId), args.GameId, {});
 		var eventData = args.Data;
-		data.a[1] = {id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: eventData.w};
+		data.a[1] = {id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: eventData.w, ts: eventData.ts};
+		data.r[0].ts = eventData.ts;
 		return data; // do not cache this event
 	} catch (e) { throw e;}
 }
