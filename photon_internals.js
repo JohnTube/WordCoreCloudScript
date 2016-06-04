@@ -217,7 +217,8 @@ handlers.RoomCreated = function (args) {
         if (err instanceof PhotonException) {
             return {ResultCode: err.ResultCode, Message: err.Message};
         }
-        return {ResultCode: 100, Message: JSON.stringify(err)};
+		logException(getISOTimestamp(), {e: e, args: args}, 'RoomCreated');
+        return {ResultCode: 100, Message: JSON.stringify(err, replaceErrors)};
     }
 };
 
@@ -237,7 +238,8 @@ handlers.RoomClosed = function (args) {
         if (e instanceof PhotonException) {
             return {ResultCode: e.ResultCode, Message: e.Message};
         }
-        return {ResultCode: 100, Message: JSON.stringify(e)};
+		logException(getISOTimestamp(), {e: e, args: args}, 'RoomClosed');
+        return {ResultCode: 100, Message: JSON.stringify(e, replaceErrors)};
     }
 };
 
@@ -253,7 +255,8 @@ handlers.RoomLeft = function (args) {
         if (e instanceof PhotonException) {
             return {ResultCode: e.ResultCode, Message: e.Message};
         }
-        return {ResultCode: 100, Message: JSON.stringify(e)};
+		logException(getISOTimestamp(), {e: e, args: args}, 'RoomLeft');
+        return {ResultCode: 100, Message: JSON.stringify(e, replaceErrors)};
     }
 };
 
@@ -279,7 +282,25 @@ handlers.RoomEventRaised = function (args) {
         if (e instanceof PhotonException) {
             return {ResultCode: e.ResultCode, Message: e.Message};
         }
-        return {ResultCode: 100, Message: JSON.stringify(e)};
+		logException(getISOTimestamp(), {e: e, args: args}, 'RoomEventRaised');
+        return {ResultCode: 100, Message: JSON.stringify(e, replaceErrors)};
+    }
+};
+
+handlers.RoomJoined = function (args) { // added to stop receiving ErrorInfo event
+    try {
+        var timestamp = getISOTimestamp();
+        checkWebhookArgs(args, timestamp);
+        if (args.ActorNr < 0 || args.ActorNr > 2) {
+          throw new PhotonException(5, "ActorNr < 0 || ActorNr > 2", getISOTimestamp(), args);
+        }
+        return {ResultCode: 0, Message: 'OK'};
+    } catch (e) {
+        if (e instanceof PhotonException) {
+            return {ResultCode: e.ResultCode, Message: e.Message};
+        }
+		logException(getISOTimestamp(), {e: e, args: args}, 'RoomJoined');
+        return {ResultCode: 100, Message: JSON.stringify(e, replaceErrors)};
     }
 };
 
@@ -313,19 +334,3 @@ function sendPushNotification(targetId, msg, data, title, icon) {
         throw e;
     }
 }
-
-handlers.RoomJoined = function (args) { // added to stop receiving ErrorInfo event
-    try {
-        var timestamp = getISOTimestamp();
-        checkWebhookArgs(args, timestamp);
-        if (args.ActorNr < 0 || args.ActorNr > 2) {
-          throw new PhotonException(5, "ActorNr < 0 || ActorNr > 2", getISOTimestamp(), args);
-        }
-        return {ResultCode: 0, Message: 'OK'};
-    } catch (e) {
-        if (e instanceof PhotonException) {
-            return {ResultCode: e.ResultCode, Message: e.Message};
-        }
-        return {ResultCode: 100, Message: JSON.stringify(e)};
-    }
-};
