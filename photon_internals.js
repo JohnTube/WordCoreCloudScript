@@ -142,6 +142,7 @@ handlers.RoomLeft = function (args) {
 
 handlers.RoomEventRaised = function (args) {
     try {
+		throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, "");
         var data = {};
 		if (args.EvCode > CustomEventCodes.InitGame) {
 			data = loadGameData(args.GameId);
@@ -157,23 +158,23 @@ handlers.RoomEventRaised = function (args) {
 			if (e.ResultCode === WEB_ERRORS.EVENT_FAILURE) {
 				switch (args.EvCode) {
 					case CustomEventCodes.EndOfRound:
-						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.r.r};
+						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.r.r+','+e.Message};
 						break;
 					case CustomEventCodes.NewRound:
-						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.r};
+						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.r+','+e.Message};
 						break;
 					case CustomEventCodes.EndOfGame:
 					case CustomEventCodes.EndOfTurn:
-						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.t};
+						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.t+','+e.Message};
 						break;
 					case CustomEventCodes.WordukenUsed:
-						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.wi};
+						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.wi+','+e.Message};
 						break;
 					case CustomEventCodes.InitGame:
 					case CustomEventCodes.JoinGame:
 					case CustomEventCodes.Resign:
 					default:
-						return {ResultCode: e.ResultCode, Message: String(args.EvCode)};
+						return {ResultCode: e.ResultCode, Message: args.EvCode+','+e.Message};
 						break;
 				}
 			}
