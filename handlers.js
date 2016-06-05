@@ -120,6 +120,7 @@ function pollGamesData(clientData, userId) {
 							logException('undefinedOrNull timestamp of game creation', gameList[gameKey]);
 						} else if (checkMatchmakingTimeOut(timestamp)) {
 							gameList[gameKey].s = GameStates.MatchmakingTimedOut;
+							listToUpdate[listId][gameKey] = gameList[gameKey];
 						}
 					} else if (gameList[gameKey].s > GameStates.UnmatchedWaiting &&
 						gameList[gameKey].s < GameStates.P1Resigned) {
@@ -136,7 +137,7 @@ function pollGamesData(clientData, userId) {
 						}
 					}
 					if (checkLeftOversTimeOut(timestamp)) {
-						logException('Deleting leftover game', gameList[gameKey]);
+						logException('Deleting leftover game ' + gameKey, gameList[gameKey]);
 						listToUpdate[listId][gameKey] = null;
 					} else if (!undefinedOrNull(gameList[gameKey].a) &&
 						gameList[gameKey].a.length >= 1 &&
@@ -168,19 +169,12 @@ function pollGamesData(clientData, userId) {
 							acks[gameKey] = addMissingEvents(clientData[gameKey], gameList[gameKey]);
 							listToUpdate[listId][gameKey] = gameList[gameKey];
 						}
-						var timestamp = gameList[gameKey].ts;
-						if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
-							gameList[gameKey].s === GameStates.UnmatchedWaiting) {
-							if (undefinedOrNull(timestamp)) {
-								logException('undefinedOrNull timestamp of game creation', gameList[gameKey]);
-							} else if (checkMatchmakingTimeOut(timestamp)) {
-								gameList[gameKey].s = GameStates.MatchmakingTimedOut;
-								listToUpdate[listId][gameKey] = null;
-							}
+						if (gameList[gameKey].s < GameStates.Playing) {
+							logException('Unexpected GameState of game ' + gameKey + ' referenced from ' + userId, gameList[gameKey]);
 						} else if (gameList[gameKey].s > GameStates.UnmatchedWaiting &&
 							gameList[gameKey].s < GameStates.P1Resigned) {
 							var round = gameList[gameKey].r.length - 1;//gameList[gameKey].t / 3
-							timestamp = gameList[gameKey].r[round].ts;
+							var timestam = gameList[gameKey].r[round].ts;
 							if (undefinedOrNull(timestamp)) {
 								logException('undefinedOrNull timestamp of last round=' + round, gameList[gameKey]);
 							} else if (checkRoundTimeOut(timestamp)) {
@@ -192,7 +186,7 @@ function pollGamesData(clientData, userId) {
 							}
 						}
 						if (checkLeftOversTimeOut(timestamp)){
-							logException('Deleting leftover game', gameList[gameKey]);
+							logException('Deleting leftover game ' + gameKey, gameList[gameKey]);
 							listToUpdate[listId][gameKey] = null;
 						} else if (!undefinedOrNull(gameList[gameKey].a) &&
 							gameList[gameKey].a.length === 2 &&
