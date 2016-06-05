@@ -34,7 +34,7 @@ function addMoveToGame(gameData, actorNr, move) {
 		}
 		move.s = move.lv * gameData.a[actorIndex].m + move.lb;
 		gameData.r[move.r].m[actorIndex] = move;
-		gameData.a[actorIndex].s += move.ts;
+		gameData.a[actorIndex].s += move.s;
 		return gameData;
 	} catch (e) { throw e;}
 }
