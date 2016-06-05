@@ -49,12 +49,12 @@ function updateSharedGroupData(id, data) {
     try {
         for (key in data) {
             if (data.hasOwnProperty(key)) {
-							if (!undefinedOrNull(data[key])) {
-	                stringData[key] = JSON.stringify(data[key]);
-	            } else {
-								stringData[key] = data[key];
-							}
-						}
+				if (!undefinedOrNull(data[key])) {
+					stringData[key] = JSON.stringify(data[key]);
+				} else {
+					stringData[key] = data[key];
+				}
+			}
         }
         key = server.UpdateSharedGroupData({ SharedGroupId: id, Data: stringData });
         return key;
@@ -76,7 +76,7 @@ function getSharedGroupData(id, keys) {
         }
         return data;
     } catch (e) { 
-		if (!undefinedOrNull(e.Error) && e.Error.error === 'InvalidSharedGroupId' && id === getGamesList(currentPlayerId)) {
+		if (!undefinedOrNull(e.Error) && e.Error.error === 'InvalidSharedGroupId' && id === getGamesListId(currentPlayerId)) {
 			logException('sharedGroup '+id+' not found, creating it');
 			createSharedGroup(id);
 			return {};
@@ -89,19 +89,19 @@ function getSharedGroupData(id, keys) {
 function deleteSharedGroup(id) {
 	var result;
     try {
-			result = server.DeleteSharedGroup({SharedGroupId : id});
-			return result;
-		} catch (e) {
-			logException('deleteSharedGroup:' + id, {err: e, ret: result}); throw e;
-		}
+		result = server.DeleteSharedGroup({SharedGroupId : id});
+		return result;
+	} catch (e) {
+		logException('deleteSharedGroup:' + id, {err: e, ret: result}); throw e;
+	}
 }
 
 function getSharedGroupEntry(id, key) {
 	var result;
     try {
-			result = getSharedGroupData(id, [key])[key];
-			return result;
-		} catch (e) { logException('getSharedGroupEntry:' + id + ',' + key, {err: e, ret: result}); throw e; }
+		result = getSharedGroupData(id, [key])[key];
+		return result;
+	} catch (e) { logException('getSharedGroupEntry:' + id + ',' + key, {err: e, ret: result}); throw e; }
 }
 
 function updateSharedGroupEntry(id, key, value) {
