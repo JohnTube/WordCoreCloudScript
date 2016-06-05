@@ -51,7 +51,7 @@ function stripRoomState(state) {
 	return state;
 }
 
-var MAX_GAMES_PER_PLAYER = 0;
+var MAX_GAMES_PER_PLAYER = 10;
 
 var WEB_ERRORS = {
 	SUCCESS : 0,
@@ -142,7 +142,6 @@ handlers.RoomLeft = function (args) {
 
 handlers.RoomEventRaised = function (args) {
     try {
-		throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, "Test");
         var data = {};
 		if (args.EvCode > CustomEventCodes.InitGame) {
 			data = loadGameData(args.GameId);
