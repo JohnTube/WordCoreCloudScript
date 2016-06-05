@@ -5,6 +5,7 @@ CLEAN_UP_TIME_OUT = 2 * ROUND_TIME_OUT; // DEV : 1 week ==> PROD : 2 days in mil
 
 function checkTimeOut(timestamp, THRESHOLD) {
 	if (undefinedOrNull(timestamp) || undefinedOrNull(THRESHOLD)) {
+		logException('timestamp undefinedOrNull '+ THRESHOLD);
 		return false;
 	}
 	if (!timestamp.includes('.')) { // fixing timestamps
@@ -94,126 +95,134 @@ function getPollResponse(clientGamesList, userId) {
 function pollGamesData(clientData, userId) {
 	try {
 		var gameList = {},
-			listId = getGamesListId(userId),
-			listToLoad = {},
-			listToUpdate = {},
-			gameKey = '',
-			userKey = '',
-			data = {},
-			acks = {};
-			gameList = getSharedGroupData(listId);
-			listToUpdate[listId] = {};
-			//logException('list of games in ' + listId, gameList);
-			for (gameKey in gameList) {
-				if (gameList.hasOwnProperty(gameKey)) {
-					userKey = getCreatorId(gameKey);
-					if (userKey === userId) {
+		listId = getGamesListId(userId),
+		listToLoad = {},
+		listToUpdate = {},
+		gameKey = '',
+		userKey = '',
+		data = {},
+		acks = {};
+		gameList = getSharedGroupData(listId);
+		listToUpdate[listId] = {};
+		//logException('list of games in ' + listId, gameList);
+		for (gameKey in gameList) {
+			if (gameList.hasOwnProperty(gameKey)) {
+				userKey = getCreatorId(gameKey);
+				if (userKey === userId) {
+					if (!undefinedOrNull(clientData) && clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
+						acks[gameKey] = addMissingEvents(clientData[gameKey], gameList[gameKey]);
+						listToUpdate[listId][gameKey] = gameList[gameKey];
+					}
+					var timestamp = gameList[gameKey].ts;
+					if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
+						gameList[gameKey].s === GameStates.UnmatchedWaiting) {
+						if (undefinedOrNull(timestamp)) {
+							logException('undefinedOrNull timestamp of game creation', gameList[gameKey]);
+						} else if (checkMatchmakingTimeOut(timestamp)) {
+							gameList[gameKey].s = GameStates.MatchmakingTimedOut;
+						}
+					} else if (gameList[gameKey].s > GameStates.UnmatchedWaiting &&
+						gameList[gameKey].s < GameStates.P1Resigned) {
+						var round = gameList[gameKey].r.length - 1;//gameList[gameKey].t / 3
+						timestamp = gameList[gameKey].r[round].ts;
+						if (undefinedOrNull(timestamp)) {
+							logException('undefinedOrNull timestamp of last round=' + round, gameList[gameKey]);
+						} else if (checkRoundTimeOut(timestamp)) {
+							gameList[gameKey].s = GameStates.TimedOutDraw;
+							if (gameList[gameKey].t % 3 !== 0) {
+								gameList[gameKey].s += (3- gameList[gameKey].t % 3);
+							}
+							listToUpdate[listId][gameKey] = gameList[gameKey];
+						}
+					}
+					if (checkLeftOversTimeOut(timestamp)) {
+						logException('Deleting leftover game', gameList[gameKey]);
+						listToUpdate[listId][gameKey] = null;
+					} else if (!undefinedOrNull(gameList[gameKey].a) &&
+						gameList[gameKey].a.length >= 1 &&
+						gameList[gameKey].a[0].id === userId) {
+						data[gameKey] = gameList[gameKey];
+						data[gameKey].pn = 1;
+					} else {
+						listToUpdate[listId][gameKey] = null; 
+						logException('actors array is missing or corrupt', gameList[gameKey]);
+					}
+				} else {
+					if (!listToLoad.hasOwnProperty(userKey)) {
+						listToLoad[userKey] = [];
+					}
+					listToLoad[userKey].push(gameKey);
+				}
+			}
+		} 
+		for (userKey in listToLoad) {
+			if (listToLoad.hasOwnProperty(userKey)) {
+				listId = getGamesListId(userKey);
+				listToUpdate[listId] = {};
+				gameList = getSharedGroupData(listId, listToLoad[userKey]);
+				//logException('list of games in ' + listId, gameList);
+				for (var i=0; i<listToLoad[userKey].length; i++) {
+					gameKey = listToLoad[userKey][i];
+					if (gameList.hasOwnProperty(gameKey)) {
 						if (!undefinedOrNull(clientData) && clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
 							acks[gameKey] = addMissingEvents(clientData[gameKey], gameList[gameKey]);
 							listToUpdate[listId][gameKey] = gameList[gameKey];
 						}
+						var timestamp = gameList[gameKey].ts;
 						if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
 							gameList[gameKey].s === GameStates.UnmatchedWaiting) {
-							if (checkMatchmakingTimeOut(gameList[gameKey].ts)) {
+							if (undefinedOrNull(timestamp)) {
+								logException('undefinedOrNull timestamp of game creation', gameList[gameKey]);
+							} else if (checkMatchmakingTimeOut(timestamp)) {
 								gameList[gameKey].s = GameStates.MatchmakingTimedOut;
+								listToUpdate[listId][gameKey] = null;
 							}
 						} else if (gameList[gameKey].s > GameStates.UnmatchedWaiting &&
 							gameList[gameKey].s < GameStates.P1Resigned) {
-							//gameList[gameKey].t / 3
-							var round = gameList[gameKey].r.length - 1;
-							var timestamp = gameList[gameKey].r[round].ts;
+							var round = gameList[gameKey].r.length - 1;//gameList[gameKey].t / 3
+							timestamp = gameList[gameKey].r[round].ts;
 							if (undefinedOrNull(timestamp)) {
 								logException('undefinedOrNull timestamp of last round=' + round, gameList[gameKey]);
 							} else if (checkRoundTimeOut(timestamp)) {
-								if (checkLeftOversTimeOut(timestamp)){
-									listToUpdate[listId][gameKey] = null;
-								} else {
-									gameList[gameKey].s = GameStates.TimedOutDraw;
-									if (gameList[gameKey].t % 3 !== 0) {
-										gameList[gameKey].s += (3- gameList[gameKey].t % 3);
-									}
-									listToUpdate[listId][gameKey] = gameList[gameKey];  
+								gameList[gameKey].s = GameStates.TimedOutDraw;
+								if (gameList[gameKey].t % 3 !== 0) {
+									gameList[gameKey].s += (3- gameList[gameKey].t % 3);
 								}
+								listToUpdate[listId][gameKey] = gameList[gameKey];
 							}
 						}
-						if (!undefinedOrNull(gameList[gameKey].a) &&
-								gameList[gameKey].a.length >= 1 &&
-								gameList[gameKey].a[0].id === userId) {
-									data[gameKey] = gameList[gameKey];
-									data[gameKey].pn = 1;
+						if (checkLeftOversTimeOut(timestamp)){
+							logException('Deleting leftover game', gameList[gameKey]);
+							listToUpdate[listId][gameKey] = null;
+						} else if (!undefinedOrNull(gameList[gameKey].a) &&
+							gameList[gameKey].a.length === 2 &&
+							gameList[gameKey].a[0].id === userKey &&
+							gameList[gameKey].a[1].id === userId) {
+							//logException('game added', gameList[gameKey]);
+							data[gameKey] = gameList[gameKey];
+							data[gameKey].pn = 2;
 						} else {
-							listToUpdate[listId][gameKey] = null; 
+							listToUpdate[listId][gameKey] = null;
 							logException('actors array is missing or corrupt', gameList[gameKey]);
 						}
+					} else if (listToLoad[userKey].includes(gameKey)) {
+						listToUpdate[getGamesListId(userId)][gameKey] = null;
+						logException('pollGamesData, '+ gameKey + ' save was not found, referenced from ' + userId);
 					} else {
-						if (!listToLoad.hasOwnProperty(userKey)) {
-							listToLoad[userKey] = [];
-						}
-						listToLoad[userKey].push(gameKey);
+							logException('game '+ gameKey + ' from gamesList of user=' + userKey, {GameList: gameList, ListToLoad: listToLoad[userKey]});
 					}
 				}
-			} 
-			for (userKey in listToLoad) {
-				if (listToLoad.hasOwnProperty(userKey)) {
-					listId = getGamesListId(userKey);
-					listToUpdate[listId] = {};
-					gameList = getSharedGroupData(listId, listToLoad[userKey]);
-					//logException('list of games in ' + listId, gameList);
-					for (var i=0; i<listToLoad[userKey].length; i++) {
-						gameKey = listToLoad[userKey][i];
-						if (gameList.hasOwnProperty(gameKey)) {
-								if (!undefinedOrNull(clientData) && clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
-									acks[gameKey] = addMissingEvents(clientData[gameKey], gameList[gameKey]);
-									listToUpdate[listId][gameKey] = gameList[gameKey];
-								}
-								if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
-										gameList[gameKey].s === GameStates.UnmatchedWaiting) {
-										if (checkMatchmakingTimeOut(gameList[gameKey].ts)) {
-											gameList[gameKey].s = GameStates.MatchmakingTimedOut;
-											listToUpdate[listId][gameKey] = null;
-										}
-									} else if (gameList[gameKey].s > GameStates.UnmatchedWaiting &&
-														 gameList[gameKey].s < GameStates.P1Resigned) {
-											//gameList[gameKey].t / 3
-											if (gameList[gameKey].r.length > 0 &&
-												checkRoundTimeOut(gameList[gameKey].r[gameList[gameKey].r.length - 1].ts)) {
-													gameList[gameKey].s = GameStates.TimedOutDraw;
-													if (gameList[gameKey].t % 3 !== 0) {
-														gameList[gameKey].s += (3- gameList[gameKey].t % 3);
-													}
-													listToUpdate[listId][gameKey] = gameList[gameKey];
-												}
-											}
-											if (!undefinedOrNull(gameList[gameKey].a) &&
-													gameList[gameKey].a.length === 2 &&
-													gameList[gameKey].a[0].id === userKey &&
-													gameList[gameKey].a[1].id === userId) {
-												//logException('game added', gameList[gameKey]);
-												data[gameKey] = gameList[gameKey];
-												data[gameKey].pn = 2;
-											} else {
-												listToUpdate[listId][gameKey] = null;
-												logException('actors array is missing or corrupt', gameList[gameKey]);
-											}
-									} else if (listToLoad[userKey].includes(gameKey)) {
-										listToUpdate[getGamesListId(userId)][gameKey] = null;
-										logException('pollGamesData, '+ gameKey + ' save was not found, referenced from ' + userId);
-									} else {
-										logException('game '+ gameKey + ' from gamesList of user=' + userKey, {GameList: gameList, ListToLoad: listToLoad[userKey]});
-									}
-								}
-							}
-				}
-				for (listId in listToUpdate) {
-					if (listToUpdate.hasOwnProperty(listId) && !isEmpty(listToUpdate[listId])) {
-						updateSharedGroupData(listId, listToUpdate[listId]);
-					}
-				}
-				return {d:data, a:acks};
+			}
+		}
+		for (listId in listToUpdate) {
+			if (listToUpdate.hasOwnProperty(listId) && !isEmpty(listToUpdate[listId])) {
+				updateSharedGroupData(listId, listToUpdate[listId]);
+			}
+		}
+		return {d:data, a:acks};
 	} catch (e) {
 		throw e;
 	}
-	//return {d:{}, a:{}};
 }
 
 function getDiffData(gameData, clientGame) {
