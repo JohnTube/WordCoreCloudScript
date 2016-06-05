@@ -29,13 +29,14 @@ function addMoveToGame(gameData, actorNr, move) {
 		move.mb = gameData.a[actorIndex].m;
 		move.pb = gameData.a[actorIndex].p;
 		if (move.lv >= move.pb) {
-        gameData.a[actorIndex].p = move.lv + 1;
-        if (move.pb > 0) { gameData.a[actorIndex].m += 1; }
-    }
+			gameData.a[actorIndex].p = move.lv + 1;
+			if (move.pb > 0) { gameData.a[actorIndex].m += 1; }
+		}
 		move.s = move.lv * gameData.a[actorIndex].m + move.lb;
 		gameData.r[move.r].m[actorIndex] = move;
 		gameData.a[actorIndex].s += move.ts;
-		return gameData;} catch (e) { throw e;}
+		return gameData;
+	} catch (e) { throw e;}
 }
 
 
@@ -60,7 +61,7 @@ var GameStates = {
 
 function onInitGame(args, data) {
 	if (args.ActorNr !== 1) {
-			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom InitGame event: Wrong actorNr', { w: args, d: data });
+		throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom InitGame event: Wrong actorNr', { w: args, d: data });
 	}
 	try {
 		var eventData = args.Data;
@@ -92,8 +93,9 @@ function onJoinGame(args, data) {
 }
 
 function onWordukenUsed(args, data) {
-	try {  var eventData = args.Data; // TODO: test args and eventData
-	// TODO : test if worduken use is legit/legal
+	try {  
+		var eventData = args.Data; // TODO: test args and eventData
+		// TODO : test if worduken use is legit/legal
 		data.a[args.ActorNr - 1].w[eventData.wi] = eventData;
 		return data; // do not cache this event
 	} catch (e) { throw e;}
@@ -101,7 +103,7 @@ function onWordukenUsed(args, data) {
 
 function onEndOfTurn(args, data) {
 	if (args.Data.t % 3 !== args.ActorNr || args.Data.t < 1 || args.Data.t >= MAX_TURNS_PER_GAME) {
-			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom EndOfTurn event: wrong t#', { w: args, d: data });
+		throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom EndOfTurn event: wrong t#', { w: args, d: data });
 	}
 	try {
 		var eventData = args.Data; // TODO: test args and eventData
@@ -156,8 +158,8 @@ function onEndOfGame(args, data){
 		if (data.r.length !== MAX_ROUNDS_PER_GAME){
 			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom EndOfGame event: wrong r#', { w: args, d: data });
 		}
-	  data = addMoveToGame(data, args.ActorNr, eventData);
-    data.t = MAX_TURNS_PER_GAME;
+		data = addMoveToGame(data, args.ActorNr, eventData);
+		data.t = MAX_TURNS_PER_GAME;
 		if (data.a[0].s === data.a[1].s) {
 			data.s = GameStates.EndedDraw;
 		} else if (data.a[0].s > data.a[1].s) {

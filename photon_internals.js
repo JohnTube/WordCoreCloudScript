@@ -51,7 +51,6 @@ function stripRoomState(state) {
 	return state;
 }
 
-
 var MAX_GAMES_PER_PLAYER = 10;
 
 var WEB_ERRORS = {
@@ -155,6 +154,29 @@ handlers.RoomEventRaised = function (args) {
         return {ResultCode: WEB_ERRORS.SUCCESS, Message: 'OK'};
     } catch (e) {
         if (e instanceof PhotonException) {
+			if (e.ResultCode === WEB_ERRORS.EVENT_FAILURE) {
+				switch (args.EvCode) {
+					case CustomEventCodes.EndOfRound:
+						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.r.r};
+						break;
+					case CustomEventCodes.NewRound:
+						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.r};
+						break;
+					case CustomEventCodes.EndOfGame:
+					case CustomEventCodes.EndOfTurn:
+						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.t};
+						break;
+					case CustomEventCodes.WordukenUsed:
+						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.wi};
+						break;
+					case CustomEventCodes.InitGame:
+					case CustomEventCodes.JoinGame:
+					case CustomEventCodes.Resign:
+					default:
+						return {ResultCode: e.ResultCode, Message: String(args.EvCode)};
+						break;
+				}
+			}
             return {ResultCode: e.ResultCode, Message: e.Message};
         }
 		logException('RoomEventRaised', {e: e, args: args});
