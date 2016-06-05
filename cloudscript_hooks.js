@@ -60,7 +60,7 @@ var GameStates = {
 
 function onInitGame(args, data) {
 	if (args.ActorNr !== 1) {
-			throw new PhotonException(5, "Custom InitGame event: Wrong actorNr", getISOTimestamp(), { w: args, d: data });
+			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom InitGame event: Wrong actorNr', { w: args, d: data });
 	}
 	try {
 		var eventData = args.Data;
@@ -73,7 +73,7 @@ function onInitGame(args, data) {
 
 function onJoinGame(args, data) {
 	if (args.ActorNr !== 2 || data.a.length !== 1) {
-			throw new PhotonException(5, "Custom JoinGame event: Wrong actorNr or duplicate event", getISOTimestamp(), { w: args, d: data });
+		throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom JoinGame event: Wrong actorNr or duplicate event', { w: args, d: data });
 	}
 	try {
 		if (data.s === GameStates.UnmatchedPlaying && data.t === 0) {
@@ -81,7 +81,7 @@ function onJoinGame(args, data) {
 		} else if (data.s === GameStates.UnmatchedWaiting && data.t === 1){
 			data.s = GameStates.P1Waiting;
 		} else {
-			throw new PhotonException(5, "Custom JoinGame event: unexpected Ss,Ts", getISOTimestamp(), { w: args, d: data });
+			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom JoinGame event: unexpected Ss,Ts', { w: args, d: data });
 		}
 		updateSharedGroupEntry(getGamesListId(args.UserId), args.GameId, {});
 		var eventData = args.Data;
@@ -101,7 +101,7 @@ function onWordukenUsed(args, data) {
 
 function onEndOfTurn(args, data) {
 	if (args.Data.t % 3 !== args.ActorNr || args.Data.t < 1 || args.Data.t >= MAX_TURNS_PER_GAME) {
-			throw new PhotonException(5, 'Custom EndOfTurn event: wrong t#', getISOTimestamp(), { w: args, d: data });
+			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom EndOfTurn event: wrong t#', { w: args, d: data });
 	}
 	try {
 		var eventData = args.Data; // TODO: test args and eventData
@@ -110,10 +110,10 @@ function onEndOfTurn(args, data) {
 		} else if (data.s === GameStates.Playing && eventData.t === data.t + args.ActorNr) {
    		data.s = GameStates.Playing + args.ActorNr;
 		} else if (data.s === GameStates.Playing + (3 - args.ActorNr) && data.t % 3 === (3 - args.ActorNr) && eventData.t === data.t - 3 + 2 * args.ActorNr) {
-			logException(getISOTimestamp(), {w: args, d: data}, 'Concurrency issue, GameId='+ args.GameId);
+			logException('Concurrency issue, GameId='+ args.GameId, {w: args, d: data});
 			data.s = GameStates.Blocked;
 		}	else {
-			throw new PhotonException(5, 'Unexpected GameState (' + data.s + ') in EndOfTurn, GameId=' + args.GameId, getISOTimestamp(), { w: args, d: data });
+			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Unexpected GameState (' + data.s + ') in EndOfTurn, GameId=' + args.GameId, { w: args, d: data });
 		}
 		data = addMoveToGame(data, args.ActorNr, eventData);
 		data.t += args.ActorNr;
@@ -126,13 +126,13 @@ function onEndOfRound(args, data) {
 	try {
 		var eventData = args.Data; // TODO: test args and eventData
 		if (eventData.m.t % 3 !== 0 || eventData.m.t < 3 || eventData.m.t > MAX_TURNS_PER_GAME || eventData.m.t !== data.t + args.ActorNr) {
-				throw new PhotonException(5, "Custom EndOfRound event: wrong t#", getISOTimestamp(), { w: args, d: data });
+			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom EndOfRound event: wrong t#', { w: args, d: data });
 		}
 		if (eventData.r.r !== data.r.length) {
-				throw new PhotonException(5, "Custom EndOfRound event: wrong r#", getISOTimestamp(), { w: args, d: data });
+			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom EndOfRound event: wrong r#', { w: args, d: data });
 		}
 		if (data.s !== GameStates.Playing + (3 - args.ActorNr)) {
-				throw new PhotonException(5, "Custom EndOfRound event: wrong s", getISOTimestamp(), { w: args, d: data });
+			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom EndOfRound event: wrong s', { w: args, d: data });
 		}
 		data = addMoveToGame(data, args.ActorNr, eventData.m);
 		var newRoundNr = eventData.r.r; // eventData.m.r + 1;
@@ -148,13 +148,13 @@ function onEndOfGame(args, data){
 	try {
 		var eventData = args.Data; // TODO: test args and eventData
 		if (eventData.t !== MAX_TURNS_PER_GAME || eventData.t !== data.t + args.ActorNr) {
-				throw new PhotonException(5, 'Custom EndOfGame event: wrong t#', getISOTimestamp(), { w: args, d: data });
+			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom EndOfGame event: wrong t#', { w: args, d: data });
 		}
 		if (data.s !== GameStates.Playing + (3 - args.ActorNr)) {
-				throw new PhotonException(5, 'Custom EndOfGame event: wrong s', getISOTimestamp(), { w: args, d: data });
+			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom EndOfGame event: wrong s', { w: args, d: data });
 		}
 		if (data.r.length !== MAX_ROUNDS_PER_GAME){
-				throw new PhotonException(5, 'Custom EndOfGame event: wrong r#', getISOTimestamp(), { w: args, d: data });
+			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom EndOfGame event: wrong r#', { w: args, d: data });
 		}
 	  data = addMoveToGame(data, args.ActorNr, eventData);
     data.t = MAX_TURNS_PER_GAME;
@@ -176,7 +176,7 @@ function onEndOfGame(args, data){
 
 function onNewRound(args, data){
 	if (data.s !== GameStates.Blocked){
-		throw new PhotonException(5, "Unexpected GameState onNewRound", getISOTimestamp(), { w: args, d: data });
+		throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Unexpected GameState onNewRound', { w: args, d: data });
 	}
 	try {
 		var eventData = args.Data; // TODO: test args and eventData
@@ -192,16 +192,23 @@ function onNewRound(args, data){
 
 
 function onResign(args, gameData){
-	var actorNr = args.ActorNr;
-	if (gameData.a[actorNr - 1].id === args.UserId &&
-		gameData.s > GameStates.UnmatchedPlaying &&
-		gameData.s < GameStates.P1Resigned) {
-		gameData.s = GameStates.Blocked + actorNr;
-		gameData.deletionFlag = actorNr;
-		if (actorNr === 2) {
-			deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
-		}
+	var actorNr = 1;
+	if (args.UserId !== getCreatorId(args.GameId)) {
+		actorNr = 2;
 	}
+	if (gameData.a[actorNr - 1].id === args.UserId &&
+		gameData.s > GameStates.MatchmakingTimedOut &&
+		gameData.s < GameStates.P1Resigned) {
+		if (actorNr === 1 && gameData.s < GameStates.Playing && gameData.a.length === 1) {
+			gameData = null;
+		} else {
+			gameData.s = GameStates.Blocked + actorNr;
+			gameData.deletionFlag = actorNr;
+			if (actorNr === 2) {
+				deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
+			}
+		}
+	} 
 	return gameData;
 }
 
@@ -225,16 +232,16 @@ function addToEventsCache(args, data) {
 					case CustomEventCodes.EndOfTurn:
 					case CustomEventCodes.EndOfGame:
 						if (cv[2].t === args.Data.t) {
-							throw new PhotonException(5, "Trying to cache duplicate event", getISOTimestamp(), { w: args, d: data });
+							throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Trying to cache duplicate event', { w: args, d: data });
 						}
 						break;
 					case CustomEventCodes.EndOfRound:
 						if (cv[2].r.r === args.Data.r.r) {
-							throw new PhotonException(5, "Trying to cache duplicate event", getISOTimestamp(), { w: args, d: data });
+							throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Trying to cache duplicate event', { w: args, d: data });
 						}
 						break;
 					default:
-
+						break;
 				}
 			}
 		}
@@ -255,7 +262,7 @@ function addToEventsCache(args, data) {
 // data = Room data, modify it but do not delete or overwrite existing properties. this will be saved for you.
 function onEventReceived(args, data) {
 	if (args.ActorNr < 1 || args.ActorNr > 2) {
-		throw new PhotonException(5, 'Unexpected ActorNr =' + args.ActorNr, getISOTimestamp(), { w: args, d: data });
+		throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Unexpected ActorNr =' + args.ActorNr, { w: args, d: data });
 	}
 	try {
 	  switch (args.EvCode) {

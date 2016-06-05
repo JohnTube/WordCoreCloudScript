@@ -20,23 +20,16 @@ function getISOTimestamp() {
 function replaceErrors(key, value) {
     if (value instanceof Error) {
         var error = {};
-
         Object.getOwnPropertyNames(value).forEach(function (key) {
             error[key] = value[key];
         });
-
         return error;
     }
-
     return value;
 }
 
-function logException(timestamp, data, message) {
-    //TEMPORARY solution until log functions' output is available from GameManager
-    /*return server.SetTitleData({
-        Key: timestamp,
-        Value: JSON.stringify({Message: message, Data: data})
-    });*/
+function logException(message, data, timestamp) {
+	if (undefinedOrNull(timestamp)) { timestamp = getISOTimestamp(); }
 	http.request('http://logs-01.loggly.com/inputs/47d0eb9f-eb72-49a3-8921-730df6ea180c/tag/PlayFab/', 'post',
 		JSON.stringify({
 			ts: timestamp,
@@ -48,7 +41,7 @@ function logException(timestamp, data, message) {
 
 function createSharedGroup(id) {
 		try { server.CreateSharedGroup({SharedGroupId : id});
-    } catch (e) { /*logException(getISOTimestamp(), e, 'createSharedGroup:' + id);*/throw e; }
+    } catch (e) { /*logException('createSharedGroup:' + id, e);*/throw e; }
 }
 
 function updateSharedGroupData(id, data) {
@@ -65,7 +58,7 @@ function updateSharedGroupData(id, data) {
         }
         key = server.UpdateSharedGroupData({ SharedGroupId: id, Data: stringData });
         return key;
-    } catch (e) { logException(getISOTimestamp(), {ret: key, err: e}, 'updateSharedGroupData(' + id + ', ' + JSON.stringify(stringData) + ')'); throw e; }
+    } catch (e) { logException('updateSharedGroupData(' + id + ', ' + JSON.stringify(stringData) + ')', {ret: key, err: e}); throw e; }
 }
 
 function getSharedGroupData(id, keys) {
@@ -82,7 +75,7 @@ function getSharedGroupData(id, keys) {
             }
         }
         return data;
-    } catch (e) { logException(getISOTimestamp(), {ret: data, err: e}, 'getSharedGroupData:' + id + ',' + JSON.stringify(keys)); throw e; }
+    } catch (e) { logException('getSharedGroupData:' + id + ',' + JSON.stringify(keys), {ret: data, err: e}); throw e; }
 }
 
 function deleteSharedGroup(id) {
@@ -91,7 +84,7 @@ function deleteSharedGroup(id) {
 			result = server.DeleteSharedGroup({SharedGroupId : id});
 			return result;
 		} catch (e) {
-			logException(getISOTimestamp(), {err: e, ret: result}, 'deleteSharedGroup:' + id); throw e;
+			logException('deleteSharedGroup:' + id, {err: e, ret: result}); throw e;
 		}
 }
 
@@ -100,7 +93,7 @@ function getSharedGroupEntry(id, key) {
     try {
 			result = getSharedGroupData(id, [key])[key];
 			return result;
-		} catch (e) { logException(getISOTimestamp(), {err: e, ret: result},'getSharedGroupEntry:' + id + ',' + key); throw e; }
+		} catch (e) { logException('getSharedGroupEntry:' + id + ',' + key, {err: e, ret: result}); throw e; }
 }
 
 function updateSharedGroupEntry(id, key, value) {
@@ -108,9 +101,9 @@ function updateSharedGroupEntry(id, key, value) {
         var data = {};
         data[key] = value;
         return updateSharedGroupData(id, data);
-    } catch (e) { logException(getISOTimestamp(), e, 'updateSharedGroupEntry:' + id + ',' + key + ',' + value); throw e; }
+    } catch (e) { logException('updateSharedGroupEntry:' + id + ',' + key + ',' + value, e); throw e; }
 }
 
 function deleteSharedGroupEntry(id, key) {
-    try { return updateSharedGroupEntry(id, key, null); } catch (e) { logException(getISOTimestamp(), e, 'deleteSharedGroupEntry:' + id + ',' + key); throw e; }
+    try { return updateSharedGroupEntry(id, key, null); } catch (e) { logException('deleteSharedGroupEntry:' + id + ',' + key, e); throw e; }
 }

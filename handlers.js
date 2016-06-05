@@ -46,7 +46,7 @@ function getPollResponse(clientGamesList, userId) {
 			} else {
 				serverGamesData = {};
 			}
-			//logException(getISOTimestamp(), {s:Object.getOwnPropertyNames(serverGamesData), c:Object.getOwnPropertyNames(clientGamesList)}, 'getPollResponse');
+			//logException('getPollResponse', {s:Object.getOwnPropertyNames(serverGamesData), c:Object.getOwnPropertyNames(clientGamesList)});
 			for (gameKey in serverGamesData) {
 				if (serverGamesData.hasOwnProperty(gameKey)) {
 					gameData = serverGamesData[gameKey];
@@ -62,7 +62,7 @@ function getPollResponse(clientGamesList, userId) {
 						if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
 							var diff = getDiffData(gameData, gameState);
 							if (undefinedOrNull(diff)) {
-								logException(getISOTimestamp(), {s: gameData, c: gameState}, 'Client State/Turn > Server State/Turn, GameId=' + gameKey);
+								logException('Client State/Turn > Server State/Turn, GameId=' + gameKey, {s: gameData, c: gameState});
 								if (!data.hasOwnProperty('m')) { data.m = {};}
 								data.m[gameKey] = {t: gameData.t, s: gameData.s};
 							} else {
@@ -89,7 +89,6 @@ function getPollResponse(clientGamesList, userId) {
 	} catch(e) {
 		throw e;
 	}
-	//return {};
 }
 
 function pollGamesData(clientData, userId) {
@@ -104,7 +103,7 @@ function pollGamesData(clientData, userId) {
 			acks = {};
 			gameList = getSharedGroupData(listId);
 			listToUpdate[listId] = {};
-			//logException(getISOTimestamp(), gameList, 'list of games in ' + listId);
+			//logException('list of games in ' + listId, gameList);
 			for (gameKey in gameList) {
 				if (gameList.hasOwnProperty(gameKey)) {
 					userKey = getCreatorId(gameKey);
@@ -124,7 +123,7 @@ function pollGamesData(clientData, userId) {
 							var round = gameList[gameKey].r.length - 1;
 							var timestamp = gameList[gameKey].r[round].ts;
 							if (undefinedOrNull(timestamp)) {
-								logException(getISOTimestamp(), gameList[gameKey], 'undefinedOrNull timestamp of last round=' + round);
+								logException('undefinedOrNull timestamp of last round=' + round, gameList[gameKey]);
 							} else if (checkRoundTimeOut(timestamp)) {
 								if (checkLeftOversTimeOut(timestamp)){
 									listToUpdate[listId][gameKey] = null;
@@ -144,7 +143,7 @@ function pollGamesData(clientData, userId) {
 									data[gameKey].pn = 1;
 						} else {
 							listToUpdate[listId][gameKey] = null; 
-							logException(getISOTimestamp(), gameList[gameKey], 'actors array is missing or corrupt');
+							logException('actors array is missing or corrupt', gameList[gameKey]);
 						}
 					} else {
 						if (!listToLoad.hasOwnProperty(userKey)) {
@@ -159,7 +158,7 @@ function pollGamesData(clientData, userId) {
 					listId = getGamesListId(userKey);
 					listToUpdate[listId] = {};
 					gameList = getSharedGroupData(listId, listToLoad[userKey]);
-					//logException(getISOTimestamp(), gameList, 'list of games in ' + listId);
+					//logException('list of games in ' + listId, gameList);
 					for (var i=0; i<listToLoad[userKey].length; i++) {
 						gameKey = listToLoad[userKey][i];
 						if (gameList.hasOwnProperty(gameKey)) {
@@ -189,18 +188,18 @@ function pollGamesData(clientData, userId) {
 													gameList[gameKey].a.length === 2 &&
 													gameList[gameKey].a[0].id === userKey &&
 													gameList[gameKey].a[1].id === userId) {
-														//logException(getISOTimestamp(), gameList[gameKey], 'game added');
+												//logException('game added', gameList[gameKey]);
 												data[gameKey] = gameList[gameKey];
 												data[gameKey].pn = 2;
 											} else {
 												listToUpdate[listId][gameKey] = null;
-												logException(getISOTimestamp(), gameList[gameKey], 'actors array is missing or corrupt');
+												logException('actors array is missing or corrupt', gameList[gameKey]);
 											}
 									} else if (listToLoad[userKey].includes(gameKey)) {
 										listToUpdate[getGamesListId(userId)][gameKey] = null;
-										logException(getISOTimestamp(), null, 'pollGamesData, '+ gameKey + ' save was not found, referenced from ' + userId);
+										logException('pollGamesData, '+ gameKey + ' save was not found, referenced from ' + userId);
 									} else {
-										logException(getISOTimestamp(), {GameList: gameList, ListToLoad: listToLoad[userKey]}, 'game '+ gameKey + ' from gamesList of user=' + userKey);
+										logException('game '+ gameKey + ' from gamesList of user=' + userKey, {GameList: gameList, ListToLoad: listToLoad[userKey]});
 									}
 								}
 							}
@@ -363,7 +362,7 @@ function deleteOrFlagGames(games, userId) {
 						}
 					} else if (listToLoad[userKey].includes(gameKey)) {
 						listToUpdate[getGamesListId(userId)][gameKey] = null;
-						logException(getISOTimestamp(), null, 'deleteOrFlagGames, '+ gameKey + ' save was not found, referenced from ' + userId);
+						logException('deleteOrFlagGames, '+ gameKey + ' save was not found, referenced from ' + userId);
 					} else {
 
 					}
@@ -413,8 +412,8 @@ function addMissingEvents(clientData, data) {
 				try  {
 					data = onEventReceived(e, data);
 				} catch (ex) {
-					if (ex instanceof PhotonException && ex.ResultCode === 5){
-						logException(getISOTimestamp(), ex, 'addMissingEvents handled onEventReceived error');
+					if (ex instanceof PhotonException && ex.ResultCode === WEB_ERRORS.EVENT_FAILURE){
+						//logException('addMissingEvents handled onEventReceived error', ex);
 						eAck[0] = false;
 						switch (e.EvCode) {
 							case CustomEventCodes.EndOfGame:
@@ -441,7 +440,7 @@ function addMissingEvents(clientData, data) {
 								break;
 						}
 					} else {
-						logException(getISOTimestamp(), ex, 'addMissingEvents UNHANDLED onEventReceived error');
+						logException('addMissingEvents UNHANDLED onEventReceived error', ex);
 						//throw ex;
 					}
 				}
@@ -450,7 +449,7 @@ function addMissingEvents(clientData, data) {
 		}
 		return acks;//{d: data, a: acks};
 	} catch (error) {
-		logException(getISOTimestamp(), error, 'addMissingEvents error');
+		logException('addMissingEvents error', error);
 		//throw error;
 	}
 }
@@ -458,24 +457,11 @@ function addMissingEvents(clientData, data) {
 // TODO: remove, replace calls to pollData
 handlers.onLogin = function (args) {
 	try { 
-		/*if (args.c === true) {
-			createSharedGroup(getGamesListId(args.UserId));
-			return {ResultCode: 0};
-		}*/
-		//logException(getISOTimestamp(), args, 'onLogin');
 		var data = getPollResponse(args.g, args.UserId);
-		return {ResultCode: 0, Data: data};
+		return {ResultCode: WEB_ERRORS.SUCCESS, Data: data};
 	} catch (e) {
-		if (!undefinedOrNull(e.Error) && e.Error.error === 'InvalidSharedGroupId'){
-			createSharedGroup(getGamesListId(args.UserId));
-		} else {
-			logException(getISOTimestamp(), e, 'Error in onLogin handler');
-		}
-		/*if (!isEmpty(args.g)){
-			return {ResultCode:0, Data: {o: Object.getOwnPropertyNames(args.g)}};
-		}
-		return {ResultCode: 0};*/
-		return {ResultCode: 1, Message: 'Houston we have a problem', Data: e};
+		logException('onLogin', {e: e, args: args});
+		return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR};
 	}
 };
 
@@ -483,29 +469,24 @@ handlers.onLogin = function (args) {
 handlers.pollData = function (args) {
 	try {
 		var data = getPollResponse(args.g, args.UserId);
-		return {ResultCode: 0, Data: data};
+		return {ResultCode: WEB_ERRORS.SUCCESS, Data: data};
 	} catch(e) {
-		logException(getISOTimestamp(), {err: e, args: args}, 'pollData');
-		return {ResultCode: 1, Message: 'Houston we have a problem', Data: e};
+		logException('pollData', {err: e, args: args});
+		return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR};
 	}
 };
 
 // expects [] of gameIDs to delete
 handlers.deleteGames = function (args) {
-	var gamesToDelete;
 	try {
-		if (args.hasOwnProperty('g')) {
-			gamesToDelete = args.g;
-		} else {
-			gamesToDelete = args.RpcParams; // temporary
-		}
+		var gamesToDelete = args.g;
 		deleteOrFlagGames(gamesToDelete, args.UserId);
-		return {ResultCode: 0};
+		return {ResultCode: WEB_ERRORS.SUCCESS};
 	} catch (e) {
-		logException(getISOTimestamp(), {e: e, args: args}, 'deleteGames');
+		logException('deleteGames', {e: e, args: args});
+		return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR};
 	}
 };
-
 
 // expects gameID in 'GameId'
 handlers.resign = function (args) {
@@ -527,11 +508,14 @@ handlers.resign = function (args) {
 					deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
 				}
 			}
-			return {ResultCode: 0, Data:args};
+			return {ResultCode: WEB_ERRORS.SUCCESS, Data:{GameId: args.GameId}};
 		} else {
-			return {ResultCode: 1, Data:args, Message: 'Cannot resign from game'};
+			return {ResultCode: WEB_ERRORS.EVENT_FAILURE, Data:{GameId: args.GameId}, Message: 'Cannot resign from game'};
 		}
-	} catch (e) {logException(getISOTimestamp(), {e: e, args: args}, 'resign');}
+	} catch (e) {
+		logException('resign', {e: e, args: args});
+		return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR};
+	}
 };
 
 handlers.fixRound = function (args) {
@@ -539,17 +523,26 @@ handlers.fixRound = function (args) {
 		var gameData = loadGameData(args.GameId);
 		onNewRound(args, gameData);
 		saveGameData(args.GameId, gameData);
-		return {ResultCode: 0, Data:{GameId: args.GameId, r: gameData.Cache[gameData.Cache.length - 1][2].r}};
-	} catch (e) {logException(getISOTimestamp(), {e: e, args: args}, 'fixRound');}
+		return {ResultCode: WEB_ERRORS.SUCCESS, Data:{GameId: args.GameId, r: gameData.Cache[gameData.Cache.length - 1][2].r}};
+	} catch (e) {
+		logException('fixRound', {e: e, args: args});
+		return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR};
+	}
 };
 
 handlers.onPlayerCreated = function(args, context){
 	try {
 		createSharedGroup(getGamesListId(currentPlayerId));
-	} catch (e) {logException(getISOTimestamp(), {e: e, args: args, context: context}, 'onPlayerCreated');}
+	} catch (e) {
+		logException('onPlayerCreated', {e: e, args: args, context: context});
+		return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR};
+	}
 };
 
 handlers.onPlayerLogin = function (args, context) {
 	try { 
-	} catch (e) {logException(getISOTimestamp(), {e: e, args: args, context: context}, 'onLogin');}
+	} catch (e) {
+		logException('onLogin', {e: e, args: args, context: context});
+		return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR};
+	}
 };
