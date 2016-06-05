@@ -75,7 +75,15 @@ function getSharedGroupData(id, keys) {
             }
         }
         return data;
-    } catch (e) { logException('getSharedGroupData:' + id + ',' + JSON.stringify(keys), {ret: data, err: e}); throw e; }
+    } catch (e) { 
+		if (!undefinedOrNull(e.Error) && e.Error.error === 'InvalidSharedGroupId' && id === getGamesList(currentPlayerId)) {
+			logException('sharedGroup '+id+' not found, creating it');
+			createSharedGroup(id);
+			return {};
+		}
+		logException('getSharedGroupData:' + id + ',' + JSON.stringify(keys), {ret: data, err: e}); 
+		throw e; 
+	}
 }
 
 function deleteSharedGroup(id) {
