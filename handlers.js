@@ -1,6 +1,6 @@
-var MATCHMAKING_TIME_OUT = 60 * 60 * 1000, // 1 hour in milliseconds, 'ClosedRoomTTL' with Photon AsyncRandomLobby !
-ROUND_TIME_OUT = 2 * 24 * MATCHMAKING_TIME_OUT,
-CLEAN_UP_TIME_OUT = 2 * ROUND_TIME_OUT; // DEV : 1 week ==> PROD : 2 days in milliseconds
+var MATCHMAKING_TIME_OUT = 60 * 60 * 1000, // 1 hour in milliseconds, 'ClosedRoomTTL' with Photon AsyncRandomLobby ! 3600000
+ROUND_TIME_OUT = 2 * 24 * MATCHMAKING_TIME_OUT, // 172800000
+CLEAN_UP_TIME_OUT = 2 * ROUND_TIME_OUT; // DEV : 1 week ==> PROD : 2 days in milliseconds, 345600000
 
 
 function checkTimeOut(timestamp, THRESHOLD) {
@@ -169,12 +169,12 @@ function pollGamesData(clientData, userId) {
 							acks[gameKey] = addMissingEvents(clientData[gameKey], gameList[gameKey]);
 							listToUpdate[listId][gameKey] = gameList[gameKey];
 						}
+						var round = gameList[gameKey].r.length - 1;//gameList[gameKey].t / 3
+						var timestamp = gameList[gameKey].r[round].ts;
 						if (gameList[gameKey].s < GameStates.Playing) {
 							logException('Unexpected GameState of game ' + gameKey + ' referenced from ' + userId, gameList[gameKey]);
 						} else if (gameList[gameKey].s > GameStates.UnmatchedWaiting &&
 							gameList[gameKey].s < GameStates.P1Resigned) {
-							var round = gameList[gameKey].r.length - 1;//gameList[gameKey].t / 3
-							var timestam = gameList[gameKey].r[round].ts;
 							if (undefinedOrNull(timestamp)) {
 								logException('undefinedOrNull timestamp of last round=' + round, gameList[gameKey]);
 							} else if (checkRoundTimeOut(timestamp)) {
@@ -333,7 +333,7 @@ function deleteOrFlagGames(games, userId) {
 				gameData = gamesToDelete[gameKey];
 				userKey = getCreatorId(gameKey);
 				if (userKey === userId) {
-					if (gameData.s === GameStates.MatchmakingTimedOut || gameData.deletionFlag === 2) {
+					if (gameData.s === GameStates.MatchmakingTimedOut || gameData.deletionFlag === 2 || (gameData.deletionFlag == 1 && gameData.a.length === 1)) {
 						listToUpdate[listId][gameKey] = null;
 					} else {
 						gameData.deletionFlag = 1;

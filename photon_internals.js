@@ -103,7 +103,7 @@ handlers.RoomClosed = function (args) {
     try {
         var data = {};
         if (args.Type === 'Close') {
-			logException(args, 'Unexpected GameClose, Type == Close');
+			//logException(args, 'Unexpected GameClose, Type == Close');
         } else if (args.Type === 'Save') {
 			data = loadGameData(args.GameId);
 			data.State = stripRoomState(args.State);
@@ -124,10 +124,10 @@ handlers.RoomClosed = function (args) {
 handlers.RoomLeft = function (args) {
     try {
 		if ([LeaveReason.ClientTimeoutDisconnect, LeaveReason.ManagedDisconnect, LeaveReason.ServerDisconnect, LeaveReason.ConnectTimeout, 
-			 LeaveReason.TimeoutDisconnect, LeaveReason.SwitchRoom, LeaveReason.LeaveRequest, LeaveReason.PlayerTtlTimedOut, 
+			 LeaveReason.TimeoutDisconnect, LeaveReason.SwitchRoom, /*LeaveReason.LeaveRequest,*/ LeaveReason.PlayerTtlTimedOut, 
 			 LeaveReason.PeerLastTouchTimedout, LeaveReason.PluginRequest, LeaveReason.PluginFailedJoin].indexOf(args.Reason) > -1) {
 			throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Unexpected LeaveReason', args);
-		} else if (args.IsInactive === false) {
+		} else if (args.IsInactive === false && args.Reason !== LeaveReason.LeaveRequest) {
 			throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Unexpected IsInactive flag', args);
 		}
         return {ResultCode: WEB_ERRORS.SUCCESS, Message: 'OK'};
