@@ -51,7 +51,7 @@ function stripRoomState(state) {
 	return state;
 }
 
-var MAX_GAMES_PER_PLAYER = 2;
+var MAX_GAMES_PER_PLAYER = 5;
 
 var WEB_ERRORS = {
 	SUCCESS : 0,

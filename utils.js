@@ -44,20 +44,43 @@ function createSharedGroup(id) {
     } catch (e) { /*logException('createSharedGroup:' + id, e);*/throw e; }
 }
 
+var MAX_SHARED_GROUP_KEYS_PER_UPDATE = 5;
+
 function updateSharedGroupData(id, data) {
     var key, stringData = {};
     try {
-        for (key in data) {
-            if (data.hasOwnProperty(key)) {
-				if (!undefinedOrNull(data[key])) {
-					stringData[key] = JSON.stringify(data[key]);
-				} else {
-					stringData[key] = data[key];
+		if (Object.keys(data).length <= MAX_SHARED_GROUP_KEYS_PER_UPDATE) {
+			for (key in data) {
+				if (data.hasOwnProperty(key)) {
+					if (!undefinedOrNull(data[key])) {
+						stringData[key] = JSON.stringify(data[key]);
+					} else {
+						stringData[key] = data[key];
+					}
 				}
 			}
-        }
-        key = server.UpdateSharedGroupData({ SharedGroupId: id, Data: stringData });
-        return key;
+			key = server.UpdateSharedGroupData({ SharedGroupId: id, Data: stringData });
+		} else { // updating per batch of MAX_SHARED_GROUP_KEYS_PER_UPDATE
+			var i = 0;
+			for (key in data) {
+				if (data.hasOwnProperty(key)) {
+					if (!undefinedOrNull(data[key])) {
+						stringData[key] = JSON.stringify(data[key]);
+					} else {
+						stringData[key] = data[key];
+					}
+					i++;
+					if (i === MAX_SHARED_GROUP_KEYS_PER_UPDATE) {
+						key = server.UpdateSharedGroupData({ SharedGroupId: id, Data: stringData });
+						i = 0;
+						stringData = {};
+					}
+				}
+			}
+			if (i > 0) {
+				key = server.UpdateSharedGroupData({ SharedGroupId: id, Data: stringData });		
+			}
+		}
     } catch (e) { logException('updateSharedGroupData(' + id + ', ' + JSON.stringify(stringData) + ')', {ret: key, err: e}); throw e; }
 }
 
