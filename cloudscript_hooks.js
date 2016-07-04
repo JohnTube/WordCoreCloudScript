@@ -14,7 +14,6 @@ var ALPHABETS = [
 function getMovePoints(language, word) {
 	try {
 		var i = 0, score = 0, lettersValues = ALPHABETS[language - 1];
-		word = word.toUpperCase();
 		for (i; i < word.length; i += 1) { 
 			var letter = word[i];
 			score += lettersValues[letter]; 
@@ -51,7 +50,7 @@ function addMoveToGame(gameData, actorNr, move) {
 function getMoveLetters(gameData, move) {
 	try {
 		// TEMP SOLUTION
-		return move.w;
+		return move.mw;
 	} catch (e) { throw e; }
 }
 
