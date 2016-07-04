@@ -6,11 +6,19 @@ function getLengthBonus(word) {
 	return lengthBonus;} catch (e) { throw e;}
 }
 
-function getMovePoints(word) {
+var ALPHABETS = [
+	{A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1, J: 8, K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1, S: 1, T: 1, U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10},
+	{A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:10,L:1,M:2,N:1,O:1,P:3,Q:8,R:1,S:1,T:1,U:1,V:4,W:10,X:10,Y:10,Z:10}
+];
+
+function getMovePoints(language, word) {
 	try {
-		var LETTERS_POINTS = {A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1, J: 8, K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1, S: 1, T: 1, U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10}, i = 0, score = 0;
+		var i = 0, score = 0, lettersValues = ALPHABETS[language - 1];
 		word = word.toUpperCase();
-		for (i; i < word.length; i += 1) { score +=  LETTERS_POINTS[word.charAt(i)]; }
+		for (i; i < word.length; i += 1) { 
+			var letter = word[i];
+			score += lettersValues[letter]; 
+		}
 		return score;
 	} catch (e) { throw e;}
 }
@@ -24,7 +32,8 @@ function addMoveToGame(gameData, actorNr, move) {
 			gameData.a[actorIndex].w[move.wi].v = true; // validate worduken use (if any)
 			if (move.wt === WordukenType.Incrementor) { gameData.a[actorIndex].m += 1; }
 		}
-		move.lv = getMovePoints(move.mw);
+		var letters = getMoveLetters(gameData, move);
+		move.lv = getMovePoints(gameData.l, letters);
 		move.lb = getLengthBonus(move.mw);
 		move.mb = gameData.a[actorIndex].m;
 		move.pb = gameData.a[actorIndex].p;
@@ -36,9 +45,15 @@ function addMoveToGame(gameData, actorNr, move) {
 		gameData.r[move.r].m[actorIndex] = move;
 		gameData.a[actorIndex].s += move.s;
 		return gameData;
-	} catch (e) { throw e;}
+	} catch (e) { throw e; }
 }
 
+function getMoveLetters(gameData, move) {
+	try {
+		// TEMP SOLUTION
+		return move.w;
+	} catch (e) { throw e; }
+}
 
 var GameStates = {
     Undefined : 0,              // 0
