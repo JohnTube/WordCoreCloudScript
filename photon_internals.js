@@ -200,7 +200,7 @@ handlers.RoomJoined = function (args) { // added to stop receiving ErrorInfo eve
 };
 
 
-handlers.function sendPushNotification(targetId, msg, data, title, icon) {
+handlers.sendPushNotification = function(targetId, msg, data, title, icon) {
     try {
         server.SendPushNotification({
             Recipient: targetId,
