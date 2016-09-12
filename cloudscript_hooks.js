@@ -75,10 +75,13 @@ var GameStates = {
 
 function onInitGame(args, data) {
 	if (args.ActorNr !== 1) {
-		throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom InitGame event: Wrong actorNr', { w: args, d: data });
+		throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Custom InitGame event: Wrong ActorNr', { w: args, d: data });
 	}
 	try {
 		var eventData = args.Data;
+		if (eventData.gt !== 2) {
+			throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Custom InitGame event: Wrong GameType', { w: args, d: data });
+		}
 		data = {a: [{id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: eventData.w, ts: eventData.ts}],
 				s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
 		data.r = [{gs: eventData.r.gs, ts: eventData.r.ts, r: 0, m: [{}, {}]}];
