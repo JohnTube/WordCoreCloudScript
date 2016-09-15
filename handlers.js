@@ -495,6 +495,10 @@ handlers.deleteGames = function (args) {
 handlers.resign = function (args) {
 	try {
 		var gameData = loadGameData(args.GameId), actorNr = 1;
+        if (undefinedOrNull(gameData)) {
+            logException('Cannot resign: game not found', args);
+            return {ResultCode: WEB_ERRORS.GAME_NOT_FOUND, Data:{GameId: args.GameId}, Message: 'Cannot resign: game not found' };
+        }
 		if (args.UserId !== getCreatorId(args.GameId)) {
 			actorNr = 2;
 		}

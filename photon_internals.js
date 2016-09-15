@@ -106,9 +106,12 @@ handlers.RoomClosed = function (args) {
 			//logException(args, 'Unexpected GameClose, Type == Close');
         } else if (args.Type === 'Save') {
 			data = loadGameData(args.GameId);
+            if (undefinedOrNull(data)) {
+                throw new PhotonException(WEB_ERRORS.GAME_NOT_FOUND, 'Room State save error: game not found', {Webhook: args});
+            }
 			data.State = stripRoomState(args.State);
             saveGameData(args.GameId, data);
-        }else {
+        } else {
             throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Wrong PathClose Type=' + args.Type, {Webhook: args});
         }
         return {ResultCode: WEB_ERRORS.SUCCESS, Message: 'OK'};
