@@ -82,7 +82,23 @@ function onInitGame(args, data) {
 		if (eventData.gt !== 2) {
 			throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Custom InitGame event: Wrong GameType', { w: args, d: data });
 		}
-		data = {a: [{id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: eventData.w, ts: eventData.ts}],
+        var a1_wordukens = [];
+        var round0_grid = {};
+        // TODO: remove version check when everyone updates
+        if (args.AppVersion === "0.0.1d") {
+            a1_wordukens = eventData.w;
+            round0_grid = eventData.r.gs;
+        } else {
+            for(var i=0; i<eventData.w.length; i++){
+                a1_wordukens[i] = {t:-1, wt:eventData.w[i], wi:i, v:false};
+            }
+            for(var j=0; j<16; j++){
+                round0_grid[String(j)] = eventData.r.gs[j];
+            }
+        }
+        var firstGridSnapshot = [];
+        // TODO: breaking change 2; compare AppVersion
+		data = {a: [{id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: a1_wordukens, ts: eventData.ts}],
 				s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
 		data.r = [{gs: eventData.r.gs, ts: eventData.r.ts, r: 0, m: [{}, {}]}];
 		return data; // do not cache this event
@@ -103,7 +119,16 @@ function onJoinGame(args, data) {
 		}
 		updateSharedGroupEntry(getGamesListId(args.UserId), args.GameId, {});
 		var eventData = args.Data;
-		data.a[1] = {id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: eventData.w, ts: eventData.ts};
+        var a2_wordukens = [];
+        // TODO: remove version check when everyone updates
+        if (args.AppVersion === "0.0.1d") {
+            a2_wordukens = eventData.w;
+        } else {         
+            for(var i=0; i<eventData.w.length; i++){
+                a2_wordukens[i] = {t:-1, wt:eventData.w[i], wi:i, v:false};
+            }   
+        }
+		data.a[1] = {id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: a2_wordukens, ts: eventData.ts};
 		data.r[0].ts = eventData.ts;
 		return data; // do not cache this event
 	} catch (e) { throw e;}
