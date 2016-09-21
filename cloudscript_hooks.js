@@ -85,7 +85,7 @@ function onInitGame(args, data) {
         var a1_wordukens = [];
         var round0_grid = {};
         // TODO: remove version check when everyone updates
-        if (args.AppVersion === "0.0.1d") {
+        if (args.AppVersion === "0.1.1d") {
             a1_wordukens = eventData.w;
             round0_grid = eventData.r.gs;
         } else {
@@ -100,7 +100,7 @@ function onInitGame(args, data) {
         // TODO: breaking change 2; compare AppVersion
 		data = {a: [{id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: a1_wordukens, ts: eventData.ts}],
 				s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
-		data.r = [{gs: eventData.r.gs, ts: eventData.r.ts, r: 0, m: [{}, {}]}];
+		data.r = [{gs: round0_grid, ts: eventData.r.ts, r: 0, m: [{}, {}]}];
 		return data; // do not cache this event
 	} catch (e) { throw e;}
 }
@@ -121,7 +121,7 @@ function onJoinGame(args, data) {
 		var eventData = args.Data;
         var a2_wordukens = [];
         // TODO: remove version check when everyone updates
-        if (args.AppVersion === "0.0.1d") {
+        if (args.AppVersion === "0.1.1d") {
             a2_wordukens = eventData.w;
         } else {         
             for(var i=0; i<eventData.w.length; i++){
