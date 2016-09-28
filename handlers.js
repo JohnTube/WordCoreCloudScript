@@ -232,10 +232,8 @@ function getDiffData(gameData, clientGame) {
 					}
 					else if (gameData.s >= GameStates.Playing && gameData.a.length === 2) {
                         var p2_wordukens = [];
-                        for(var key in gameData.a[1].w) {
-                            if (gameData.a[1].w.hasOwnProperty(key)){
-                                p2_wordukens.push(gameData.a[1].w[key].wt);
-                            }
+                        for(var i=0; i<gameData.a[1].w.length; i++) {
+                            p2_wordukens.push(gameData.a[1].w[i].wt);
                         }
 						diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: p2_wordukens, ts: gameData.a[1].ts };
 						if (gameData.s >= GameStates.P1Resigned) {
@@ -251,10 +249,8 @@ function getDiffData(gameData, clientGame) {
 					}
 					else if (gameData.s >= GameStates.Playing && gameData.a.length === 2) {
                         var p2_wordukens = [];
-                        for(var key in gameData.a[1].w) {
-                            if (gameData.a[1].w.hasOwnProperty(key)){
-                                p2_wordukens.push(gameData.a[1].w[key].wt);
-                            }
+                        for(var i=0; i<gameData.a[1].w.length; i++) {
+                            p2_wordukens.push(gameData.a[1].w[i].wt);
                         }
 						diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: p2_wordukens, ts: gameData.a[1].ts };
 						if (gameData.s >= GameStates.P1Resigned) {
@@ -472,6 +468,9 @@ function addMissingEvents(clientData, data) {
 // TODO: remove, replace calls to pollData
 handlers.onLogin = function (args) {
 	try { 
+        if (undefinedOrNull(args.UserId)) { 
+            args.UserId = currentPlayerId;
+        }
 		var data = getPollResponse(args.g, args.UserId);
 		return {ResultCode: WEB_ERRORS.SUCCESS, Data: data};
 	} catch (e) {
@@ -483,6 +482,9 @@ handlers.onLogin = function (args) {
 // expects {} in 'g' with <gameID> : {s: <gameState>, t: <turn#>, e:[<{cachedEvent}>]}
 handlers.pollData = function (args) {
 	try {
+        if (undefinedOrNull(args.UserId)) { 
+            args.UserId = currentPlayerId;
+        }
 		var data = getPollResponse(args.g, args.UserId);
 		return {ResultCode: WEB_ERRORS.SUCCESS, Data: data};
 	} catch(e) {
@@ -494,6 +496,9 @@ handlers.pollData = function (args) {
 // expects [] of gameIDs to delete
 handlers.deleteGames = function (args) {
 	try {
+        if (undefinedOrNull(args.UserId)) { 
+            args.UserId = currentPlayerId;
+        }
 		var gamesToDelete = args.g;
 		deleteOrFlagGames(gamesToDelete, args.UserId);
 		return {ResultCode: WEB_ERRORS.SUCCESS};
@@ -506,6 +511,9 @@ handlers.deleteGames = function (args) {
 // expects gameID in 'GameId'
 handlers.resign = function (args) {
 	try {
+        if (undefinedOrNull(args.UserId)) { 
+            args.UserId = currentPlayerId;
+        }
 		var gameData = loadGameData(args.GameId), actorNr = 1;
         if (undefinedOrNull(gameData)) {
             logException('Cannot resign: game not found', args);
@@ -539,6 +547,9 @@ handlers.resign = function (args) {
 
 handlers.fixRound = function (args) {
 	try {
+        if (undefinedOrNull(args.UserId)) { 
+            args.UserId = currentPlayerId;
+        }
 		var gameData = loadGameData(args.GameId);
 		onNewRound(args, gameData);
 		saveGameData(args.GameId, gameData);
