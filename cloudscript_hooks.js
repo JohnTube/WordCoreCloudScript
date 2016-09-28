@@ -89,8 +89,12 @@ function onInitGame(args, data) {
             a1_wordukens = eventData.w;
             round0_grid = eventData.r.gs;
         } else {
-            for(var i=0; i<eventData.w.length; i++){
-                a1_wordukens[i] = {t:-1, wt:eventData.w[i], wi:i, v:false};
+            if (undefinedOrNull(eventData.w)) {
+                a1_wordukens = [];
+            } else { 
+                for(var i=0; i<eventData.w.length; i++){
+                    a1_wordukens[i] = {t:-1, wt:eventData.w[i], wi:i, v:false};
+                }
             }
             for(var j=0; j<16; j++){
                 round0_grid[String(j)] = eventData.r.gs[j];
@@ -123,7 +127,9 @@ function onJoinGame(args, data) {
         // TODO: remove version check when everyone updates
         if (args.AppVersion === "0.1.1d") {
             a2_wordukens = eventData.w;
-        } else {         
+        } else if (undefinedOrNull(eventData.w)) {
+                a2_wordukens = [];
+        } else {    
             for(var i=0; i<eventData.w.length; i++){
                 a2_wordukens[i] = {t:-1, wt:eventData.w[i], wi:i, v:false};
             }   
