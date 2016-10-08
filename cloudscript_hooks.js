@@ -14,9 +14,9 @@ var ALPHABETS = [
 function getMovePoints(language, word) {
 	try {
 		var i = 0, score = 0, lettersValues = ALPHABETS[language - 1];
-		for (i; i < word.length; i += 1) { 
+		for (i; i < word.length; i += 1) {
 			var letter = word[i];
-			score += lettersValues[letter]; 
+			score += lettersValues[letter];
 		}
 		return score;
 	} catch (e) { throw e;}
@@ -62,7 +62,7 @@ var GameStates = {
     Playing : 4, // 4
     P1Waiting : 5, // 5
     P2Waiting : 6,
-	Blocked : 7,
+	  Blocked : 7,
     P1Resigned : 8,
     P2Resigned : 9,
     TimedOutDraw : 10,
@@ -91,7 +91,7 @@ function onInitGame(args, data) {
         } else {
             if (undefinedOrNull(eventData.w)) {
                 a1_wordukens = [];
-            } else { 
+            } else {
                 for(var i=0; i<eventData.w.length; i++){
                     a1_wordukens[i] = {t:-1, wt:eventData.w[i], wi:i, v:false};
                 }
@@ -100,9 +100,7 @@ function onInitGame(args, data) {
                 round0_grid[String(j)] = eventData.r.gs[j];
             }
         }
-        var firstGridSnapshot = [];
-        // TODO: breaking change 2; compare AppVersion
-		data = {a: [{id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: a1_wordukens, ts: eventData.ts}],
+				data = {a: [{id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: a1_wordukens, ts: eventData.ts}],
 				s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
 		data.r = [{gs: round0_grid, ts: eventData.r.ts, r: 0, m: [{}, {}]}];
 		return data; // do not cache this event
@@ -128,20 +126,23 @@ function onJoinGame(args, data) {
         if (args.AppVersion === "0.1.1d") {
             a2_wordukens = eventData.w;
         } else if (undefinedOrNull(eventData.w)) {
-                a2_wordukens = [];
-        } else {    
+            a2_wordukens = [];
+        } else {
             for(var i=0; i<eventData.w.length; i++){
                 a2_wordukens[i] = {t:-1, wt:eventData.w[i], wi:i, v:false};
-            }   
+            }
         }
 		data.a[1] = {id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: a2_wordukens, ts: eventData.ts};
 		data.r[0].ts = eventData.ts;
+		// send push
+		eventData.GameId = args.GameId;
+		handlers.sendPushNotification({Recipient: data.a[0].id, Message: args.Nickname + ' has joined a game!', CustomData: eventData});
 		return data; // do not cache this event
 	} catch (e) { throw e;}
 }
 
 function onWordukenUsed(args, data) {
-	try {  
+	try {
 		var eventData = args.Data; // TODO: test args and eventData
 		// TODO : test if worduken use is legit/legal
 		data.a[args.ActorNr - 1].w[eventData.wi] = eventData;
@@ -189,7 +190,9 @@ function onEndOfRound(args, data) {
 		data.r[newRoundNr] = { r: eventData.r.r, gs: eventData.r.gs, ts: eventData.r.ts, m: [{}, {}] };
 		data.t = eventData.r.r * 3;
 		data.s = GameStates.Playing;
-		// TODO : send push
+		// push
+		eventData.GameId = args.GameId;
+		handlers.sendPushNotification({Recipient: data.a[2 - args.ActorNr].id, Message: data.a[2 - args.ActorNr].n + ' has played ' + eventData.mw, CustomData:eventData});
 		return addToEventsCache(args, data);
 	} catch (e) { throw e;}
 }
@@ -219,7 +222,17 @@ function onEndOfGame(args, data){
 		if (args.ActorNr === 2) {
 			deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
 		}
-		// TODO : send push
+		// push
+		eventData.GameId = args.GameId;
+		var msg = '. Game has ended, ';
+		if (data.s === GameStates.EndedDraw){
+			msg += 'Tie!';
+		} else if (data.s === GameStates.EndedDraw + args.ActorNr) {
+			msg += 'You lost!';
+		} else /*if (data.s === GameStates.EndedDraw + 3 - args.ActorNr)*/ {
+			msg += 'You won!';
+		}
+		handlers.sendPushNotification({Recipient: data.a[2 - args.ActorNr].id, Message: data.a[2 - args.ActorNr].n + ' has played ' + eventData.mw + msg, CustomData:eventData});
 		return addToEventsCache(args, data);
 	} catch (e) { throw e;}
 }
@@ -258,7 +271,7 @@ function onResign(args, gameData){
 				deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
 			}
 		}
-	} 
+	}
 	return gameData;
 }
 

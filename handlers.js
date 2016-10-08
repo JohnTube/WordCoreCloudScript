@@ -145,7 +145,7 @@ function pollGamesData(clientData, userId) {
 						data[gameKey] = gameList[gameKey];
 						data[gameKey].pn = 1;
 					} else {
-						listToUpdate[listId][gameKey] = null; 
+						listToUpdate[listId][gameKey] = null;
 						logException('actors array is missing or corrupt', gameList[gameKey]);
 					}
 				} else {
@@ -155,7 +155,7 @@ function pollGamesData(clientData, userId) {
 					listToLoad[userKey].push(gameKey);
 				}
 			}
-		} 
+		}
 		for (userKey in listToLoad) {
 			if (listToLoad.hasOwnProperty(userKey)) {
 				listId = getGamesListId(userKey);
@@ -219,6 +219,7 @@ function pollGamesData(clientData, userId) {
 	}
 }
 
+// TODO: add checks based on userId / actorNr
 function getDiffData(gameData, clientGame) {
 	try {//if (!gameData.hasOwnProperty('Cache')) {return null;} // TODO: remove or add log when moving to prod
 		var diff = {};
@@ -309,7 +310,7 @@ function getDiffData(gameData, clientGame) {
 						if (clientGame.t < ce[2].m.t) {
 							if (isEmpty(diff.e)) {diff.e = [];}
 							diff.e.push(ce);
-						} else if	(eR === cR && clientGame.t % 3 !== 0) { 
+						} else if	(eR === cR && clientGame.t % 3 !== 0) {
 							if (clientGame.t !== ce[2].m.t) { // event of opponent in same round
 								if (isEmpty(diff.e)) {diff.e = [];}
 								diff.e.push(ce);
@@ -467,8 +468,8 @@ function addMissingEvents(clientData, data) {
 
 // TODO: remove, replace calls to pollData
 handlers.onLogin = function (args) {
-	try { 
-        if (undefinedOrNull(args.UserId)) { 
+	try {
+        if (undefinedOrNull(args.UserId)) {
             args.UserId = currentPlayerId;
         }
 		var data = getPollResponse(args.g, args.UserId);
@@ -482,7 +483,7 @@ handlers.onLogin = function (args) {
 // expects {} in 'g' with <gameID> : {s: <gameState>, t: <turn#>, e:[<{cachedEvent}>]}
 handlers.pollData = function (args) {
 	try {
-        if (undefinedOrNull(args.UserId)) { 
+        if (undefinedOrNull(args.UserId)) {
             args.UserId = currentPlayerId;
         }
 		var data = getPollResponse(args.g, args.UserId);
@@ -496,7 +497,7 @@ handlers.pollData = function (args) {
 // expects [] of gameIDs to delete
 handlers.deleteGames = function (args) {
 	try {
-        if (undefinedOrNull(args.UserId)) { 
+        if (undefinedOrNull(args.UserId)) {
             args.UserId = currentPlayerId;
         }
 		var gamesToDelete = args.g;
@@ -511,7 +512,7 @@ handlers.deleteGames = function (args) {
 // expects gameID in 'GameId'
 handlers.resign = function (args) {
 	try {
-        if (undefinedOrNull(args.UserId)) { 
+        if (undefinedOrNull(args.UserId)) {
             args.UserId = currentPlayerId;
         }
 		var gameData = loadGameData(args.GameId), actorNr = 1;
@@ -547,7 +548,7 @@ handlers.resign = function (args) {
 
 handlers.fixRound = function (args) {
 	try {
-        if (undefinedOrNull(args.UserId)) { 
+        if (undefinedOrNull(args.UserId)) {
             args.UserId = currentPlayerId;
         }
 		var gameData = loadGameData(args.GameId);
@@ -570,7 +571,7 @@ handlers.onPlayerCreated = function(args, context){
 };
 
 handlers.onPlayerLogin = function (args, context) {
-	try { 
+	try {
 	} catch (e) {
 		logException('onLogin', {e: e, args: args, context: context});
 		return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR};
