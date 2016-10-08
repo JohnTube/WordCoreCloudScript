@@ -192,7 +192,7 @@ function onEndOfRound(args, data) {
 		data.s = GameStates.Playing;
 		// push
 		eventData.GameId = args.GameId;
-		handlers.sendPushNotification({Recipient: data.a[2 - args.ActorNr].id, Message: data.a[2 - args.ActorNr].n + ' has played ' + eventData.mw, CustomData:eventData});
+		handlers.sendPushNotification({Recipient: data.a[2 - args.ActorNr].id, Message: args.Nickname + ' has played ' + eventData.m.mw, CustomData:eventData});
 		return addToEventsCache(args, data);
 	} catch (e) { throw e;}
 }
@@ -232,7 +232,7 @@ function onEndOfGame(args, data){
 		} else /*if (data.s === GameStates.EndedDraw + 3 - args.ActorNr)*/ {
 			msg += 'You won!';
 		}
-		handlers.sendPushNotification({Recipient: data.a[2 - args.ActorNr].id, Message: data.a[2 - args.ActorNr].n + ' has played ' + eventData.mw + msg, CustomData:eventData});
+		handlers.sendPushNotification({Recipient: data.a[2 - args.ActorNr].id, Message: args.Nickname + ' has played ' + eventData.mw + msg, CustomData:eventData});
 		return addToEventsCache(args, data);
 	} catch (e) { throw e;}
 }
