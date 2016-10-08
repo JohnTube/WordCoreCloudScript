@@ -72,7 +72,7 @@ handlers.RoomCreated = function (args) {
 			var games = getSharedGroupData(getGamesListId(args.UserId));
 			var count = 0;
 			for(var gameId in games) {
-				if (games.hasOwnProperty(gameId) && getCreatorId(gameId) === args.UserId && !undefinedOrNull(games[gameId]) && 
+				if (games.hasOwnProperty(gameId) && getCreatorId(gameId) === args.UserId && !undefinedOrNull(games[gameId]) &&
 					games[gameId].s >= GameStates.UnmatchedPlaying && games[gameId].s <= GameStates.Blocked) {
 					count++;
 				}
@@ -126,8 +126,8 @@ handlers.RoomClosed = function (args) {
 
 handlers.RoomLeft = function (args) {
     try {
-		if ([LeaveReason.ClientTimeoutDisconnect, LeaveReason.ManagedDisconnect, LeaveReason.ServerDisconnect, LeaveReason.ConnectTimeout, 
-			 LeaveReason.TimeoutDisconnect, LeaveReason.SwitchRoom, /*LeaveReason.LeaveRequest,*/ LeaveReason.PlayerTtlTimedOut, 
+		if ([LeaveReason.ClientTimeoutDisconnect, LeaveReason.ManagedDisconnect, LeaveReason.ServerDisconnect, LeaveReason.ConnectTimeout,
+			 LeaveReason.TimeoutDisconnect, LeaveReason.SwitchRoom, /*LeaveReason.LeaveRequest,*/ LeaveReason.PlayerTtlTimedOut,
 			 LeaveReason.PeerLastTouchTimedout, LeaveReason.PluginRequest, LeaveReason.PluginFailedJoin].indexOf(args.Reason) > -1) {
 			throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Unexpected LeaveReason', args);
 		} else if (args.IsInactive === false && args.Reason !== LeaveReason.LeaveRequest) {
@@ -205,15 +205,9 @@ handlers.RoomJoined = function (args) { // added to stop receiving ErrorInfo eve
 
 handlers.sendPushNotification = function(args) {
     try {
-        server.SendPushNotification({
-            Recipient: args.targetId,
-            Title: args.title,
-            Icon: args.icon,
-            Message: args.msg,
-            CustomData: args.data
-        });
+        server.SendPushNotification(args);
     } catch (e) {
         logException('sendPushNotification', e);
-        throw e;
+        //throw e;
     }
 }
