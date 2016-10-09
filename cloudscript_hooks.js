@@ -270,6 +270,10 @@ function onResign(args, gameData){
 	}
 	gameData.s = GameStates.Blocked + actorNr;
 	gameData.deletionFlag = actorNr;
+	if (gameData.a.length === 2) {
+		// send push
+		handlers.sendPushNotification({Recipient: gameData.a[2 - actorNr].id, Message: gameData.a[actorNr - 1].n + ' resigned!', CustomData: {GameId: args.GameId}});
+	}
 	return gameData;
 }
 

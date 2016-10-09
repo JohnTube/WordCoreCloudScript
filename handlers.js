@@ -512,20 +512,16 @@ handlers.deleteGames = function (args) {
 // expects gameID in 'GameId'
 handlers.resign = function (args) {
 	try {
-        if (undefinedOrNull(args.UserId)) {
-            args.UserId = currentPlayerId;
-        }
-		var gameData = loadGameData(args.GameId), actorNr = 1;
+    if (undefinedOrNull(args.UserId)) {
+        args.UserId = currentPlayerId;
+    }
+		var gameData = loadGameData(args.GameId);
     if (undefinedOrNull(gameData)) {
         //logException('Cannot resign: game not found', args); // will be logged from client
         return {ResultCode: WEB_ERRORS.GAME_NOT_FOUND, Data:{GameId: args.GameId}, Message: 'Cannot resign: game not found' };
     }
 		onResign(args, gameData);
 		saveGameData(args.GameId, gameData);
-		if (gameData.a.length === 2){	
-			// send push
-			handlers.sendPushNotification({Recipient: gameData.a[2 - actorNr].id, Message: gameData.a[actorNr - 1].n + ' resigned!', CustomData: {GameId: args.GameId}});
-		}
 		return {ResultCode: WEB_ERRORS.SUCCESS, Data:{GameId: args.GameId}};
 	} catch (e) {
 		logException('resign', {e: e, args: args});
