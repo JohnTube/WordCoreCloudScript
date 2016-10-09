@@ -522,8 +522,10 @@ handlers.resign = function (args) {
     }
 		onResign(args, gameData);
 		saveGameData(args.GameId, gameData);
-		// send push
-		handlers.sendPushNotification({Recipient: gameData.a[2 - actorNr].id, Message: gameData.a[actorNr - 1].n + ' resigned!', CustomData: {GameId: args.GameId}});
+		if (gameData.a.length === 2){	
+			// send push
+			handlers.sendPushNotification({Recipient: gameData.a[2 - actorNr].id, Message: gameData.a[actorNr - 1].n + ' resigned!', CustomData: {GameId: args.GameId}});
+		}
 		return {ResultCode: WEB_ERRORS.SUCCESS, Data:{GameId: args.GameId}};
 	} catch (e) {
 		logException('resign', {e: e, args: args});
