@@ -258,20 +258,18 @@ function onResign(args, gameData){
 	var actorNr = 1;
 	if (args.UserId !== getCreatorId(args.GameId)) {
 		actorNr = 2;
-	}
-	if (gameData.a[actorNr - 1].id === args.UserId &&
-		gameData.s > GameStates.MatchmakingTimedOut &&
-		gameData.s < GameStates.P1Resigned) {
-		if (actorNr === 1 && gameData.s < GameStates.Playing && gameData.a.length === 1) {
-			gameData = null;
-		} else {
-			gameData.s = GameStates.Blocked + actorNr;
-			gameData.deletionFlag = actorNr;
-			if (actorNr === 2) {
-				deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
-			}
+		if (gameData.a.length !== 2) {
+			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Cannot resign: Wrong Player ('+actorNr+'):'+args.UserId+' not found!', { w: args, d: gameData });
 		}
 	}
+	if (gameData.a[actorNr - 1].id !== args.UserId) {
+		throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Cannot resign: Wrong Player ('+actorNr+'):'+args.UserId+' != saved:'+gameData.a[actorNr - 1].id, { w: args, d: gameData });
+	}
+	if (gameData.s <= GameStates.MatchmakingTimedOut || gameData.s >= GameStates.P1Resigned) {
+		throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Cannot resign: Game is over already, state='+gameData.s, { w: args, d: gameData });
+	}
+	gameData.s = GameStates.Blocked + actorNr;
+	gameData.deletionFlag = actorNr;
 	return gameData;
 }
 

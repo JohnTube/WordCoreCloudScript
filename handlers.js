@@ -516,41 +516,26 @@ handlers.resign = function (args) {
             args.UserId = currentPlayerId;
         }
 		var gameData = loadGameData(args.GameId), actorNr = 1;
-        if (undefinedOrNull(gameData)) {
-            logException('Cannot resign: game not found', args);
-            return {ResultCode: WEB_ERRORS.GAME_NOT_FOUND, Data:{GameId: args.GameId}, Message: 'Cannot resign: game not found' };
-        }
-		if (args.UserId !== getCreatorId(args.GameId)) {
-			actorNr = 2;
-		}
-		if (gameData.a[actorNr - 1].id === args.UserId &&
-			gameData.s > GameStates.MatchmakingTimedOut &&
-			gameData.s < GameStates.P1Resigned) {
-			if (actorNr === 1 && gameData.s < GameStates.Playing && gameData.a.length === 1) {
-				deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
-			} else {
-				gameData.s = GameStates.Blocked + actorNr;
-				gameData.deletionFlag = actorNr;
-				saveGameData(args.GameId, gameData);
-				if (actorNr === 2) {
-					deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
-				}
-			}
-			return {ResultCode: WEB_ERRORS.SUCCESS, Data:{GameId: args.GameId}};
-		} else {
-			return {ResultCode: WEB_ERRORS.EVENT_FAILURE, Data:{GameId: args.GameId}, Message: 'Cannot resign from game'};
-		}
+    if (undefinedOrNull(gameData)) {
+        //logException('Cannot resign: game not found', args); // will be logged from client
+        return {ResultCode: WEB_ERRORS.GAME_NOT_FOUND, Data:{GameId: args.GameId}, Message: 'Cannot resign: game not found' };
+    }
+		onResign(args, gameData);
+		saveGameData(args.GameId, gameData);
+		// send push
+		handlers.sendPushNotification({Recipient: gameData.a[2 - actorNr].id, Message: gameData.a[actorNr - 1].n + ' resigned!', CustomData: {GameId: args.GameId}});
+		return {ResultCode: WEB_ERRORS.SUCCESS, Data:{GameId: args.GameId}};
 	} catch (e) {
 		logException('resign', {e: e, args: args});
-		return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR};
+		return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR, Data:{GameId: args.GameId}, Message: 'Cannot resign: Unknown error!'};
 	}
 };
 
 handlers.fixRound = function (args) {
 	try {
-        if (undefinedOrNull(args.UserId)) {
-            args.UserId = currentPlayerId;
-        }
+    if (undefinedOrNull(args.UserId)) {
+        args.UserId = currentPlayerId;
+    }
 		var gameData = loadGameData(args.GameId);
 		onNewRound(args, gameData);
 		saveGameData(args.GameId, gameData);
