@@ -136,7 +136,7 @@ function onJoinGame(args, data) {
 		data.r[0].ts = eventData.ts;
 		// send push
 		eventData.GameId = args.GameId;
-		handlers.sendPushNotification({Recipient: data.a[0].id, Message: args.Nickname + ' has joined a game!', CustomData: eventData});
+		handlers.sendPushNotification({Recipient: data.a[0].id, Message: JSON.stringify({Message: args.Nickname + ' has joined a game!', CustomData: eventData})});
 		return data; // do not cache this event
 	} catch (e) { throw e;}
 }
@@ -192,7 +192,7 @@ function onEndOfRound(args, data) {
 		data.s = GameStates.Playing;
 		// push
 		eventData.GameId = args.GameId;
-		handlers.sendPushNotification({Recipient: data.a[2 - args.ActorNr].id, Message: args.Nickname + ' has played ' + eventData.m.mw, CustomData:eventData});
+		handlers.sendPushNotification({Recipient: data.a[2 - args.ActorNr].id, JSON.stringify({Message: args.Nickname + ' has played ' + eventData.m.mw, CustomData:eventData})});
 		return addToEventsCache(args, data);
 	} catch (e) { throw e;}
 }
@@ -232,7 +232,7 @@ function onEndOfGame(args, data){
 		} else /*if (data.s === GameStates.EndedDraw + 3 - args.ActorNr)*/ {
 			msg += 'You won!';
 		}
-		handlers.sendPushNotification({Recipient: data.a[2 - args.ActorNr].id, Message: args.Nickname + ' has played ' + eventData.mw + msg, CustomData:eventData});
+		handlers.sendPushNotification({Recipient: data.a[2 - args.ActorNr].id, Message: JSON.stringify({Message: args.Nickname + ' has played ' + eventData.mw + msg, CustomData:eventData})});
 		return addToEventsCache(args, data);
 	} catch (e) { throw e;}
 }
@@ -272,7 +272,7 @@ function onResign(args, gameData){
 	gameData.deletionFlag = actorNr;
 	if (gameData.a.length === 2) {
 		// send push
-		handlers.sendPushNotification({Recipient: gameData.a[2 - actorNr].id, Message: gameData.a[actorNr - 1].n + ' resigned!', CustomData: {GameId: args.GameId}});
+		handlers.sendPushNotification({Recipient: gameData.a[2 - actorNr].id, Message: JSON.stringify({Message: gameData.a[actorNr - 1].n + ' resigned!', CustomData: {GameId: args.GameId}})});
 	}
 	return gameData;
 }
@@ -343,12 +343,12 @@ function onEventReceived(args, data) {
 	        return onEndOfRound(args, data);
 	    case CustomEventCodes.EndOfGame: // args.Data.t === MAX_TURNS_PER_GAME
 	        return onEndOfGame(args, data);
-		case CustomEventCodes.NewRound:
-			return onNewRound(args, data);
-		case CustomEventCodes.Resign:
-			return onResign(args, data);
-		default: // TODO: Unexpected throw error?
-			return data;
+			case CustomEventCodes.NewRound:
+				return onNewRound(args, data);
+			case CustomEventCodes.Resign:
+				return onResign(args, data);
+			default: // TODO: Unexpected throw error?
+				return data;
 		}
 	} catch (e) {
 		throw e;
