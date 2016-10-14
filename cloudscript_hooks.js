@@ -192,7 +192,7 @@ function onEndOfRound(args, data) {
 		data.s = GameStates.Playing;
 		// push
 		eventData.GameId = args.GameId;
-		handlers.sendPushNotification({Recipient: data.a[2 - args.ActorNr].id, JSON.stringify({Message: args.Nickname + ' has played ' + eventData.m.mw, CustomData:eventData})});
+		handlers.sendPushNotification({Recipient: data.a[2 - args.ActorNr].id, Message: JSON.stringify({Message: args.Nickname + ' has played ' + eventData.m.mw, CustomData:eventData})});
 		return addToEventsCache(args, data);
 	} catch (e) { throw e;}
 }
