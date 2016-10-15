@@ -60,16 +60,20 @@ function getPollResponse(clientGamesList, userId) {
 						}
 					} else {
 						gameState = clientGamesList[gameKey];
-						if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
-							var diff = getDiffData(gameData, gameState);
-							if (undefinedOrNull(diff)) {
-								logException('Client State/Turn > Server State/Turn, GameId=' + gameKey, {s: gameData, c: gameState});
-								if (!data.hasOwnProperty('m')) { data.m = {};}
-								data.m[gameKey] = {t: gameData.t, s: gameData.s};
-							} else {
-								if (!data.hasOwnProperty('u')) { data.u = {};}
-								data.u[gameKey] = diff;
+						if (gameState.ignoreUpdate !== true) {
+							if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
+								var diff = getDiffData(gameData, gameState);
+								if (undefinedOrNull(diff)) {
+									logException('Client State/Turn > Server State/Turn, GameId=' + gameKey, {s: gameData, c: gameState});
+									if (!data.hasOwnProperty('m')) { data.m = {};}
+									data.m[gameKey] = {t: gameData.t, s: gameData.s};
+								} else {
+									if (!data.hasOwnProperty('u')) { data.u = {};}
+									data.u[gameKey] = diff;
+								}
 							}
+						} else {
+							logException('Skip checking update for GameId=' + gameKey, {s: gameData, c: gameState});
 						}
 					}
 				}
@@ -109,9 +113,11 @@ function pollGamesData(clientData, userId) {
 			if (gameList.hasOwnProperty(gameKey)) {
 				userKey = getCreatorId(gameKey);
 				if (userKey === userId) {
-					if (!undefinedOrNull(clientData) && clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
+					if (!undefinedOrNull(clientData) && clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)) {
 						acks[gameKey] = addMissingEvents(clientData[gameKey], gameList[gameKey]);
-						listToUpdate[listId][gameKey] = gameList[gameKey];
+						if (acks[gameKey].length > 1 || (acks[gameKey].length === 1 && acks[gameKey][0][0] === true)){
+							listToUpdate[listId][gameKey] = gameList[gameKey];
+						}
 					}
 					var timestamp = gameList[gameKey].ts;
 					if (gameList[gameKey].s === GameStates.UnmatchedPlaying ||
@@ -167,7 +173,9 @@ function pollGamesData(clientData, userId) {
 					if (gameList.hasOwnProperty(gameKey)) {
 						if (!undefinedOrNull(clientData) && clientData.hasOwnProperty(gameKey) && !undefinedOrNull(clientData[gameKey].e)){
 							acks[gameKey] = addMissingEvents(clientData[gameKey], gameList[gameKey]);
-							listToUpdate[listId][gameKey] = gameList[gameKey];
+							if (acks[gameKey].length > 1 || (acks[gameKey].length === 1 && acks[gameKey][0][0] === true)){
+								listToUpdate[listId][gameKey] = gameList[gameKey];
+							}
 						}
 						var round = gameList[gameKey].r.length - 1;//gameList[gameKey].t / 3
 						var timestamp = gameList[gameKey].r[round].ts;
@@ -418,17 +426,18 @@ function addMissingEvents(clientData, data) {
 				default:
 					break;
 			}
-			if (i>0 && acks[i - 1][0] === false) {
+			/*if (i>0 && acks[i - 1][0] === false) {
 				eAck[0] = false;
-			} else {
+			} else {*/
 				try  {
 					data = onEventReceived(e, data);
 				} catch (ex) {
-					if (ex instanceof PhotonException && ex.ResultCode === WEB_ERRORS.EVENT_FAILURE){
-						//logException('addMissingEvents handled onEventReceived error', ex);
+					if (ex instanceof PhotonException && ex.ResultCode === WEB_ERRORS.EVENT_FAILURE) {
 						eAck[0] = false;
-						clientData.t = data.t;
-						clientData.s = data.s;
+						clientData.ignoreUpdate = true;
+						//logException('addMissingEvents handled onEventReceived error', ex);
+						//clientData.t = data.t;
+						//clientData.s = data.s;
 						/*switch (e.EvCode) {
 							case CustomEventCodes.EndOfGame:
 							case CustomEventCodes.EndOfRound:
@@ -455,16 +464,20 @@ function addMissingEvents(clientData, data) {
 						}*/
 					} else {
 						logException('addMissingEvents UNHANDLED onEventReceived error', ex);
+						clientData.ignoreUpdate = true;
+						return acks;
 						//throw ex;
 					}
 				}
-			}
+			//}
 			acks.push(eAck);
+			if (eAck[0] === false) { return acks; }
 		}
 		return acks;//{d: data, a: acks};
 	} catch (error) {
 		logException('addMissingEvents error', error);
 		//throw error;
+		//return acks;
 	}
 }
 
