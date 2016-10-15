@@ -90,7 +90,7 @@ function getPollResponse(clientGamesList, userId) {
 				}
 			}
 		}
-		logException('getPollResponse', {i:{c:clientGamesList, u:userId}, o:data});
+		//logException('getPollResponse', {i:{c:clientGamesList, u:userId}, o:data});
 		return data;
 	} catch(e) {
 		throw e;
@@ -222,7 +222,7 @@ function pollGamesData(clientData, userId) {
 				updateSharedGroupData(listId, listToUpdate[listId]);
 			}
 		}
-		logException('pollGamesData', {i:{c:clientData, u:userId}, o:{d:data, a:acks}});
+		//logException('pollGamesData', {i:{c:clientData, u:userId}, o:{d:data, a:acks}});
 		return {d:data, a:acks};
 	} catch (e) {
 		throw e;
@@ -335,7 +335,7 @@ function getDiffData(gameData, clientGame) {
 				}
 			}
 		}
-		logException('diff result', {d:diff, c:clientGame, s:gameData});
+		//logException('diff result', {d:diff, c:clientGame, s:gameData});
 		return diff;
 	} catch (e) {
 		throw e;
@@ -468,7 +468,7 @@ function addMissingEvents(clientData, data) {
 					} else {
 						logException('addMissingEvents UNHANDLED onEventReceived error', ex);
 						clientData.ignoreUpdate = true;
-						logException('addMissingEvents', {i: {c:clientData, d:data}, o:acks});
+						//logException('addMissingEvents', {i: {c:clientData, d:data}, o:acks});
 						return acks;
 						//throw ex;
 					}
@@ -476,11 +476,11 @@ function addMissingEvents(clientData, data) {
 			//}
 			acks.push(eAck);
 			if (eAck[0] === false) {
-				logException('addMissingEvents', {i: {c:clientData, d:data}, o:acks});
+				//logException('addMissingEvents', {i: {c:clientData, d:data}, o:acks});
 				return acks;
 			}
 		}
-		logException('addMissingEvents', {i: {c:clientData, d:data}, o:acks});
+		//logException('addMissingEvents', {i: {c:clientData, d:data}, o:acks});
 		return acks;//{d: data, a: acks};
 	} catch (error) {
 		logException('addMissingEvents error', error);
