@@ -232,10 +232,10 @@ function getDiffData(gameData, clientGame) {
 						diff.s = gameData.s;
 					}
 					else if (gameData.s >= GameStates.Playing && gameData.a.length === 2) {
-                        var p2_wordukens = [];
-                        for(var i=0; i<gameData.a[1].w.length; i++) {
-                            p2_wordukens.push(gameData.a[1].w[i].wt);
-                        }
+            var p2_wordukens = [];
+            for(var i=0; i<gameData.a[1].w.length; i++) {
+                p2_wordukens.push(gameData.a[1].w[i].wt);
+            }
 						diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: p2_wordukens, ts: gameData.a[1].ts };
 						if (gameData.s >= GameStates.P1Resigned) {
 							diff.s = gameData.s;
@@ -249,10 +249,10 @@ function getDiffData(gameData, clientGame) {
 						diff.s = gameData.s;
 					}
 					else if (gameData.s >= GameStates.Playing && gameData.a.length === 2) {
-                        var p2_wordukens = [];
-                        for(var i=0; i<gameData.a[1].w.length; i++) {
-                            p2_wordukens.push(gameData.a[1].w[i].wt);
-                        }
+            var p2_wordukens = [];
+            for(var i=0; i<gameData.a[1].w.length; i++) {
+                p2_wordukens.push(gameData.a[1].w[i].wt);
+            }
 						diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: p2_wordukens, ts: gameData.a[1].ts };
 						if (gameData.s >= GameStates.P1Resigned) {
 							diff.s = gameData.s;
@@ -427,7 +427,9 @@ function addMissingEvents(clientData, data) {
 					if (ex instanceof PhotonException && ex.ResultCode === WEB_ERRORS.EVENT_FAILURE){
 						//logException('addMissingEvents handled onEventReceived error', ex);
 						eAck[0] = false;
-						switch (e.EvCode) {
+						clientData.t = data.t;
+						clientData.s = data.s;
+						/*switch (e.EvCode) {
 							case CustomEventCodes.EndOfGame:
 							case CustomEventCodes.EndOfRound:
 								clientData.t = e.Data.t - e.ActorNr;
@@ -450,7 +452,7 @@ function addMissingEvents(clientData, data) {
 							case CustomEventCodes.Resign:
 							default:
 								break;
-						}
+						}*/
 					} else {
 						logException('addMissingEvents UNHANDLED onEventReceived error', ex);
 						//throw ex;
@@ -559,4 +561,8 @@ handlers.onPlayerLogin = function (args, context) {
 		logException('onLogin', {e: e, args: args, context: context});
 		return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR};
 	}
+};
+
+handlers.onPushEnabled = function(args, context){
+
 };
