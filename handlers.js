@@ -38,7 +38,7 @@ function getPollResponse(clientGamesList, userId) {
 		gameData = {},
 		gameState = {},
 		data = {};
-		if (!undefinedOrNull(serverGamesData)){
+		if (!undefinedOrNull(serverGamesData)) {
 			if (!isEmpty(serverGamesData.a)) {
 				data.a = serverGamesData.a;
 			}
@@ -333,6 +333,7 @@ function getDiffData(gameData, clientGame) {
 				}
 			}
 		}
+		logException('diff result', {d:diff, c:clientGame, s:gameData});
 		return diff;
 	} catch (e) {
 		throw e;
