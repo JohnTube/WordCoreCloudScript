@@ -59,11 +59,11 @@ var WEB_ERRORS = {
 	UNEXPECTED_VALUE : 2,
 	// 'Game with GameId=<gameId> already exists.'
 	GAME_NOT_FOUND : 5,// 'Could not load the State, Reason=<reason>.'
-    MAX_GAMES_REACHED : 110,
-    EVENT_FAILURE : 111,
+  MAX_GAMES_REACHED : 110,
+  EVENT_FAILURE : 111,
 	UNKNOWN_ERROR : 100,
-	USER_ID_ISSUE : 6
-}
+	USER_ID_ISSUE : 6,
+};
 
 handlers.RoomCreated = function (args) {
     try {
@@ -119,21 +119,21 @@ handlers.RoomClosed = function (args) {
         if (e instanceof PhotonException) {
             return {ResultCode: e.ResultCode, Message: e.Message};
         }
-		logException('RoomClosed', {e: e, args: args});
+		    logException('RoomClosed', {e: e, args: args});
         return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR, Message: JSON.stringify(e, replaceErrors)};
     }
 };
 
 handlers.RoomLeft = function (args) {
     try {
-		if ([LeaveReason.ClientTimeoutDisconnect, LeaveReason.ManagedDisconnect, LeaveReason.ServerDisconnect, LeaveReason.ConnectTimeout,
-			 LeaveReason.TimeoutDisconnect, LeaveReason.SwitchRoom, /*LeaveReason.LeaveRequest,*/ LeaveReason.PlayerTtlTimedOut,
-			 LeaveReason.PeerLastTouchTimedout, LeaveReason.PluginRequest, LeaveReason.PluginFailedJoin].indexOf(args.Reason) > -1) {
-			throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Unexpected LeaveReason', args);
-		} else if (args.IsInactive === false && args.Reason !== LeaveReason.LeaveRequest) {
-			throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Unexpected IsInactive flag', args);
-		}
-        return {ResultCode: WEB_ERRORS.SUCCESS, Message: 'OK'};
+  		if ([LeaveReason.ClientTimeoutDisconnect, LeaveReason.ManagedDisconnect, LeaveReason.ServerDisconnect, LeaveReason.ConnectTimeout,
+  			 LeaveReason.TimeoutDisconnect, LeaveReason.SwitchRoom, /*LeaveReason.LeaveRequest,*/ LeaveReason.PlayerTtlTimedOut,
+  			 LeaveReason.PeerLastTouchTimedout, LeaveReason.PluginRequest, LeaveReason.PluginFailedJoin].indexOf(args.Reason) > -1) {
+  			throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Unexpected LeaveReason', args);
+  		} else if (args.IsInactive === false && args.Reason !== LeaveReason.LeaveRequest) {
+  			throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Unexpected IsInactive flag', args);
+  		}
+      return {ResultCode: WEB_ERRORS.SUCCESS, Message: 'OK'};
     } catch (e) {
         if (e instanceof PhotonException) {
             return {ResultCode: e.ResultCode, Message: e.Message};
@@ -161,23 +161,18 @@ handlers.RoomEventRaised = function (args) {
     				switch (args.EvCode) {
     					case CustomEventCodes.EndOfRound:
     						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.r.r+','+e.Message};
-    						break;
     					case CustomEventCodes.NewRound:
     						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.r+','+e.Message};
-    						break;
     					case CustomEventCodes.EndOfGame:
     					case CustomEventCodes.EndOfTurn:
     						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.t+','+e.Message};
-    						break;
     					case CustomEventCodes.WordukenUsed:
     						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.wi+','+e.Message};
-    						break;
     					case CustomEventCodes.InitGame:
     					case CustomEventCodes.JoinGame:
     					case CustomEventCodes.Resign:
     					default:
     						return {ResultCode: e.ResultCode, Message: args.EvCode+','+e.Message};
-    						break;
     				}
     			}
           return {ResultCode: e.ResultCode, Message: e.Message};
