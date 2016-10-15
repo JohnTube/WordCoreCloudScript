@@ -169,9 +169,9 @@ function onEndOfTurn(args, data) {
 				var savedMove = data.r[roundNumber].m[args.ActorNr - 1];
 			  // TODO: add coordinates array comparision?!
 				if (savedMove.mw === eventData.mw &&
-				savedMove.ts === eventData.ts &&
-				savedMove.t === eventData.t &&
-			  savedMove.wt === eventData.wt) { // TODO: compare wi when wt is not always sent?!
+					savedMove.ts === eventData.ts &&
+					savedMove.t === eventData.t &&
+				  savedMove.wt === eventData.wt) { // TODO: compare wi when wt is not always sent?!
 					// move already received
 					return data;
 				}
@@ -231,13 +231,13 @@ function onEndOfGame(args, data){
 			data.s = GameStates.EndedP2Won;
 		}
 		data.deletionFlag = args.ActorNr;
-		if (args.ActorNr === 2) {
+		/*if (args.ActorNr === 2) {
 			deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
-		}
+		}*/
 		// push
 		eventData.GameId = args.GameId;
 		var msg = '. Game has ended, ';
-		if (data.s === GameStates.EndedDraw){
+		if (data.s === GameStates.EndedDraw) {
 			msg += 'Tie!';
 		} else if (data.s === GameStates.EndedDraw + args.ActorNr) {
 			msg += 'You lost!';
