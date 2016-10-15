@@ -164,6 +164,18 @@ function onEndOfTurn(args, data) {
 			logException('Concurrency issue, GameId='+ args.GameId, {w: args, d: data});
 			data.s = GameStates.Blocked;
 		}	else {
+			var roundNumber = eventData.r; // TODO: get round# from turn#
+			if (!undefinedOrNull(data.r[roundNumber])) {
+				var savedMove = data.r[roundNumber].m[args.ActorNr - 1];
+			  // TODO: add coordinates array comparision?!
+				if (savedMove.mw === eventData.mw &&
+				savedMove.ts === eventData.ts &&
+				savedMove.t === eventData.t &&
+			  savedMove.wt === eventData.wt) { // TODO: compare wi when wt is not always sent?!
+					// move already received
+					return data;
+				}
+			}
 			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Unexpected GameState (' + data.s + ') in EndOfTurn, GameId=' + args.GameId, { w: args, d: data });
 		}
 		data = addMoveToGame(data, args.ActorNr, eventData);
@@ -206,7 +218,7 @@ function onEndOfGame(args, data){
 		if (data.s !== GameStates.Playing + (3 - args.ActorNr)) {
 			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom EndOfGame event: wrong s', { w: args, d: data });
 		}
-		if (data.r.length !== MAX_ROUNDS_PER_GAME){
+		if (data.r.length !== MAX_ROUNDS_PER_GAME) {
 			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom EndOfGame event: wrong r#', { w: args, d: data });
 		}
 		data = addMoveToGame(data, args.ActorNr, eventData);
