@@ -156,17 +156,23 @@ function onEndOfTurn(args, data) {
 	}
 	try {
 		var eventData = args.Data; // TODO: test args and eventData
+		var serverRoundNr = data.r.length - 1;
+		var clientRoundNr = eventData.r; // TODO: get round# from turn#
 		if (args.ActorNr === 1 && eventData.t === 1 && data.s === GameStates.UnmatchedPlaying) {
 			data.s = GameStates.UnmatchedWaiting;
 		} else if (data.s === GameStates.Playing && eventData.t === data.t + args.ActorNr) {
    		data.s = GameStates.Playing + args.ActorNr;
-		} else if (data.s === GameStates.Playing + (3 - args.ActorNr) && data.t % 3 === (3 - args.ActorNr) && eventData.t === data.t - 3 + 2 * args.ActorNr) {
+		} else if (serverRoundNr === clientRoundNr && data.t + eventData.t === 3 * (2 * serverRoundNr + 1)) {
 			logException('Concurrency issue, GameId='+ args.GameId, {w: args, d: data});
-			data.s = GameStates.Blocked;
+			if (serverRoundNr === MAX_ROUNDS_PER_GAME - 1) {
+				args.Data.c = true;
+				return onEndOfGame(args, data);
+			} else {
+				data.s = GameStates.Blocked;
+			}
 		}	else {
-			var roundNumber = eventData.r; // TODO: get round# from turn#
-			if (!undefinedOrNull(data.r[roundNumber])) {
-				var savedMove = data.r[roundNumber].m[args.ActorNr - 1];
+			if (!undefinedOrNull(data.r[clientRoundNr])) {
+				var savedMove = data.r[clientRoundNr].m[args.ActorNr - 1];
 			  // TODO: add coordinates array comparision?!
 				if (savedMove.mw === eventData.mw &&
 					savedMove.ts === eventData.ts &&
@@ -212,8 +218,10 @@ function onEndOfRound(args, data) {
 function onEndOfGame(args, data){
 	try {
 		var eventData = args.Data; // TODO: test args and eventData
-		if (eventData.t !== MAX_TURNS_PER_GAME || eventData.t !== data.t + args.ActorNr) {
-			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom EndOfGame event: wrong t#', { w: args, d: data });
+		if (eventData.c !== true) {
+			if (eventData.t !== MAX_TURNS_PER_GAME || eventData.t !== data.t + args.ActorNr) {
+				throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom EndOfGame event: wrong t#', { w: args, d: data });
+			}
 		}
 		if (data.s !== GameStates.Playing + (3 - args.ActorNr)) {
 			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom EndOfGame event: wrong s', { w: args, d: data });
