@@ -90,7 +90,7 @@ function getPollResponse(clientGamesList, userId) {
 				}
 			}
 		}
-		logException('getPollResponse', {i:{c:clientGamesList, u:userId}, o:data});
+		//logException('getPollResponse', {i:{c:clientGamesList, u:userId}, o:data});
 		return data;
 	} catch(e) {
 		throw e;
@@ -222,7 +222,7 @@ function pollGamesData(clientData, userId) {
 				updateSharedGroupData(listId, listToUpdate[listId]);
 			}
 		}
-		logException('pollGamesData', {i:{c:clientData, u:userId}, o:{d:data, a:acks}});
+		//logException('pollGamesData', {i:{c:clientData, u:userId}, o:{d:data, a:acks}});
 		return {d:data, a:acks};
 	} catch (e) {
 		throw e;
@@ -332,7 +332,7 @@ function getDiffData(gameData, clientGame) {
 				}
 			}
 		}
-		logException('diff result', {d:diff, c:clientGame, s:gameData});
+		//logException('diff result', {d:diff, c:clientGame, s:gameData});
 		return diff;
 	} catch (e) {
 		throw e;
