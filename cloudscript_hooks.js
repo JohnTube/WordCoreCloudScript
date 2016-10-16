@@ -137,6 +137,7 @@ function onJoinGame(args, data) {
 		// send push
 		eventData.GameId = args.GameId;
 		eventData.EvCode = CustomEventCodes.JoinGame;
+		eventData.n = args.Nickname;
 		handlers.sendPushNotification({Recipient: data.a[0].id, Message: JSON.stringify({Message: args.Nickname + ' has joined a game!', CustomData: eventData})});
 		return data; // do not cache this event
 	} catch (e) { throw e;}
