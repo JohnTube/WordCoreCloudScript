@@ -64,7 +64,7 @@ function getPollResponse(clientGamesList, userId) {
 							if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
 								var diff = getDiffData(gameData, gameState);
 								if (undefinedOrNull(diff)) {
-									logException('Client State/Turn > Server State/Turn, GameId=' + gameKey, {s: gameData, c: gameState});
+									logException('(Tc='+gameState.t+',Sc='+gameState.s+') > (Ts='+gameData.t+'Sc='+gameData.s+'), GameId=' + gameKey, {s: gameData, c: gameState});
 									if (!data.hasOwnProperty('m')) { data.m = {};}
 									data.m[gameKey] = {t: gameData.t, s: gameData.s};
 								} else {
@@ -90,7 +90,7 @@ function getPollResponse(clientGamesList, userId) {
 				}
 			}
 		}
-		//logException('getPollResponse', {i:{c:clientGamesList, u:userId}, o:data});
+		logException('getPollResponse', {i:{c:clientGamesList, u:userId}, o:data});
 		return data;
 	} catch(e) {
 		throw e;
@@ -181,7 +181,7 @@ function pollGamesData(clientData, userId) {
 						var round = gameList[gameKey].r.length - 1;//gameList[gameKey].t / 3
 						var timestamp = gameList[gameKey].r[round].ts;
 						if (gameList[gameKey].s < GameStates.Playing) {
-							logException('Unexpected GameState of game ' + gameKey + ' referenced from ' + userId, gameList[gameKey]);
+							logException('Unexpected GameState ('+ gameList[gameKey].s +') of game ' + gameKey + ' referenced from ' + userId, gameList[gameKey]);
 						} else if (gameList[gameKey].s > GameStates.UnmatchedWaiting &&
 							gameList[gameKey].s < GameStates.P1Resigned) {
 							if (undefinedOrNull(timestamp)) {
@@ -222,7 +222,7 @@ function pollGamesData(clientData, userId) {
 				updateSharedGroupData(listId, listToUpdate[listId]);
 			}
 		}
-		//logException('pollGamesData', {i:{c:clientData, u:userId}, o:{d:data, a:acks}});
+		logException('pollGamesData', {i:{c:clientData, u:userId}, o:{d:data, a:acks}});
 		return {d:data, a:acks};
 	} catch (e) {
 		throw e;
@@ -251,7 +251,7 @@ function getDiffData(gameData, clientGame) {
 							diff.s = gameData.s;
 						}
 					} else {
-						return null;
+						diff = null;
 					}
 					break;
 				case GameStates.UnmatchedWaiting:
@@ -268,7 +268,7 @@ function getDiffData(gameData, clientGame) {
 							diff.s = gameData.s;
 						}
 					} else {
-						return null;
+						diff = null;
 					}
 					break;
 				case GameStates.Playing:
@@ -277,28 +277,25 @@ function getDiffData(gameData, clientGame) {
 					if (gameData.s >= GameStates.P1Resigned) {
 						diff.s = gameData.s;
 					} else if (gameData.s <= GameStates.UnmatchedWaiting) {
-						return null;
+						diff = null;
 					}
 					break;
 				case GameStates.Blocked:
-					if (gameData.s === GameStates.Playing){
-						if (gameData.t === clientGame.t) {
-							diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 1][2].r]];
-							return diff;
-						}
+					if (gameData.s === GameStates.Playing) {
+						diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 1][2].r]];
 					} else if (gameData.s >= GameStates.P1Resigned) {
 						diff.s = gameData.s;
 					} else if (gameData.s !== GameStates.Blocked){
-						return null;
+						diff = null;
 					}
 					break;
 				default:
 				// logException
-				return null;
+				diff = null;
 			}
 			// TODO: more tests please
 		}
-		if (gameData.t > clientGame.t) {
+		if (diff !== null && gameData.t > clientGame.t) {
 			var cR = Math.floor(clientGame.t / 3);
 			for(var i=0; i<gameData.Cache.length; i++) {
 				var ce = gameData.Cache[i];
@@ -335,7 +332,7 @@ function getDiffData(gameData, clientGame) {
 				}
 			}
 		}
-		//logException('diff result', {d:diff, c:clientGame, s:gameData});
+		logException('diff result', {d:diff, c:clientGame, s:gameData});
 		return diff;
 	} catch (e) {
 		throw e;
