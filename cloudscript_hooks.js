@@ -166,6 +166,7 @@ function onEndOfTurn(args, data) {
 			logException('Concurrency issue, GameId='+ args.GameId, {w: args, d: data});
 			if (serverRoundNr === MAX_ROUNDS_PER_GAME - 1) {
 				args.Data.SkipBlocked = true;
+				args.EvCode = CustomEventCodes.EndOfGame;
 				return onEndOfGame(args, data);
 			} else {
 				data.s = GameStates.Blocked;
