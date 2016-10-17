@@ -271,6 +271,7 @@ function onNewRound(args, data){
 		var newRoundNr = eventData.r; // eventData.m.r + 1;
 		data.r[newRoundNr] = { r: eventData.r, gs: eventData.gs, ts: eventData.ts, m: [{}, {}] };
 		data.s = GameStates.Playing;
+		// TODO: do not presume last cached event is EndOfTurn who caused the block
 		data.Cache[data.Cache.length - 1][1] = CustomEventCodes.EndOfRound;
 		data.Cache[data.Cache.length - 1][2] = { m: data.Cache[data.Cache.length - 1][2], r: eventData };
 		//data.Cache[data.Cache.length - 1][2].m.t = data.t;

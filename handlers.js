@@ -247,6 +247,7 @@ function getDiffData(gameData, clientGame) {
                 p2_wordukens.push(gameData.a[1].w[i].wt);
             }
 						diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: p2_wordukens, ts: gameData.a[1].ts };
+						diff.e = [[2, CustomEventCodes.JoinGame, {id: gameData.a[1].id, n: gameData.a[1].n, w: p2_wordukens, ts: gameData.a[1].ts }]];
 						if (gameData.s >= GameStates.P1Resigned) {
 							diff.s = gameData.s;
 						}
@@ -264,6 +265,7 @@ function getDiffData(gameData, clientGame) {
                 p2_wordukens.push(gameData.a[1].w[i].wt);
             }
 						diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: p2_wordukens, ts: gameData.a[1].ts };
+						diff.e = [[2, CustomEventCodes.JoinGame, {id: gameData.a[1].id, n: gameData.a[1].n, w: p2_wordukens, ts: gameData.a[1].ts }]];
 						if (gameData.s >= GameStates.P1Resigned) {
 							diff.s = gameData.s;
 						}
@@ -280,13 +282,15 @@ function getDiffData(gameData, clientGame) {
 						diff = null;
 					}
 					break;
-				case GameStates.Blocked:
+				case GameStates.Blocked: // TODO: revise this as it does not look correct
 					if (gameData.s === GameStates.Playing) {
-						diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 1][2].r]];
+						// TODO: check if this is handled below or get roundNumber from client's turn, then construct NewRound event from that round
+						//diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 1][2].r]];
 					} else if (gameData.s >= GameStates.P1Resigned) {
 						diff.s = gameData.s;
-					} else if (gameData.s !== GameStates.Blocked){
-						diff = null;
+					} else if (gameData.s !== GameStates.Blocked) {
+						// TODO: check which states should be expected from server
+						//diff = null;
 					}
 					break;
 				default:
@@ -333,6 +337,15 @@ function getDiffData(gameData, clientGame) {
 			}
 		}
 		//logException('diff result', {d:diff, c:clientGame, s:gameData});
+		if (diff.s === GameStates.P1Resigned){
+			if (isEmpty(diff.e)) {diff.e = [];}
+			diff.e.push([1, CustomEventCodes.Resign, {}]);
+			//diff.s = undefined;
+		} else if (diff.s === GameStates.P2Resigned){
+			if (isEmpty(diff.e)) {diff.e = [];}
+			//diff.s = null;
+			diff.e.push([2, CustomEventCodes.Resign, {}]);
+		}
 		return diff;
 	} catch (e) {
 		throw e;
