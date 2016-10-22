@@ -285,7 +285,7 @@ function getDiffData(gameData, clientGame) {
 				case GameStates.Blocked: // TODO: revise this as it does not look correct
 					if (gameData.s === GameStates.Playing) {
 						// TODO: check if this is handled below or get roundNumber from client's turn, then construct NewRound event from that round
-						//diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 1][2].r]];
+						diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 1][2].r]];
 					} else if (gameData.s >= GameStates.P1Resigned) {
 						diff.s = gameData.s;
 					} else if (gameData.s !== GameStates.Blocked) {
