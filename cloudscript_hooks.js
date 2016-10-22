@@ -114,7 +114,7 @@ function onJoinGame(args, data) {
 	try {
 		if (data.s === GameStates.UnmatchedPlaying && data.t === 0) {
 			data.s = GameStates.Playing;
-		} else if (data.s === GameStates.UnmatchedWaiting && data.t === 1){
+		} else if (data.s === GameStates.UnmatchedWaiting && data.t === 1) {
 			data.s = GameStates.P1Waiting;
 		} else {
 			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom JoinGame event: unexpected Ss,Ts', { w: args, d: data });

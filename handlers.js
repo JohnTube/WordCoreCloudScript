@@ -289,8 +289,8 @@ function getDiffData(gameData, clientGame) {
 					} else if (gameData.s >= GameStates.P1Resigned) {
 						diff.s = gameData.s;
 					} else if (gameData.s !== GameStates.Blocked) {
-						// TODO: check which states should be expected from server
-						//diff = null;
+						// TODO: check which states should be expected from server, handle case where Ts - Tc > 3
+						diff = null;
 					}
 					break;
 				default:
