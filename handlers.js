@@ -136,10 +136,8 @@ function pollGamesData(clientData, userId) {
 						if (undefinedOrNull(timestamp)) {
 							logException('undefinedOrNull timestamp of last round=' + round, gameList[gameKey]);
 						} else if (checkRoundTimeOut(timestamp)) {
-							gameList[gameKey].s = GameStates.TimedOutDraw;
-							if (gameList[gameKey].t % 3 !== 0) {
-								gameList[gameKey].s += (3- gameList[gameKey].t % 3);
-							}
+							var whoPlayedLast = gameList[gameKey].t % 3;
+							gameList[gameKey].s = GameStates.TimedOutDraw + whoPlayedLast;
 							listToUpdate[listId][gameKey] = gameList[gameKey];
 						}
 					}
