@@ -138,6 +138,13 @@ function pollGamesData(clientData, userId) {
 						} else if (checkRoundTimeOut(timestamp)) {
 							var whoPlayedLast = gameList[gameKey].t % 3;
 							gameList[gameKey].s = GameStates.TimedOutDraw + whoPlayedLast;
+							if (gameList[gameKey].s === GameStates.TimedOutDraw){
+								if (gameList[gameKey].a[0].s > gameList[gameKey].a[1].s) {
+									gameList[gameKey].s = GameStates.TimedOutP1Won;
+								} else if (gameList[gameKey].a[1].s < gameList[gameKey].a[0].s) {
+									gameList[gameKey].s = GameStates.TimedOutP2Won;
+								}
+							}
 							listToUpdate[listId][gameKey] = gameList[gameKey];
 						}
 					}
@@ -187,6 +194,13 @@ function pollGamesData(clientData, userId) {
 							} else if (checkRoundTimeOut(timestamp)) {
 								var whoPlayedLast = gameList[gameKey].t % 3;
 								gameList[gameKey].s = GameStates.TimedOutDraw + whoPlayedLast;
+								if (gameList[gameKey].s === GameStates.TimedOutDraw){
+									if (gameList[gameKey].a[0].s > gameList[gameKey].a[1].s) {
+										gameList[gameKey].s = GameStates.TimedOutP1Won;
+									} else if (gameList[gameKey].a[0].s < gameList[gameKey].a[1].s) {
+										gameList[gameKey].s = GameStates.TimedOutP2Won;
+									}
+								}
 								listToUpdate[listId][gameKey] = gameList[gameKey];
 							}
 						}
