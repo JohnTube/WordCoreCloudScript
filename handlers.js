@@ -141,7 +141,7 @@ function pollGamesData(clientData, userId) {
 							if (gameList[gameKey].s === GameStates.TimedOutDraw){
 								if (gameList[gameKey].a[0].s > gameList[gameKey].a[1].s) {
 									gameList[gameKey].s = GameStates.TimedOutP1Won;
-								} else if (gameList[gameKey].a[1].s < gameList[gameKey].a[0].s) {
+								} else if (gameList[gameKey].a[0].s < gameList[gameKey].a[1].s) {
 									gameList[gameKey].s = GameStates.TimedOutP2Won;
 								}
 							}
