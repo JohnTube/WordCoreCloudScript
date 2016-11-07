@@ -187,6 +187,9 @@ handlers.RoomJoined = function (args) { // added to stop receiving ErrorInfo eve
         if (args.ActorNr < 0 || args.ActorNr > 2) {
           throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, "ActorNr < 0 || ActorNr > 2", args);
         }
+        if (!undefinedOrNull(args.Nickname)){
+          logException('Nickname is here! (ignore: this is a test for a PlayFab/Photon customer)', args);
+        }
         return {ResultCode: WEB_ERRORS.SUCCESS, Message: 'OK'};
     } catch (e) {
         if (e instanceof PhotonException) {
@@ -205,4 +208,4 @@ handlers.sendPushNotification = function(args) {
         logException('sendPushNotification', e);
         //throw e;
     }
-}
+};
