@@ -82,26 +82,27 @@ function onInitGame(args, data) {
 		if (eventData.gt !== 2) {
 			throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Custom InitGame event: Wrong GameType', { w: args, d: data });
 		}
-        var a1_wordukens = [];
-        var round0_grid = {};
-        // TODO: remove version check when everyone updates
-        if (args.AppVersion === "0.1.1d") {
-            a1_wordukens = eventData.w;
-            round0_grid = eventData.r.gs;
+    var a1_wordukens = [];
+    var round0_grid = {};
+    // TODO: remove version check when everyone updates
+    if (args.AppVersion === "0.1.1d") {
+        a1_wordukens = eventData.w;
+        round0_grid = eventData.r.gs;
+    } else {
+        if (undefinedOrNull(eventData.w)) {
+            a1_wordukens = [];
         } else {
-            if (undefinedOrNull(eventData.w)) {
-                a1_wordukens = [];
-            } else {
-                for(var i=0; i<eventData.w.length; i++){
-                    a1_wordukens[i] = {t:-1, wt:eventData.w[i], wi:i, v:false};
-                }
-            }
-            for(var j=0; j<16; j++){
-                round0_grid[String(j)] = eventData.r.gs[j];
+            for(var i=0; i<eventData.w.length; i++){
+                a1_wordukens[i] = {t:-1, wt:eventData.w[i], wi:i, v:false};
             }
         }
-				data = {a: [{id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: a1_wordukens, ts: eventData.ts}],
-				s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
+        for(var j=0; j<16; j++){
+            round0_grid[String(j)] = eventData.r.gs[j];
+        }
+    }
+		consumeWordukens(args.UserId, a1_wordukens, args.GameId);
+		data = {a: [{id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: a1_wordukens, ts: eventData.ts}],
+		s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
 		data.r = [{gs: round0_grid, ts: eventData.r.ts, r: 0, m: [{}, {}]}];
 		return data; // do not cache this event
 	} catch (e) { throw e;}
@@ -121,17 +122,18 @@ function onJoinGame(args, data) {
 		}
 		updateSharedGroupEntry(getGamesListId(args.UserId), args.GameId, {});
 		var eventData = args.Data;
-        var a2_wordukens = [];
-        // TODO: remove version check when everyone updates
-        if (args.AppVersion === "0.1.1d") {
-            a2_wordukens = eventData.w;
-        } else if (undefinedOrNull(eventData.w)) {
-            a2_wordukens = [];
-        } else {
-            for(var i=0; i<eventData.w.length; i++){
-                a2_wordukens[i] = {t:-1, wt:eventData.w[i], wi:i, v:false};
-            }
+    var a2_wordukens = [];
+    // TODO: remove version check when everyone updates
+    if (args.AppVersion === "0.1.1d") {
+        a2_wordukens = eventData.w;
+    } else if (undefinedOrNull(eventData.w)) {
+        a2_wordukens = [];
+    } else {
+        for(var i=0; i<eventData.w.length; i++){
+            a2_wordukens[i] = {t:-1, wt:eventData.w[i], wi:i, v:false};
         }
+    }
+		consumeWordukens(args.UserId, a2_wordukens, args.GameId);
 		data.a[1] = {id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: a2_wordukens, ts: eventData.ts};
 		data.r[0].ts = eventData.ts;
 		// send push
@@ -378,5 +380,118 @@ function onEventReceived(args, data) {
 		}
 	} catch (e) {
 		throw e;
+	}
+}
+
+function consumeWordukens(userId, wordukens, gameId) {
+  try {
+		var itemsToConsume = {}, itemKey = "";
+		for(var i=0; i<wordukens.length; i++){
+			switch (wordukens[i].wt) {
+				case WordukenType.BestMove:
+					itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.BestMove";
+					break;
+				case WordukenType.Incrementor:
+					itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.Incrementor";
+					break;
+				case WordukenType.WildCard:
+					itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.WildCard";
+					break;
+				case WordukenType.SingleColor:
+					itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.SingleColor";
+					break;
+				default:
+					continue;
+		  }
+			if (undefinedOrNull(itemsToConsume[itemKey])) {
+				itemsToConsume[itemKey] = 1;
+			} else {
+				itemsToConsume[itemKey] = itemsToConsume[itemKey] + 1;
+			}
+		}
+		var inventory = getUserInventory(userId);
+		for(itemKey in itemsToConsume) {
+			if (itemsToConsume.hasOwnProperty(itemKey)) {
+					var instanceId = null;
+					for(var j=0; j<inventory.length; j++) {
+						if (inventory[j].ItemId === itemKey) {
+							if (undefinedOrNull(instanceId)) {
+								if (inventory[j].RemainingUses >= itemsToConsume[itemKey]) {
+									instanceId = inventory[j].ItemInstanceId;
+								} else {
+									logException('Unexpected:Number of item' + itemKey + ' not allowed'+ gameId, {i:inventory, e:itemsToConsume, w: wordukens});
+									return;
+								}
+							} else {
+								logException('Unexpected:ItemId '+itemKey+' not unique in inventory', {i:inventory, e:itemsToConsume, w: wordukens});
+								return;
+							}
+						}
+					}
+					if (undefinedOrNull(instanceId)) {
+						logException('Unexpected:ItemId '+itemKey+' not found', {i:inventory, e:itemsToConsume, w: wordukens});
+						return;
+					} else {
+						consumeItem(id, instanceId, itemsToConsume[itemKey]);
+					}
+			}
+		}
+	} catch (e) {
+			logException('Unexpected:consumeWordukens exception', {err:e, w: wordukens, u: userId, g:gameId});
+	}
+}
+
+function redeemWordukens(userId, wordukens, gameId){
+	try {
+		var itemsToRedeem = {}, itemKey = "";
+		for(var i=0; i<wordukens.length; i++){
+			if (wordukens[i].t > -1){
+				switch (wordukens[i].wt) {
+					case WordukenType.BestMove:
+						itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.BestMove";
+						break;
+					case WordukenType.Incrementor:
+						itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.Incrementor";
+						break;
+					case WordukenType.WildCard:
+						itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.WildCard";
+						break;
+					case WordukenType.SingleColor:
+						itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.SingleColor";
+						break;
+					default:
+						continue;
+				}
+				if (undefinedOrNull(itemsToRedeem[itemKey])) {
+					itemsToRedeem[itemKey] = 1;
+				} else {
+					itemsToRedeem[itemKey] = itemsToRedeem[itemKey] + 1;
+				}
+			}
+		}
+		var inventory = getUserInventory(userId);
+		for(itemKey in itemsToConsume) {
+			if (itemsToRedeem.hasOwnProperty(itemKey)) {
+					var instanceId = null;
+					for(var j=0; j<inventory.length; j++) {
+						if (inventory[j].ItemId === itemKey) {
+							if (undefinedOrNull(instanceId)) {
+								instanceId = inventory[j].ItemInstanceId;
+							} else {
+								logException('Unexpected:ItemId '+itemKey+' not unique in inventory', {i:inventory, e:itemsToConsume, w: wordukens});
+								return;
+							}
+						}
+					}
+					if (undefinedOrNull(instanceId)) {
+						logException('Unexpected:ItemId '+itemKey+' not found', {i:inventory, e:itemsToConsume, w: wordukens});
+						return;
+					} else {
+						modifyItemUsers(id, instanceId, itemsToRedeem[itemKey]);
+					}
+			}
+		}
+	} catch (e){
+		logException('Unexpected:redeemWordukens exception', {err:e, w: wordukens, u: userId, g:gameId});
 	}
 }

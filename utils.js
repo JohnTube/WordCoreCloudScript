@@ -78,7 +78,7 @@ function updateSharedGroupData(id, data) {
 				}
 			}
 			if (i > 0) {
-				key = server.UpdateSharedGroupData({ SharedGroupId: id, Data: stringData });		
+				key = server.UpdateSharedGroupData({ SharedGroupId: id, Data: stringData });
 			}
 		}
     } catch (e) { logException('updateSharedGroupData(' + id + ', ' + JSON.stringify(stringData) + ')', {ret: key, err: e}); throw e; }
@@ -98,14 +98,14 @@ function getSharedGroupData(id, keys) {
             }
         }
         return data;
-    } catch (e) { 
+    } catch (e) {
 		if (!undefinedOrNull(e.Error) && e.Error.error === 'InvalidSharedGroupId' && id === getGamesListId(currentPlayerId)) {
 			logException('sharedGroup '+id+' not found, creating it');
 			createSharedGroup(id);
 			return {};
 		}
-		logException('getSharedGroupData:' + id + ',' + JSON.stringify(keys), {ret: data, err: e}); 
-		throw e; 
+		logException('getSharedGroupData:' + id + ',' + JSON.stringify(keys), {ret: data, err: e});
+		throw e;
 	}
 }
 
@@ -137,4 +137,37 @@ function updateSharedGroupEntry(id, key, value) {
 
 function deleteSharedGroupEntry(id, key) {
     try { return updateSharedGroupEntry(id, key, null); } catch (e) { logException('deleteSharedGroupEntry:' + id + ',' + key, e); throw e; }
+}
+
+function getUserInventory(user){
+	var inventory = null;
+	try {
+		inventory = server.GetUserInventory({PlayFabId: user});
+		return inventory.Inventory;
+	} catch (e) {
+		logException('Error getting inventory for ' + user, {err: e, ret: inventory});
+		throw e;
+	}
+}
+
+function consumeItem(user, item, count){
+	var result;
+	try {
+		result = server.ConsumeItem({PlayFabId: user, ItemInstanceIdentifier: item, ConsumeCount: count});
+		return result;
+	} catch (e) {
+		logException('Error consuming (' + count + ') ' + item + ' for ' + user, {err: e, ret: result});
+		throw e;
+	}
+}
+
+function modifyItemUsers(userId, itemId, add) {
+	var result;
+	try {
+		result = server.ModifyItemUsers({PlayFabId:userId, ItemInstanceId: itemid, UsesToAdd: add});
+		return result;
+	} catch (e) {
+		logException('Error adding (' + add + ') ' + itemId + ' for ' + user, {err: e, ret: result});
+		throw e;
+	}
 }
