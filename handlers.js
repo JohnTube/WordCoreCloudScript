@@ -375,9 +375,12 @@ function deleteOrFlagGames(games, userId) {
 				if (userKey === userId) {
 					if (gameData.s === GameStates.MatchmakingTimedOut || gameData.deletionFlag === 2 || (gameData.deletionFlag == 1 && gameData.a.length === 1)) {
 						listToUpdate[listId][gameKey] = null;
-					} else {
+					} else if (gameData.deletionFlag !== 1) {
+						redeemWordukens(userId, gameData.a[0].w, gameKey);
 						gameData.deletionFlag = 1;
 						listToUpdate[listId][gameKey] = gameData;
+					} else {
+						logException('game: '+gameKey+' already flagged (1) for user: '+userId, gameData);
 					}
 				} else {
 					if (!listToLoad.hasOwnProperty(userKey)) {
@@ -399,9 +402,12 @@ function deleteOrFlagGames(games, userId) {
 						gameData = gamesToDelete[gameKey];
 						if (gameData.deletionFlag === 1) {
 							listToUpdate[listId][gameKey] = null;
-						} else {
+						} else if (gameData.deletionFlag !== 2) {
+							redeemWordukens(userId, gameData.a[1].w, gameKey);
 							gameData.deletionFlag = 2;
 							listToUpdate[listId][gameKey] = gameData;
+						} else {
+							logException('game: '+gameKey+' already flagged (2) for user: '+userId, gameData);
 						}
 					} else if (listToLoad[userKey].includes(gameKey)) {
 						listToUpdate[getGamesListId(userId)][gameKey] = null;
