@@ -127,6 +127,7 @@ function pollGamesData(clientData, userId) {
 							logException('undefinedOrNull timestamp of game creation', gameList[gameKey]);
 						} else if (checkMatchmakingTimeOut(timestamp)) {
 							gameList[gameKey].s = GameStates.MatchmakingTimedOut;
+							redeemWordukens(userId, gameList[gameKey].a[0].w, gameKey);
 							listToUpdate[listId][gameKey] = gameList[gameKey];
 						}
 					} else if (gameList[gameKey].s > GameStates.UnmatchedWaiting &&
@@ -373,7 +374,11 @@ function deleteOrFlagGames(games, userId) {
 				gameData = gamesToDelete[gameKey];
 				userKey = getCreatorId(gameKey);
 				if (userKey === userId) {
-					if (gameData.s === GameStates.MatchmakingTimedOut || gameData.deletionFlag === 2 || (gameData.deletionFlag == 1 && gameData.a.length === 1)) {
+					if (gameData.deletionFlag === 2) {
+						redeemWordukens(userId, gameData.a[0].w, gameKey);
+						listToUpdate[listId][gameKey] = null;
+					} else if (gameData.s === GameStates.MatchmakingTimedOut ||
+						 (gameData.deletionFlag == 1 && gameData.a.length === 1)) { // TODO: verify scenario! maybe we just need gameData.a.length === 1 only to delete asap
 						listToUpdate[listId][gameKey] = null;
 					} else if (gameData.deletionFlag !== 1) {
 						redeemWordukens(userId, gameData.a[0].w, gameKey);
@@ -401,6 +406,7 @@ function deleteOrFlagGames(games, userId) {
 					if (gamesToDelete.hasOwnProperty(gameKey)) {
 						gameData = gamesToDelete[gameKey];
 						if (gameData.deletionFlag === 1) {
+							redeemWordukens(userId, gameData.a[1].w, gameKey);
 							listToUpdate[listId][gameKey] = null;
 						} else if (gameData.deletionFlag !== 2) {
 							redeemWordukens(userId, gameData.a[1].w, gameKey);

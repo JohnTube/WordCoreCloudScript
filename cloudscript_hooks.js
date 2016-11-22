@@ -245,6 +245,7 @@ function onEndOfGame(args, data){
 			data.s = GameStates.EndedP2Won;
 		}
 		data.deletionFlag = args.ActorNr;
+		redeemWordukens(userId, gameData.a[args.ActorNr - 1].w, gameKey);
 		/*if (args.ActorNr === 2) {
 			deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
 		}*/
@@ -298,6 +299,7 @@ function onResign(args, gameData){
 	}
 	gameData.s = GameStates.Blocked + actorNr;
 	gameData.deletionFlag = actorNr;
+	redeemWordukens(userId, gameData.a[actorNr - 1].w, gameKey);
 	if (gameData.a.length === 2) {
 		// send push
 		handlers.sendPushNotification({Recipient: gameData.a[2 - actorNr].id, Message: JSON.stringify({Message: gameData.a[actorNr - 1].n + ' resigned!', CustomData: {EvCode: CustomEventCodes.Resign, GameId: args.GameId}})});
@@ -441,11 +443,12 @@ function consumeWordukens(userId, wordukens, gameId) {
 	}
 }
 
+// TODO: mark wordukens as redeemed to not redeem twice or more! log warning if trying to do that
 function redeemWordukens(userId, wordukens, gameId){
 	try {
 		var itemsToRedeem = {}, itemKey = "";
-		for(var i=0; i<wordukens.length; i++){
-			if (wordukens[i].t > -1){
+		for(var i=0; i<wordukens.length; i++) {
+			if (wordukens[i].t > -1) {
 				switch (wordukens[i].wt) {
 					case WordukenType.BestMove:
 						itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.BestMove";
