@@ -473,7 +473,7 @@ function redeemWordukens(userId, wordukens, gameId){
 			}
 		}
 		var inventory = getUserInventory(userId);
-		for(itemKey in itemsToConsume) {
+		for(itemKey in itemsToRedeem) {
 			if (itemsToRedeem.hasOwnProperty(itemKey)) {
 					var instanceId = null;
 					for(var j=0; j<inventory.length; j++) {
@@ -481,13 +481,13 @@ function redeemWordukens(userId, wordukens, gameId){
 							if (undefinedOrNull(instanceId)) {
 								instanceId = inventory[j].ItemInstanceId;
 							} else {
-								logException('Unexpected:ItemId '+itemKey+' not unique in inventory', {i:inventory, e:itemsToConsume, w: wordukens});
+								logException('Unexpected:ItemId '+itemKey+' not unique in inventory', {i:inventory, e:itemsToRedeem, w: wordukens});
 								return;
 							}
 						}
 					}
 					if (undefinedOrNull(instanceId)) {
-						logException('Unexpected:ItemId '+itemKey+' not found', {i:inventory, e:itemsToConsume, w: wordukens});
+						logException('Unexpected:ItemId '+itemKey+' not found', {i:inventory, e:itemsToRedeem, w: wordukens});
 						return;
 					} else {
 						modifyItemUsers(userId, instanceId, itemsToRedeem[itemKey]);
