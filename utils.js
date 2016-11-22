@@ -153,7 +153,7 @@ function getUserInventory(user){
 function consumeItem(user, item, count){
 	var result;
 	try {
-		result = server.ConsumeItem({PlayFabId: user, ItemInstanceIdentifier: item, ConsumeCount: count});
+		result = server.ConsumeItem({PlayFabId: user, ItemInstanceId: item, ConsumeCount: count});
 		return result;
 	} catch (e) {
 		logException('Error consuming (' + count + ') ' + item + ' for ' + user, {err: e, ret: result});
