@@ -245,7 +245,7 @@ function onEndOfGame(args, data){
 			data.s = GameStates.EndedP2Won;
 		}
 		data.deletionFlag = args.ActorNr;
-		redeemWordukens(userId, gameData.a[args.ActorNr - 1].w, gameKey);
+		redeemWordukens(args.UserId, gameData.a[args.ActorNr - 1].w, args.GameId);
 		/*if (args.ActorNr === 2) {
 			deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
 		}*/
@@ -299,7 +299,7 @@ function onResign(args, gameData){
 	}
 	gameData.s = GameStates.Blocked + actorNr;
 	gameData.deletionFlag = actorNr;
-	redeemWordukens(userId, gameData.a[actorNr - 1].w, gameKey);
+	redeemWordukens(args.UserId, gameData.a[actorNr - 1].w, args.GameId);
 	if (gameData.a.length === 2) {
 		// send push
 		handlers.sendPushNotification({Recipient: gameData.a[2 - actorNr].id, Message: JSON.stringify({Message: gameData.a[actorNr - 1].n + ' resigned!', CustomData: {EvCode: CustomEventCodes.Resign, GameId: args.GameId}})});
