@@ -161,6 +161,8 @@ function consumeItem(user, item, count){
 	}
 }
 
+// dummy comment to test PlayFab's github addon
+
 function modifyItemUsers(userId, itemId, add) {
 	var result;
 	try {
