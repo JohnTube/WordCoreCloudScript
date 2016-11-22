@@ -432,7 +432,7 @@ function consumeWordukens(userId, wordukens, gameId) {
 						logException('Unexpected:ItemId '+itemKey+' not found', {i:inventory, e:itemsToConsume, w: wordukens});
 						return;
 					} else {
-						consumeItem(id, instanceId, itemsToConsume[itemKey]);
+						consumeItem(userId, instanceId, itemsToConsume[itemKey]);
 					}
 			}
 		}
@@ -487,7 +487,7 @@ function redeemWordukens(userId, wordukens, gameId){
 						logException('Unexpected:ItemId '+itemKey+' not found', {i:inventory, e:itemsToConsume, w: wordukens});
 						return;
 					} else {
-						modifyItemUsers(id, instanceId, itemsToRedeem[itemKey]);
+						modifyItemUsers(userId, instanceId, itemsToRedeem[itemKey]);
 					}
 			}
 		}
