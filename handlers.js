@@ -249,7 +249,7 @@ function getDiffData(gameData, clientGame) {
 				case GameStates.UnmatchedPlaying:
 					if (gameData.s === GameStates.UnmatchedWaiting) {
 						break;
-					} else if (gameData.s === GameStates.MatchmakingTimedOut){
+					} else if (gameData.s === GameStates.MatchmakingTimedOut || gameData.s === GameStates.P1Resigned){
 						diff.s = gameData.s;
 					}
 					else if (gameData.s >= GameStates.Playing && gameData.a.length === 2) {
@@ -310,7 +310,7 @@ function getDiffData(gameData, clientGame) {
 			}
 			// TODO: more tests please
 		}
-		if (diff !== null) { 
+		if (diff !== null) {
 			if (gameData.t > clientGame.t) {
 				var cR = Math.floor(clientGame.t / 3);
 				for(var i=0; i<gameData.Cache.length; i++) {
