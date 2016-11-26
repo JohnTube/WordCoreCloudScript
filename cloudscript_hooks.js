@@ -446,7 +446,7 @@ function consumeWordukens(userId, wordukens, gameId) {
 // TODO: mark wordukens as redeemed to not redeem twice or more! log warning if trying to do that
 function redeemWordukens(userId, wordukens, gameId){
 	try {
-		var itemsToRedeem = [], itemKey = "";
+		var itemsToRedeem = [];
 		for(var i=0; i<wordukens.length; i++) {
 			if (wordukens[i].t === -1) {
 				switch (wordukens[i].wt) {
@@ -468,7 +468,7 @@ function redeemWordukens(userId, wordukens, gameId){
 		if (itemsToRedeem.length > 0){
 			grantItemsToUser(userId, itemsToRedeem);
 		}
-	} catch (e){
+	} catch (e) {
 		logException('Unexpected:redeemWordukens exception', {err:e, w: wordukens, u: userId, g:gameId});
 	}
 }
