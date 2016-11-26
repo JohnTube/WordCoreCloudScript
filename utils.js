@@ -166,7 +166,7 @@ function consumeItem(user, item, count){
 function modifyItemUsers(userId, itemId, add) {
 	var result;
 	try {
-		result = server.ModifyItemUsers({PlayFabId:userId, ItemInstanceId: itemId, UsesToAdd: add});
+		result = server.ModifyItemUses({PlayFabId:userId, ItemInstanceId: itemId, UsesToAdd: add});
 		return result;
 	} catch (e) {
 		logException('Error adding (' + add + ') ' + itemId + ' for ' + userId, {err: e, ret: result});
