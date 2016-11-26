@@ -169,7 +169,7 @@ function modifyItemUsers(userId, itemId, add) {
 		result = server.ModifyItemUsers({PlayFabId:userId, ItemInstanceId: itemid, UsesToAdd: add});
 		return result;
 	} catch (e) {
-		logException('Error adding (' + add + ') ' + itemId + ' for ' + user, {err: e, ret: result});
+		logException('Error adding (' + add + ') ' + itemId + ' for ' + userId, {err: e, ret: result});
 		throw e;
 	}
 }
