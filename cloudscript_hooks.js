@@ -448,7 +448,7 @@ function redeemWordukens(userId, wordukens, gameId){
 	try {
 		var itemsToRedeem = {}, itemKey = "";
 		for(var i=0; i<wordukens.length; i++) {
-			if (wordukens[i].t > -1) {
+			if (wordukens[i].t === -1) {
 				switch (wordukens[i].wt) {
 					case WordukenType.BestMove:
 						itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.BestMove";
