@@ -446,53 +446,27 @@ function consumeWordukens(userId, wordukens, gameId) {
 // TODO: mark wordukens as redeemed to not redeem twice or more! log warning if trying to do that
 function redeemWordukens(userId, wordukens, gameId){
 	try {
-		var itemsToRedeem = {}, itemKey = "";
+		var itemsToRedeem = [], itemKey = "";
 		for(var i=0; i<wordukens.length; i++) {
 			if (wordukens[i].t === -1) {
 				switch (wordukens[i].wt) {
 					case WordukenType.BestMove:
-						itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.BestMove";
+						itemsToRedeem.push("com.ThugLeaf.WordCoreAlpha.Worduken.BestMove");
 						break;
 					case WordukenType.Incrementor:
-						itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.Incrementor";
+						itemsToRedeem.push("com.ThugLeaf.WordCoreAlpha.Worduken.Incrementor");
 						break;
 					case WordukenType.WildCard:
-						itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.WildCard";
+						itemsToRedeem.push("com.ThugLeaf.WordCoreAlpha.Worduken.WildCard");
 						break;
 					case WordukenType.SingleColor:
-						itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.SingleColor";
+						itemsToRedeem.push("com.ThugLeaf.WordCoreAlpha.Worduken.SingleColor");
 						break;
-					default:
-						continue;
-				}
-				if (undefinedOrNull(itemsToRedeem[itemKey])) {
-					itemsToRedeem[itemKey] = 1;
-				} else {
-					itemsToRedeem[itemKey] = itemsToRedeem[itemKey] + 1;
 				}
 			}
 		}
-		var inventory = getUserInventory(userId);
-		for(itemKey in itemsToRedeem) {
-			if (itemsToRedeem.hasOwnProperty(itemKey)) {
-					var instanceId = null;
-					for(var j=0; j<inventory.length; j++) {
-						if (inventory[j].ItemId === itemKey) {
-							if (undefinedOrNull(instanceId)) {
-								instanceId = inventory[j].ItemInstanceId;
-							} else {
-								logException('Unexpected:ItemId '+itemKey+' not unique in inventory', {i:inventory, e:itemsToRedeem, w: wordukens});
-								return;
-							}
-						}
-					}
-					if (undefinedOrNull(instanceId)) {
-						logException('Unexpected:ItemId '+itemKey+' not found', {i:inventory, e:itemsToRedeem, w: wordukens});
-						return;
-					} else {
-						modifyItemUsers(userId, instanceId, itemsToRedeem[itemKey]);
-					}
-			}
+		if (itemsToRedeem.length > 0){
+			grantItemsToUser(userId, itemsToRedeem);
 		}
 	} catch (e){
 		logException('Unexpected:redeemWordukens exception', {err:e, w: wordukens, u: userId, g:gameId});

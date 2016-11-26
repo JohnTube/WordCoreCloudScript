@@ -163,13 +163,24 @@ function consumeItem(user, item, count){
 
 // dummy comment to test PlayFab's github addon
 
-function modifyItemUsers(userId, itemId, add) {
+// function modifyItemUses(userId, itemId, add) {
+// 	var result;
+// 	try {
+// 		result = server.ModifyItemUses({PlayFabId:userId, ItemInstanceId: itemId, UsesToAdd: add});
+// 		return result;
+// 	} catch (e) {
+// 		logException('Error adding (' + add + ') ' + itemId + ' for ' + userId, {err: e, ret: result});
+// 		throw e;
+// 	}
+// }
+
+function grantItemsToUser(userId, items){
 	var result;
 	try {
-		result = server.ModifyItemUses({PlayFabId:userId, ItemInstanceId: itemId, UsesToAdd: add});
+		result = server.GrantItemsToUser({PlayFabId:userId, ItemIds: items});
 		return result;
 	} catch (e) {
-		logException('Error adding (' + add + ') ' + itemId + ' for ' + userId, {err: e, ret: result});
+		logException('grantItemsToUser error adding ', {err: e, ret: result, u: userId, i: items});
 		throw e;
 	}
 }
