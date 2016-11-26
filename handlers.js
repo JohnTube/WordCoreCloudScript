@@ -310,53 +310,53 @@ function getDiffData(gameData, clientGame) {
 			}
 			// TODO: more tests please
 		}
-		if (diff !== null && gameData.t > clientGame.t) {
-			var cR = Math.floor(clientGame.t / 3);
-			for(var i=0; i<gameData.Cache.length; i++) {
-				var ce = gameData.Cache[i];
-				switch (ce[1]) {
-					case CustomEventCodes.EndOfGame:
-						if (isEmpty(diff.e)) {diff.e = [];}
-						diff.e.push(ce);
-						break;
-					case CustomEventCodes.EndOfTurn:
-						var eR = Math.floor(ce[2].t / 3);
-						if (clientGame.t < ce[2].t || // old event
-							(eR === cR && clientGame.t !== ce[2].t)) { // event of opponent in same round
-								if (isEmpty(diff.e)) {diff.e = [];}
-								diff.e.push(ce);
-						}
-						break;
-					case CustomEventCodes.EndOfRound:
-						eR = Math.floor(ce[2].m.t / 3);
-						if (clientGame.t < ce[2].m.t) {
+		if (diff !== null) { 
+			if (gameData.t > clientGame.t) {
+				var cR = Math.floor(clientGame.t / 3);
+				for(var i=0; i<gameData.Cache.length; i++) {
+					var ce = gameData.Cache[i];
+					switch (ce[1]) {
+						case CustomEventCodes.EndOfGame:
 							if (isEmpty(diff.e)) {diff.e = [];}
 							diff.e.push(ce);
-						} else if	(eR === cR && clientGame.t % 3 !== 0) {
-							if (clientGame.t !== ce[2].m.t) { // event of opponent in same round
+							break;
+						case CustomEventCodes.EndOfTurn:
+							var eR = Math.floor(ce[2].t / 3);
+							if (clientGame.t < ce[2].t || // old event
+								(eR === cR && clientGame.t !== ce[2].t)) { // event of opponent in same round
+									if (isEmpty(diff.e)) {diff.e = [];}
+									diff.e.push(ce);
+							}
+							break;
+						case CustomEventCodes.EndOfRound:
+							eR = Math.floor(ce[2].m.t / 3);
+							if (clientGame.t < ce[2].m.t) {
 								if (isEmpty(diff.e)) {diff.e = [];}
 								diff.e.push(ce);
-							} else /*if (clientGame.t === ce[2].m.t)*/ {
-								if (isEmpty(diff.e)) {diff.e = [];}
-								diff.e.push([0, CustomEventCodes.NewRound, ce[2].r]);
+							} else if	(eR === cR && clientGame.t % 3 !== 0) {
+								if (clientGame.t !== ce[2].m.t) { // event of opponent in same round
+									if (isEmpty(diff.e)) {diff.e = [];}
+									diff.e.push(ce);
+								} else /*if (clientGame.t === ce[2].m.t)*/ {
+									if (isEmpty(diff.e)) {diff.e = [];}
+									diff.e.push([0, CustomEventCodes.NewRound, ce[2].r]);
+								}
 							}
-						}
-						break;
-					default:
-
+							break;
+					}
 				}
 			}
-		}
-		//logException('diff result', {d:diff, c:clientGame, s:gameData});
-		if (diff.s === GameStates.P1Resigned){
-			if (isEmpty(diff.e)) {diff.e = [];}
-			diff.e.push([1, CustomEventCodes.Resign, {}]);
-			//diff.s = undefined;
-		} else if (diff.s === GameStates.P2Resigned){
-			if (isEmpty(diff.e)) {diff.e = [];}
-			//diff.s = null;
-			diff.e.push([2, CustomEventCodes.Resign, {}]);
-		}
+			//logException('diff result', {d:diff, c:clientGame, s:gameData});
+			if (diff.s === GameStates.P1Resigned){
+				if (isEmpty(diff.e)) {diff.e = [];}
+				diff.e.push([1, CustomEventCodes.Resign, {}]);
+				//diff.s = undefined;
+			} else if (diff.s === GameStates.P2Resigned){
+				if (isEmpty(diff.e)) {diff.e = [];}
+				//diff.s = null;
+				diff.e.push([2, CustomEventCodes.Resign, {}]);
+			}
+	  }
 		return diff;
 	} catch (e) {
 		throw e;
