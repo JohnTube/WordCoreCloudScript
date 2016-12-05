@@ -245,7 +245,7 @@ function onEndOfGame(args, data){
 			data.s = GameStates.EndedP2Won;
 		}
 		data.deletionFlag = args.ActorNr;
-		redeemWordukens(args.UserId, gameData.a[args.ActorNr - 1].w, args.GameId);
+		redeemWordukens(args.UserId, data.a[args.ActorNr - 1].w, args.GameId);
 		/*if (args.ActorNr === 2) {
 			deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
 		}*/
