@@ -140,6 +140,7 @@ function onJoinGame(args, data) {
 		eventData.GameId = args.GameId;
 		eventData.EvCode = CustomEventCodes.JoinGame;
 		eventData.n = args.Nickname;
+		eventData.Target = data.a[0].id;
 		handlers.sendPushNotification({Recipient: data.a[0].id, Message: JSON.stringify({Message: args.Nickname + ' has joined a game!', CustomData: eventData})});
 		return data; // do not cache this event
 	} catch (e) { throw e;}
@@ -216,6 +217,7 @@ function onEndOfRound(args, data) {
 		// push
 		eventData.GameId = args.GameId;
 		eventData.EvCode = CustomEventCodes.EndOfRound;
+		eventData.Target = data.a[2 - args.ActorNr].id;
 		handlers.sendPushNotification({Recipient: data.a[2 - args.ActorNr].id, Message: JSON.stringify({Message: args.Nickname + ' has played ' + eventData.m.mw, CustomData:eventData})});
 		return addToEventsCache(args, data);
 	} catch (e) { throw e;}
@@ -260,7 +262,14 @@ function onEndOfGame(args, data){
 			msg += 'You won!';
 		}
 		eventData.EvCode = CustomEventCodes.EndOfGame;
-		handlers.sendPushNotification({Recipient: data.a[2 - args.ActorNr].id, Message: JSON.stringify({Message: args.Nickname + ' has played ' + eventData.mw + msg, CustomData:eventData})});
+		eventData.Target = data.a[2 - args.ActorNr].id;
+		handlers.sendPushNotification({
+			Recipient: data.a[2 - args.ActorNr].id,
+			Message: JSON.stringify({
+				Message: args.Nickname + ' has played ' + eventData.mw + msg,
+				CustomData:eventData
+			})
+		});
 		return addToEventsCache(args, data);
 	} catch (e) { throw e;}
 }
@@ -302,7 +311,17 @@ function onResign(args, gameData){
 	redeemWordukens(args.UserId, gameData.a[actorNr - 1].w, args.GameId);
 	if (gameData.a.length === 2) {
 		// send push
-		handlers.sendPushNotification({Recipient: gameData.a[2 - actorNr].id, Message: JSON.stringify({Message: gameData.a[actorNr - 1].n + ' resigned!', CustomData: {EvCode: CustomEventCodes.Resign, GameId: args.GameId}})});
+		handlers.sendPushNotification({
+			Recipient: gameData.a[2 - actorNr].id,
+			Message: JSON.stringify({
+				Message: gameData.a[actorNr - 1].n + ' resigned!',
+				CustomData: {
+					EvCode: CustomEventCodes.Resign,
+					GameId: args.GameId,
+					Target: gameData.a[2 - actorNr].id
+				}
+			})
+		});
 	}
 	return gameData;
 }
