@@ -105,7 +105,10 @@ function onInitGame(args, data) {
 		s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
 		data.r = [{gs: round0_grid, ts: eventData.r.ts, r: 0, m: [{}, {}]}];
 		// TEMP: to not let players alone
+		eventData.EvCode = CustomEventCodes.InitGame;
+		eventData.Target = "A87B7470F4AEDC76";
 		handlers.sendPushNotification({Recipient: "A87B7470F4AEDC76", Message: JSON.stringify({Message: args.Nickname + ' has created a game!', CustomData: eventData})});
+		eventData.Target = "73BD7B8F4F332064";
 		handlers.sendPushNotification({Recipient: "73BD7B8F4F332064", Message: JSON.stringify({Message: args.Nickname + ' has created a game!', CustomData: eventData})});
 		return data; // do not cache this event
 	} catch (e) { throw e;}
