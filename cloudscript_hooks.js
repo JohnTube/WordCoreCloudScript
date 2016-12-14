@@ -104,6 +104,9 @@ function onInitGame(args, data) {
 		data = {a: [{id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: a1_wordukens, ts: eventData.ts}],
 		s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
 		data.r = [{gs: round0_grid, ts: eventData.r.ts, r: 0, m: [{}, {}]}];
+		// TEMP: to not let players alone
+		handlers.sendPushNotification({Recipient: "A87B7470F4AEDC76", Message: JSON.stringify({Message: args.Nickname + ' has created a game!', CustomData: eventData})});
+		handlers.sendPushNotification({Recipient: "73BD7B8F4F332064", Message: JSON.stringify({Message: args.Nickname + ' has created a game!', CustomData: eventData})});
 		return data; // do not cache this event
 	} catch (e) { throw e;}
 }
