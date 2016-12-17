@@ -282,8 +282,10 @@ function onEndOfGame(args, data){
 }
 
 function onNewRound(args, data){
-	if (data.s !== GameStates.Blocked){
-		throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Unexpected GameState onNewRound', { w: args, d: data });
+	if (data.s !== GameStates.Blocked) {
+		logException('Unexpected GameState onNewRound (probably 2nd client tried to fix blocked round too late)', { w: args, d: data });
+		return data;
+		//throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Unexpected GameState onNewRound', { w: args, d: data });
 	}
 	try {
 		var eventData = args.Data; // TODO: test args and eventData
