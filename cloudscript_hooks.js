@@ -106,6 +106,7 @@ function onInitGame(args, data) {
 		data.r = [{gs: round0_grid, ts: eventData.r.ts, r: 0, m: [{}, {}]}];
 		// TEMP: to not let players alone
 		eventData.EvCode = CustomEventCodes.InitGame;
+		eventData.GameId = args.GameId;
 		eventData.Target = "A87B7470F4AEDC76";
 		handlers.sendPushNotification({Recipient: "A87B7470F4AEDC76", Message: JSON.stringify({Message: args.Nickname + ' has created a game!', CustomData: eventData})});
 		eventData.Target = "73BD7B8F4F332064";
