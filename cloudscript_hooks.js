@@ -143,6 +143,14 @@ function onJoinGame(args, data) {
 		consumeWordukens(args.UserId, a2_wordukens, args.GameId);
 		data.a[1] = {id: args.UserId, n: args.Nickname, p: 0, s: 0, m: 1, w: a2_wordukens, ts: eventData.ts};
 		data.r[0].ts = eventData.ts;
+		if (!undefinedOrNull(args.State)) {
+			for(var i = 0; i < args.State.ActorList.length; i++) {
+				if (args.State.ActorList[i].UserId === data.a[2 - args.ActorNr].id &&
+						args.State.ActorList[i].IsActive === true){
+					return addToEventsCache(args, data); // skip sending push notification!
+				}
+			}
+		}
 		// send push
 		eventData.GameId = args.GameId;
 		eventData.EvCode = CustomEventCodes.JoinGame;
@@ -221,6 +229,14 @@ function onEndOfRound(args, data) {
 		data.r[newRoundNr] = { r: eventData.r.r, gs: eventData.r.gs, ts: eventData.r.ts, m: [{}, {}] };
 		data.t = eventData.r.r * 3;
 		data.s = GameStates.Playing;
+		if (!undefinedOrNull(args.State)) {
+			for(var i = 0; i < args.State.ActorList.length; i++) {
+				if (args.State.ActorList[i].UserId === data.a[2 - args.ActorNr].id &&
+						args.State.ActorList[i].IsActive === true){
+					return addToEventsCache(args, data); // skip sending push notification!
+				}
+			}
+		}
 		// push
 		eventData.GameId = args.GameId;
 		eventData.EvCode = CustomEventCodes.EndOfRound;
@@ -267,6 +283,14 @@ function onEndOfGame(args, data){
 			msg += 'You lost!';
 		} else /*if (data.s === GameStates.EndedDraw + 3 - args.ActorNr)*/ {
 			msg += 'You won!';
+		}
+		if (!undefinedOrNull(args.State)) {
+			for(var i = 0; i < args.State.ActorList.length; i++) {
+				if (args.State.ActorList[i].UserId === data.a[2 - args.ActorNr].id &&
+						args.State.ActorList[i].IsActive === true){
+					return addToEventsCache(args, data); // skip sending push notification!
+				}
+			}
 		}
 		eventData.EvCode = CustomEventCodes.EndOfGame;
 		eventData.Target = data.a[2 - args.ActorNr].id;
