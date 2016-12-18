@@ -146,8 +146,8 @@ function onJoinGame(args, data) {
 		if (!undefinedOrNull(args.State)) {
 			for(var i = 0; i < args.State.ActorList.length; i++) {
 				if (args.State.ActorList[i].UserId === data.a[2 - args.ActorNr].id &&
-						args.State.ActorList[i].IsActive === true){
-					return addToEventsCache(args, data); // skip sending push notification!
+						args.State.ActorList[i].IsActive === true) {
+					return data; // skip sending push notification!
 				}
 			}
 		}
