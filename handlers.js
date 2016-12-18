@@ -326,11 +326,11 @@ function getDiffData(gameData, clientGame) {
 							if (clientGame.t < ce[2].m.t) {
 								if (isEmpty(diff.e)) {diff.e = [];}
 								diff.e.push(ce);
-							} else if	(eR === cR && clientGame.t % 3 !== 0) {
+							} else if	(eR === cR) {
 								if (clientGame.t !== ce[2].m.t) { // event of opponent in same round
 									if (isEmpty(diff.e)) {diff.e = [];}
 									diff.e.push(ce);
-								} else /*if (clientGame.t === ce[2].m.t)*/ { //
+								} else if (clientGame.s === GameStates.Blocked && clientGame.t % 3 === 0) { //
 									if (isEmpty(diff.e)) { diff.e = []; }
 									diff.e.push([0, CustomEventCodes.NewRound, ce[2].r]);
 								}
