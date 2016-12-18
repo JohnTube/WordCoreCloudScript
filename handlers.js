@@ -304,7 +304,7 @@ function getDiffData(gameData, clientGame) {
 			// TODO: more tests please
 		}
 		if (diff !== null) {
-			if (gameData.t > clientGame.t) {
+			if (gameData.t >= clientGame.t) {
 				var cR = Math.floor(clientGame.t / 3);
 				for(var i=0; i<gameData.Cache.length; i++) {
 					var ce = gameData.Cache[i];
