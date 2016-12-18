@@ -64,7 +64,7 @@ function getPollResponse(clientGamesList, userId) {
 							if (gameState.t !== gameData.t || gameState.s !== gameData.s) {
 								var diff = getDiffData(gameData, gameState);
 								if (undefinedOrNull(diff)) {
-									logException('(Tc='+gameState.t+',Sc='+gameState.s+') > (Ts='+gameData.t+'Sc='+gameData.s+'), GameId=' + gameKey, {s: gameData, c: gameState});
+									logException('(Tc='+gameState.t+',Sc='+gameState.s+') > (Ts='+gameData.t+',Ss='+gameData.s+'), GameId=' + gameKey, {s: gameData, c: gameState});
 									if (!data.hasOwnProperty('m')) { data.m = {};}
 									data.m[gameKey] = {t: gameData.t, s: gameData.s};
 								} else {
@@ -223,7 +223,7 @@ function pollGamesData(clientData, userId) {
 						listToUpdate[getGamesListId(userId)][gameKey] = null;
 						logException('pollGamesData, '+ gameKey + ' save was not found, referenced from ' + userId);
 					} else {
-							logException('game '+ gameKey + ' from gamesList of user=' + userKey, {GameList: gameList, ListToLoad: listToLoad[userKey]});
+						logException('game '+ gameKey + ' from gamesList of user=' + userKey, {GameList: gameList, ListToLoad: listToLoad[userKey]});
 					}
 				}
 			}
@@ -242,6 +242,7 @@ function pollGamesData(clientData, userId) {
 
 // TODO: add checks based on userId / actorNr
 function getDiffData(gameData, clientGame) {
+	// 2 steps: check if client state can go to server state, then construct events cache to send back to client
 	try {//if (!gameData.hasOwnProperty('Cache')) {return null;} // TODO: remove or add log when moving to prod
 		var diff = {};
 		if (gameData.s !== clientGame.s) {
@@ -257,11 +258,7 @@ function getDiffData(gameData, clientGame) {
             for(var i=0; i<gameData.a[1].w.length; i++) {
                 p2_wordukens.push(gameData.a[1].w[i].wt);
             }
-						diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: p2_wordukens, ts: gameData.a[1].ts };
 						diff.e = [[2, CustomEventCodes.JoinGame, {id: gameData.a[1].id, n: gameData.a[1].n, w: p2_wordukens, ts: gameData.a[1].ts }]];
-						if (gameData.s >= GameStates.P1Resigned) {
-							diff.s = gameData.s;
-						}
 					} else {
 						diff = null;
 					}
@@ -275,11 +272,7 @@ function getDiffData(gameData, clientGame) {
             for(var i=0; i<gameData.a[1].w.length; i++) {
                 p2_wordukens.push(gameData.a[1].w[i].wt);
             }
-						diff.o = {id: gameData.a[1].id, n: gameData.a[1].n, w: p2_wordukens, ts: gameData.a[1].ts };
 						diff.e = [[2, CustomEventCodes.JoinGame, {id: gameData.a[1].id, n: gameData.a[1].n, w: p2_wordukens, ts: gameData.a[1].ts }]];
-						if (gameData.s >= GameStates.P1Resigned) {
-							diff.s = gameData.s;
-						}
 					} else {
 						diff = null;
 					}
@@ -287,26 +280,26 @@ function getDiffData(gameData, clientGame) {
 				case GameStates.Playing:
 				case GameStates.P1Waiting:
 				case GameStates.P2Waiting:
-					if (gameData.s >= GameStates.P1Resigned) {
-						diff.s = gameData.s;
-					} else if (gameData.s <= GameStates.UnmatchedWaiting) {
-						diff = null;
-					}
-					break;
 				case GameStates.Blocked: // TODO: revise this as it does not look correct
-					if (gameData.s === GameStates.Playing) {
-						// TODO: check if this is handled below or get roundNumber from client's turn, then construct NewRound event from that round
-						diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 1][2].r]];
-					} else if (gameData.s >= GameStates.P1Resigned) {
-						diff.s = gameData.s;
-					} else if (gameData.s !== GameStates.Blocked) {
-						// TODO: check which states should be expected from server, handle case where Ts - Tc > 3
+					if (gameData.s < GameStates.Playing) {
 						diff = null;
 					}
+				  // if (gameData.s > GameStates.Playing) { // opponent fixed game and played in the next round
+					// 	diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 2][2].r], gameData.Cache[gameData.Cache.length - 1]];
+					// }
+					// else if (gameData.s === GameStates.Playing) {
+					// 	// TODO: check if this is handled below or get roundNumber from client's turn, then construct NewRound event from that round
+					// 	diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 1][2].r]];
+					// } else if (gameData.s >= GameStates.P1Resigned) {
+					// 	diff.s = gameData.s;
+					// }
 					break;
 				default:
 				// logException
 				diff = null;
+			}
+			if (gameData.s >= GameStates.TimedOutDraw && gameData.s <= GameStates.TimedOutP2Won) {
+				diff.s = gameData.s;
 			}
 			// TODO: more tests please
 		}
@@ -337,8 +330,8 @@ function getDiffData(gameData, clientGame) {
 								if (clientGame.t !== ce[2].m.t) { // event of opponent in same round
 									if (isEmpty(diff.e)) {diff.e = [];}
 									diff.e.push(ce);
-								} else /*if (clientGame.t === ce[2].m.t)*/ {
-									if (isEmpty(diff.e)) {diff.e = [];}
+								} else /*if (clientGame.t === ce[2].m.t)*/ { //
+									if (isEmpty(diff.e)) { diff.e = []; }
 									diff.e.push([0, CustomEventCodes.NewRound, ce[2].r]);
 								}
 							}
@@ -347,11 +340,11 @@ function getDiffData(gameData, clientGame) {
 				}
 			}
 			//logException('diff result', {d:diff, c:clientGame, s:gameData});
-			if (diff.s === GameStates.P1Resigned){
+			if (gameData.s === GameStates.P1Resigned){
 				if (isEmpty(diff.e)) {diff.e = [];}
 				diff.e.push([1, CustomEventCodes.Resign, {}]);
 				//diff.s = undefined;
-			} else if (diff.s === GameStates.P2Resigned){
+			} else if (gameData.s === GameStates.P2Resigned){
 				if (isEmpty(diff.e)) {diff.e = [];}
 				//diff.s = null;
 				diff.e.push([2, CustomEventCodes.Resign, {}]);
@@ -419,7 +412,7 @@ function deleteOrFlagGames(games, userId) {
 						listToUpdate[getGamesListId(userId)][gameKey] = null;
 						logException('deleteOrFlagGames, '+ gameKey + ' save was not found, referenced from ' + userId);
 					} else {
-
+						// TODO: what to do here??
 					}
 				}
 			}
@@ -523,16 +516,7 @@ function addMissingEvents(clientData, data) {
 
 // TODO: remove, replace calls to pollData
 handlers.onLogin = function (args) {
-	try {
-        if (undefinedOrNull(args.UserId)) {
-            args.UserId = currentPlayerId;
-        }
-		var data = getPollResponse(args.g, args.UserId);
-		return {ResultCode: WEB_ERRORS.SUCCESS, Data: data};
-	} catch (e) {
-		logException('onLogin', {e: e, args: args});
-		return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR};
-	}
+	return handlers.pollData(args);
 };
 
 // expects {} in 'g' with <gameID> : {s: <gameState>, t: <turn#>, e:[<{cachedEvent}>]}
@@ -608,14 +592,30 @@ handlers.onPlayerCreated = function(args, context){
 	}
 };
 
-handlers.onPlayerLogin = function (args, context) {
-	try {
-	} catch (e) {
-		logException('onLogin', {e: e, args: args, context: context});
-		return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR};
-	}
-};
-
-handlers.onPushEnabled = function(args, context){
-
-};
+// handlers.onPlayerLogin = function (args, context) {
+// 	try {
+// 	} catch (e) {
+// 		logException('onLogin', {e: e, args: args, context: context});
+// 		return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR};
+// 	}
+// };
+//
+//
+// handlers.matchmake = function(args, context) {
+// 	try  {
+// 		var language = args.l, userId = args.UserId;
+// 		if (undefinedOrNull(userId)){
+// 			userId = currentPlayerId;
+// 		}
+// 		var lobbyId = constructLobbyId(args.l), lobbyList = getSharedGroupData(lobbyId);
+//
+// 	} catch (e) {
+// 		logException('matchmake', {e: e, args: args, context: context});
+// 		return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR};
+// 	}
+// };
+//
+// // TODO: move and handle lang type (enum value) to string
+// function constructLobbyId(lang) {
+// 	return lang + '_Random';
+// }
