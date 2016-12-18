@@ -390,6 +390,7 @@ function addToEventsCache(args, data) {
 		if (!data.hasOwnProperty('Cache')) {
 			data.Cache = [];
 		}
+
 		// TODO: test if opponent is inactive
 		for(var i=0; i<data.Cache.length; i++){
 			var cv = data.Cache[i];
@@ -411,6 +412,10 @@ function addToEventsCache(args, data) {
 				}
 			}
 		}
+		// cleanup keys used for push norification
+		delete args.Data.Target;
+		delete args.Data.EvCode;
+		delete args.Data.GameId;
 		var cachedEvent = [
 			args.ActorNr,
 			args.EvCode,
