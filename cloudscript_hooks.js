@@ -275,7 +275,6 @@ function onEndOfGame(args, data){
 			deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
 		}*/
 		// push
-		eventData.GameId = args.GameId;
 		var msg = '. Game has ended, ';
 		if (data.s === GameStates.EndedDraw) {
 			msg += 'Tie!';
@@ -292,6 +291,7 @@ function onEndOfGame(args, data){
 				}
 			}
 		}
+		eventData.GameId = args.GameId;
 		eventData.EvCode = CustomEventCodes.EndOfGame;
 		eventData.Target = data.a[2 - args.ActorNr].id;
 		handlers.sendPushNotification({
@@ -317,9 +317,28 @@ function onNewRound(args, data){
 		data.r[newRoundNr] = { r: eventData.r, gs: eventData.gs, ts: eventData.ts, m: [{}, {}] };
 		data.s = GameStates.Playing;
 		// TODO: do not presume last cached event is EndOfTurn who caused the block
+		if (data.Cache[data.Cache.length - 1][1] !== CustomEventCodes.EndOfTurn){
+
+		}
 		data.Cache[data.Cache.length - 1][1] = CustomEventCodes.EndOfRound;
 		data.Cache[data.Cache.length - 1][2] = { m: data.Cache[data.Cache.length - 1][2], r: eventData };
 		//data.Cache[data.Cache.length - 1][2].m.t = data.t;
+		if (!undefinedOrNull(args.State)) {
+			for(var i = 0; i < args.State.ActorList.length; i++) {
+				if (args.State.ActorList[i].IsActive === false){
+					eventData.EvCode = CustomEventCodes.NewRound;
+					eventData.Target = args.State.ActorList[i].UserId;
+					eventData.GameId = args.GameId;
+					handlers.sendPushNotification({
+						Recipient: args.State.ActorList[i].UserId,
+						Message: JSON.stringify({
+							Message: args.Nickname + ' has played ' + data.Cache[data.Cache.length - 1][2].m.mw + msg,
+							CustomData:eventData
+						})
+					});
+				}
+			}
+		}
 		return data;
 	} catch (e) {throw e;}
 }

@@ -67,29 +67,30 @@ var WEB_ERRORS = {
 
 handlers.RoomCreated = function (args) {
     try {
-        var data = {};
-        if (args.Type === 'Create') {
-			var games = getSharedGroupData(getGamesListId(args.UserId));
-			var count = 0;
-			for(var gameId in games) {
-				if (games.hasOwnProperty(gameId) && getCreatorId(gameId) === args.UserId && !undefinedOrNull(games[gameId]) &&
-					games[gameId].s >= GameStates.UnmatchedPlaying && games[gameId].s <= GameStates.Blocked) {
-					count++;
-				}
-			}
+      var data = {};
+      if (args.Type === 'Create') {
+  			var games = getSharedGroupData(getGamesListId(args.UserId));
+  			var count = 0;
+  			for(var gameId in games) {
+  				if (games.hasOwnProperty(gameId) && getCreatorId(gameId) === args.UserId && !undefinedOrNull(games[gameId]) &&
+  					games[gameId].s >= GameStates.UnmatchedPlaying && games[gameId].s <= GameStates.Blocked) {
+  					count++;
+  				}
+		    }
 			if (count > MAX_GAMES_PER_PLAYER) {
 				return {ResultCode: WEB_ERRORS.MAX_GAMES_REACHED, Message: 'Maximum allowed games exceeded!'};
 			}
-            return {ResultCode: WEB_ERRORS.SUCCESS, Message: 'OK'};
-        } else if (args.Type === 'Load') {
-            data = loadGameData(args.GameId);
-            if (undefinedOrNull(data) || undefinedOrNull(data.State)) {
-                throw new PhotonException(WEB_ERRORS.GAME_NOT_FOUND, 'Room State=' + args.GameId + ' not found', {Webhook: args, CustomState: data});
-            }
-            return {ResultCode: WEB_ERRORS.SUCCESS, Message: 'OK', State: data.State};
-        } else {
-            throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Wrong PathCreate Type=' + args.Type, {Webhook: args});
+
+        return {ResultCode: WEB_ERRORS.SUCCESS, Message: 'OK'};
+      } else if (args.Type === 'Load') {
+        data = loadGameData(args.GameId);
+        if (undefinedOrNull(data) || undefinedOrNull(data.State)) {
+            throw new PhotonException(WEB_ERRORS.GAME_NOT_FOUND, 'Room State=' + args.GameId + ' not found', {Webhook: args, CustomState: data});
         }
+        return {ResultCode: WEB_ERRORS.SUCCESS, Message: 'OK', State: data.State};
+      } else {
+          throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Wrong PathCreate Type=' + args.Type, {Webhook: args});
+      }
     } catch (e) {
         if (e instanceof PhotonException) {
             return {ResultCode: e.ResultCode, Message: e.Message};
@@ -195,19 +196,21 @@ handlers.RoomJoined = function (args) { // added to stop receiving ErrorInfo eve
         if (e instanceof PhotonException) {
             return {ResultCode: e.ResultCode, Message: e.Message};
         }
-		logException('RoomJoined', {e: e, args: args});
+		    logException('RoomJoined', {e: e, args: args});
         return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR, Message: JSON.stringify(e, replaceErrors)};
     }
 };
 
-
 handlers.sendPushNotification = function(args) {
   var result;
     try {
-        result = server.SendPushNotification(args);
-        return result;
+      result = server.SendPushNotification(args);
+      return result;
     } catch (err) {
-        logException('error in sendPushNotification', {a: args, e:err, r: result});
+      if (err.error === 'PushNotEnabledForAccount') {
+        return; // skip logging this for now
+      }
+      logException('error in sendPushNotification', {a: args, e:err, r: result});
         //throw e;
     }
 };
