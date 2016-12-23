@@ -58,8 +58,8 @@ function saveGameData(gameId, data) {
 function stripRoomState(state) {
 	delete state.DebugInfo;
 	delete state.CustomProperties;
-  delete state.IsOpen;
-  delete state.IsVisible;
+  // delete state.IsOpen;
+  // delete state.IsVisible;
   delete state.EmptyRoomTTL;
   delete state.PlayerTTL;
   delete state.PublishUserId;
