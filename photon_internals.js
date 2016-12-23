@@ -38,7 +38,7 @@ function loadGameData(gameId) {
       result.State.MaxPlayers = 2;
       result.State.Slice = 0;
       result.State.DeleteCacheOnLeave = false;
-      result.State.SupressRoomEvents = true;
+      result.State.SuppressRoomEvents = true;
       result.State.CheckUserOnJoin = true;
     }
 		return result;
@@ -65,7 +65,7 @@ function stripRoomState(state) {
   delete state.ExpectedUsers;
   delete state.Slice;
   delete state.DeleteCacheOnLeave;
-  delete state.SupressRoomEvents;
+  delete state.SuppressRoomEvents;
   delete state.LobbyProperties;
   delete state.CheckUserOnJoin;
   delete state.IsActive;
