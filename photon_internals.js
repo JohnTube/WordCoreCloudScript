@@ -31,6 +31,16 @@ function loadGameData(gameId) {
 	var result;
     try {
 		result = getSharedGroupEntry(getGamesListId(getCreatorId(gameId)), gameId);
+    if (!undefinedOrNull(result.State)){
+      result.State.EmptyRoomTTL = 0;
+      result.State.PlayerTTL = -1;
+      result.State.PublishUserId = true;
+      result.State.MaxPlayers = 2;
+      result.State.Slice = 0;
+      result.State.DeleteCacheOnLeave = false;
+      result.State.SupressRoomEvents = true;
+      result.State.CheckUserOnJoin = true;
+    }
 		return result;
     } catch (e) { logException('loadGameData:' + gameId + ', currentPlayerId=' + currentPlayerId, {err: e, ret: result}); throw e; }
 }
@@ -45,8 +55,25 @@ function saveGameData(gameId, data) {
 function stripRoomState(state) {
 	delete state.DebugInfo;
 	delete state.CustomProperties;
+  delete state.IsOpen;
+  delete state.IsVisible;
+  delete state.EmptyRoomTTL;
+  delete state.PlayerTTL;
+  delete state.PublishUserId;
+  delete state.MaxPlayers;
+  delete state.ExcludedActors;
+  delete state.ExpectedUsers;
+  delete state.Slice;
+  delete state.DeleteCacheOnLeave;
+  delete state.SupressRoomEvents;
+  delete state.LobbyProperties;
+  delete state.CheckUserOnJoin;
+  delete state.IsActive;
+  delete state.Binary["18"];
+  delete state.Binary["20"];
 	state.ActorList.forEach(function(actor) {
 			delete actor.DEBUG_BINARY;
+      delete actor.Nickname;
 		});
 	return state;
 }
@@ -106,11 +133,11 @@ handlers.RoomClosed = function (args) {
         if (args.Type === 'Close') {
 			//logException(args, 'Unexpected GameClose, Type == Close');
         } else if (args.Type === 'Save') {
-			data = loadGameData(args.GameId);
+			       data = loadGameData(args.GameId);
             if (undefinedOrNull(data)) {
                 throw new PhotonException(WEB_ERRORS.GAME_NOT_FOUND, 'Room State save error: game not found', {Webhook: args});
             }
-			data.State = stripRoomState(args.State);
+			         data.State = stripRoomState(args.State);
             saveGameData(args.GameId, data);
         } else {
             throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Wrong PathClose Type=' + args.Type, {Webhook: args});
@@ -151,9 +178,10 @@ handlers.RoomEventRaised = function (args) {
     			data = loadGameData(args.GameId);
     		}
         data = onEventReceived(args, data);
-        if (!undefinedOrNull(args.State)) {
-        	data.State = stripRoomState(args.State);
-        }
+        // if (!undefinedOrNull(args.State)) {
+        // 	data.State = stripRoomState(args.State);
+        // }
+        delete data.State;
 		    saveGameData(args.GameId, data);
         return {ResultCode: WEB_ERRORS.SUCCESS, Message: 'OK'};
     } catch (e) {
