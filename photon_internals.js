@@ -58,8 +58,8 @@ function saveGameData(gameId, data) {
 function stripRoomState(state) {
 	delete state.DebugInfo;
 	delete state.CustomProperties;
-  // delete state.IsOpen;
-  // delete state.IsVisible;
+  delete state.IsOpen;
+  delete state.IsVisible;
   delete state.EmptyRoomTTL;
   delete state.PlayerTTL;
   delete state.PublishUserId;
@@ -72,7 +72,7 @@ function stripRoomState(state) {
   delete state.LobbyProperties;
   delete state.CheckUserOnJoin;
   delete state.IsActive;
-  delete state.Binary["18"];
+  // delete state.Binary["18"];
   delete state.Binary["20"];
   delete state.LobbyType;
 	state.ActorList.forEach(function(actor) {
