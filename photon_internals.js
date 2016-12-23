@@ -41,7 +41,7 @@ function loadGameData(gameId) {
       result.State.SuppressRoomEvents = true;
       result.State.CheckUserOnJoin = true;
       if (result.gt === 2) {
-        result.State = 3;
+        result.State.LobbyType = 3;
       }
     }
 		return result;
