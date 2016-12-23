@@ -389,30 +389,6 @@ function addToEventsCache(args, data) {
 		if (!data.hasOwnProperty('Cache')) {
 			data.Cache = [];
 		}
-		for(var i=0; i<data.Cache.length; i++){
-			var cv = data.Cache[i];
-			if (cv[0] === args.ActorNr && cv[1] === args.EvCode) {
-				switch (cv[1]) {
-					case CustomEventCodes.EndOfTurn:
-					case CustomEventCodes.EndOfGame:
-						if (cv[2].t === args.Data.t) {
-							throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Trying to cache duplicate event', { w: args, d: data });
-						}
-						break;
-					case CustomEventCodes.EndOfRound:
-						if (cv[2].r.r === args.Data.r.r) {
-							throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Trying to cache duplicate event', { w: args, d: data });
-						}
-						break;
-					default:
-						break;
-				}
-			}
-		}
-		// cleanup keys used for push norification
-		delete args.Data.Target;
-		delete args.Data.EvCode;
-		delete args.Data.GameId;
 		var filter;
 		switch (args.EvCode) {
 			case CustomEventCodes.EndOfTurn:
@@ -423,8 +399,18 @@ function addToEventsCache(args, data) {
 				filter = args.Data.m.t;
 				break;
 			default:
-				break;
+				throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Trying to cache unhandled event', { w: args, d: data });
 		}
+		for(var i=0; i<data.Cache.length; i++){
+			var cv = data.Cache[i];
+			if (cv[2] === filter) {
+				throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Trying to cache duplicate event', { w: args, d: data });
+			}
+		}
+		// cleanup keys used for push norification
+		delete args.Data.Target;
+		delete args.Data.EvCode;
+		delete args.Data.GameId;
 		var cachedEvent = [
 			args.ActorNr,
 			args.EvCode,
