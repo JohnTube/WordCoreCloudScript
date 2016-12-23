@@ -8,7 +8,7 @@ function getLengthBonus(word) {
 
 var ALPHABETS = [
 	{A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1, J: 8, K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1, S: 1, T: 1, U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10},
-	{A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:10,L:1,M:2,N:1,O:1,P:3,Q:8,R:1,S:1,T:1,U:1,V:4,W:10,X:10,Y:10,Z:10}
+	{A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1, J: 8, K: 10, L: 1, M:2 , N: 1, O: 1, P: 3, Q: 8, R: 1, S: 1, T: 1, U: 1, V: 4, W: 10, X: 10, Y: 10, Z: 10}
 ];
 
 function getMovePoints(language, word) {
@@ -249,10 +249,8 @@ function onEndOfRound(args, data) {
 function onEndOfGame(args, data){
 	try {
 		var eventData = args.Data; // TODO: test args and eventData
-		if (eventData.SkipBlocked !== true) {
-			if (eventData.t !== MAX_TURNS_PER_GAME || eventData.t !== data.t + args.ActorNr) {
+		if (eventData.SkipBlocked !== true && eventData.t !== MAX_TURNS_PER_GAME || eventData.t !== data.t + args.ActorNr) {
 				throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom EndOfGame event: wrong t#', { w: args, d: data });
-			}
 		}
 		if (data.s !== GameStates.Playing + (3 - args.ActorNr)) {
 			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom EndOfGame event: wrong s', { w: args, d: data });
@@ -320,8 +318,9 @@ function onNewRound(args, data){
 		if (data.Cache[data.Cache.length - 1][1] !== CustomEventCodes.EndOfTurn){
 
 		}
+		// data.Cache[data.Cache.length - 1][0] = args.ActorNr;
 		data.Cache[data.Cache.length - 1][1] = CustomEventCodes.EndOfRound;
-		data.Cache[data.Cache.length - 1][2] = { m: data.Cache[data.Cache.length - 1][2], r: eventData };
+		data.Cache[data.Cache.length - 1][2] = data.t;//{ m: data.Cache[data.Cache.length - 1][2], r: eventData };
 		//data.Cache[data.Cache.length - 1][2].m.t = data.t;
 		if (!undefinedOrNull(args.State)) {
 			for(var i = 0; i < args.State.ActorList.length; i++) {
@@ -390,8 +389,6 @@ function addToEventsCache(args, data) {
 		if (!data.hasOwnProperty('Cache')) {
 			data.Cache = [];
 		}
-
-		// TODO: test if opponent is inactive
 		for(var i=0; i<data.Cache.length; i++){
 			var cv = data.Cache[i];
 			if (cv[0] === args.ActorNr && cv[1] === args.EvCode) {
@@ -416,10 +413,22 @@ function addToEventsCache(args, data) {
 		delete args.Data.Target;
 		delete args.Data.EvCode;
 		delete args.Data.GameId;
+		var filter;
+		switch (args.EvCode) {
+			case CustomEventCodes.EndOfTurn:
+			case CustomEventCodes.EndOfGame:
+				filter = args.Data.t;
+				break;
+			case CustomEventCodes.EndOfRound:
+				filter = args.Data.m.t;
+				break;
+			default:
+				break;
+		}
 		var cachedEvent = [
 			args.ActorNr,
 			args.EvCode,
-			args.Data
+			filter
 		];
 		data.Cache.push(cachedEvent);
 		return data;

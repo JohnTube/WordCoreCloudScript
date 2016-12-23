@@ -40,6 +40,9 @@ function loadGameData(gameId) {
       result.State.DeleteCacheOnLeave = false;
       result.State.SuppressRoomEvents = true;
       result.State.CheckUserOnJoin = true;
+      if (result.gt === 2) {
+        result.State = 3;
+      }
     }
 		return result;
     } catch (e) { logException('loadGameData:' + gameId + ', currentPlayerId=' + currentPlayerId, {err: e, ret: result}); throw e; }
@@ -55,8 +58,8 @@ function saveGameData(gameId, data) {
 function stripRoomState(state) {
 	delete state.DebugInfo;
 	delete state.CustomProperties;
-  delete state.IsOpen;
-  delete state.IsVisible;
+  // delete state.IsOpen;
+  // delete state.IsVisible;
   delete state.EmptyRoomTTL;
   delete state.PlayerTTL;
   delete state.PublishUserId;
@@ -71,6 +74,7 @@ function stripRoomState(state) {
   delete state.IsActive;
   delete state.Binary["18"];
   delete state.Binary["20"];
+  delete state.LobbyType;
 	state.ActorList.forEach(function(actor) {
 			delete actor.DEBUG_BINARY;
       delete actor.Nickname;

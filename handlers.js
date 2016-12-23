@@ -280,75 +280,67 @@ function getDiffData(gameData, clientGame) {
 				case GameStates.Playing:
 				case GameStates.P1Waiting:
 				case GameStates.P2Waiting:
-				case GameStates.Blocked: // TODO: revise this as it does not look correct
+				case GameStates.Blocked:
 					if (gameData.s < GameStates.Playing) {
 						diff = null;
 					}
-				  // if (gameData.s > GameStates.Playing) { // opponent fixed game and played in the next round
-					// 	diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 2][2].r], gameData.Cache[gameData.Cache.length - 1]];
-					// }
-					// else if (gameData.s === GameStates.Playing) {
-					// 	// TODO: check if this is handled below or get roundNumber from client's turn, then construct NewRound event from that round
-					// 	diff.e = [[0, CustomEventCodes.NewRound, gameData.Cache[gameData.Cache.length - 1][2].r]];
-					// } else if (gameData.s >= GameStates.P1Resigned) {
-					// 	diff.s = gameData.s;
-					// }
+					if (gameData.s >= GameStates.TimedOutDraw && gameData.s <= GameStates.TimedOutP2Won) {
+						diff.s = gameData.s;
+					}
 					break;
 				default:
 				// logException
 				diff = null;
-			}
-			if (gameData.s >= GameStates.TimedOutDraw && gameData.s <= GameStates.TimedOutP2Won) {
-				diff.s = gameData.s;
+				break;
 			}
 			// TODO: more tests please
 		}
 		if (diff !== null) {
-			if (gameData.t >= clientGame.t && !isEmpty(gameData.Cache)) {
-				var cR = Math.floor(clientGame.t / 3);
-				for(var i=0; i<gameData.Cache.length; i++) {
-					var ce = gameData.Cache[i];
+			var cR = Math.floor(clientGame.t / 3);
+			if (gameData.t === clientGame.t === cR * 3 && clientGame.s === GameStates.Blocked){
+					if (isEmpty(diff.e)) { diff.e = []; }
+					diff.e.push([0, CustomEventCodes.NewRound, {gs:gameData.r[cR].gs, r:gameData.r[cR].r, ts:gameData.r[cR].ts}]);
+			}
+			else if (!isEmpty(gameData.Cache) && gameData.t > clientGame.t) {
+				cR = cR * 2;
+				if (clientGame.s === GameStates.Blocked) { cR--; }
+				for(var j= cR; j < gameData.Cache.length; j++) {
+					var ce = gameData.Cache[j];
 					switch (ce[1]) {
 						case CustomEventCodes.EndOfGame:
-							if (isEmpty(diff.e)) {diff.e = [];}
-							diff.e.push(ce);
+							if (isEmpty(diff.e)) { diff.e = []; }
+							diff.e.push([ce[0], ce[1], gameData.r[gameData.r.length - 1].m[ce[0] - 1]]);
 							break;
 						case CustomEventCodes.EndOfTurn:
-							var eR = Math.floor(ce[2].t / 3);
-							if (clientGame.t < ce[2].t || // old event
-								(eR === cR && clientGame.t !== ce[2].t)) { // event of opponent in same round
-									if (isEmpty(diff.e)) {diff.e = [];}
-									diff.e.push(ce);
+							var eR = Math.floor(ce[2] / 3);
+							if (clientGame.t < ce[2] || // old event
+								(eR === cR && clientGame.t !== ce[2])) { // event of opponent in same round ==> this will cause blocked state on client
+									if (isEmpty(diff.e)) { diff.e = []; }
+									diff.e.push([ce[0], ce[1], gameData.r[eR].m[ce[0] - 1]]);
 							}
 							break;
 						case CustomEventCodes.EndOfRound:
-							eR = Math.floor(ce[2].m.t / 3);
-							if (clientGame.t < ce[2].m.t) {
-								if (isEmpty(diff.e)) {diff.e = [];}
-								diff.e.push(ce);
-							} else if	(eR === cR && clientGame.t !== ce[2].m.t) {
-								if (isEmpty(diff.e)) {diff.e = [];}
-								diff.e.push(ce);
-							}
-							else if (eR + 1 === cR && clientGame.s === GameStates.Blocked && clientGame.t % 3 === 0) { //
-									if (isEmpty(diff.e)) { diff.e = []; }
-									diff.e.push([0, CustomEventCodes.NewRound, ce[2].r]);
+							eR = Math.floor(ce[2] / 3);
+							if (clientGame.t < ce[2]) { // new round
+								if (isEmpty(diff.e)) { diff.e = []; }
+								diff.e.push([ce[0], ce[1], {r: {gs:gameData.r[eR].gs, r:gameData.r[eR].r, ts:gameData.r[eR].ts}, m:gameData.r[eR - 1].m[ce[0] - 1]}]);
+							} else if (clientGame.t === ce[2] && clientGame.s === GameStates.Blocked) { // fixing blocked round
+								if (isEmpty(diff.e)) { diff.e = []; }
+								diff.e.push([0, CustomEventCodes.NewRound, {gs:gameData.r[eR].gs, r:gameData.r[eR].r, ts:gameData.r[eR].ts}]);
 							}
 							break;
 					}
 				}
 			}
-			//logException('diff result', {d:diff, c:clientGame, s:gameData});
-			if (gameData.s === GameStates.P1Resigned){
-				if (isEmpty(diff.e)) {diff.e = [];}
+			if (gameData.s === GameStates.P1Resigned) {
+				if (isEmpty(diff.e)) { diff.e = []; }
 				diff.e.push([1, CustomEventCodes.Resign, {}]);
-				//diff.s = undefined;
-			} else if (gameData.s === GameStates.P2Resigned){
-				if (isEmpty(diff.e)) {diff.e = [];}
-				//diff.s = null;
+			} else if (gameData.s === GameStates.P2Resigned) {
+				if (isEmpty(diff.e)) { diff.e = []; }
 				diff.e.push([2, CustomEventCodes.Resign, {}]);
 			}
 	  }
+		logException('diff result', {d:diff, c:clientGame, s:gameData});
 		return diff;
 	} catch (e) {
 		throw e;
