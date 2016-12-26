@@ -31,7 +31,7 @@ function loadGameData(gameId) {
 	var result;
     try {
 		result = getSharedGroupEntry(getGamesListId(getCreatorId(gameId)), gameId);
-    if (!undefinedOrNull(result.State)){
+    if (!undefinedOrNull(result) && !undefinedOrNull(result.State)) {
       result.State.EmptyRoomTTL = 0;
       result.State.PlayerTTL = -1;
       result.State.PublishUserId = true;
@@ -42,6 +42,12 @@ function loadGameData(gameId) {
       result.State.CheckUserOnJoin = true;
       if (result.gt === 2) {
         result.State.LobbyType = 3;
+      }
+      result.ActorList[0].ActorNr = 1;
+      result.ActorList[0].UserId = result.a[0].id;
+      if (result.ActorList.length === 2) {
+        result.ActorList[1].ActorNr = 2;
+        result.ActorList[1].UserId = result.a[1].id;
       }
     }
 		return result;
@@ -71,14 +77,17 @@ function stripRoomState(state) {
   delete state.SuppressRoomEvents;
   delete state.LobbyProperties;
   delete state.CheckUserOnJoin;
-  delete state.IsActive;
   // delete state.Binary["18"];
   delete state.Binary["20"];
   delete state.LobbyType;
 	state.ActorList.forEach(function(actor) {
-			delete actor.DEBUG_BINARY;
-      delete actor.Nickname;
-		});
+		delete actor.DEBUG_BINARY;
+    delete actor.Nickname;
+    delete actor.ActorNr;
+    delete actor.UserId;
+    delete actor.IsActive;
+    delete actor.DeactivationTime;
+	});
 	return state;
 }
 
@@ -111,7 +120,6 @@ handlers.RoomCreated = function (args) {
 			if (count > MAX_GAMES_PER_PLAYER) {
 				return {ResultCode: WEB_ERRORS.MAX_GAMES_REACHED, Message: 'Maximum allowed games exceeded!'};
 			}
-
         return {ResultCode: WEB_ERRORS.SUCCESS, Message: 'OK'};
       } else if (args.Type === 'Load') {
         data = loadGameData(args.GameId);
@@ -141,7 +149,7 @@ handlers.RoomClosed = function (args) {
             if (undefinedOrNull(data)) {
                 throw new PhotonException(WEB_ERRORS.GAME_NOT_FOUND, 'Room State save error: game not found', {Webhook: args});
             }
-			         data.State = stripRoomState(args.State);
+		        data.State = stripRoomState(args.State);
             saveGameData(args.GameId, data);
         } else {
             throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Wrong PathClose Type=' + args.Type, {Webhook: args});
@@ -201,9 +209,9 @@ handlers.RoomEventRaised = function (args) {
     						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.t+','+e.Message};
     					case CustomEventCodes.WordukenUsed:
     						return {ResultCode: e.ResultCode, Message: args.EvCode+','+args.Data.wi+','+e.Message};
-    					case CustomEventCodes.InitGame:
-    					case CustomEventCodes.JoinGame:
-    					case CustomEventCodes.Resign:
+    					// case CustomEventCodes.InitGame:
+    					// case CustomEventCodes.JoinGame:
+    					// case CustomEventCodes.Resign:
     					default:
     						return {ResultCode: e.ResultCode, Message: args.EvCode+','+e.Message};
     				}
@@ -239,7 +247,7 @@ handlers.sendPushNotification = function(args) {
       result = server.SendPushNotification(args);
       return result;
     } catch (err) {
-      if (err.error === 'PushNotEnabledForAccount') {
+      if (err.Error.error === 'PushNotEnabledForAccount') {
         return; // skip logging this for now
       }
       logException('error in sendPushNotification', {a: args, e:err, r: result});

@@ -439,9 +439,9 @@ function addMissingEvents(clientData, data) {
 				case CustomEventCodes.WordukenUsed:
 					eAck.push(e.Data.wi);
 					break;
-				case CustomEventCodes.InitGame:
-				case CustomEventCodes.JoinGame:
-				case CustomEventCodes.Resign:
+				// case CustomEventCodes.InitGame:
+				// case CustomEventCodes.JoinGame:
+				// case CustomEventCodes.Resign:
 				default:
 					break;
 			}
@@ -454,33 +454,6 @@ function addMissingEvents(clientData, data) {
 					if (ex instanceof PhotonException && ex.ResultCode === WEB_ERRORS.EVENT_FAILURE) {
 						eAck[0] = false;
 						clientData.ignoreUpdate = true;
-						//logException('addMissingEvents handled onEventReceived error', ex);
-						//clientData.t = data.t;
-						//clientData.s = data.s;
-						/*switch (e.EvCode) {
-							case CustomEventCodes.EndOfGame:
-							case CustomEventCodes.EndOfRound:
-								clientData.t = e.Data.t - e.ActorNr;
-								clientData.s = GameStates.Playing + (3 - e.ActorNr);
-								break;
-							case CustomEventCodes.EndOfTurn:
-								clientData.t = e.Data.t - e.ActorNr;
-								if (e.Data.s > GameStates.UnmatchedWaiting) {
-									clientData.s = GameStates.Playing;
-								} else {
-									clientData.s = GameStates.UnmatchedPlaying;
-								}
-								break;
-							case CustomEventCodes.NewRound:
-							case CustomEventCodes.WordukenUsed:
-								// nothing to fix, same TurnNumber, same GameState
-								break;
-							case CustomEventCodes.InitGame:
-							case CustomEventCodes.JoinGame:
-							case CustomEventCodes.Resign:
-							default:
-								break;
-						}*/
 					} else {
 						logException('addMissingEvents UNHANDLED onEventReceived error', ex);
 						clientData.ignoreUpdate = true;
