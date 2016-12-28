@@ -43,11 +43,11 @@ function loadGameData(gameId) {
       if (result.gt === 2) {
         result.State.LobbyType = 3;
       }
-      result.ActorList[0].ActorNr = 1;
-      result.ActorList[0].UserId = result.a[0].id;
-      if (result.ActorList.length === 2) {
-        result.ActorList[1].ActorNr = 2;
-        result.ActorList[1].UserId = result.a[1].id;
+      result.State.ActorList[0].ActorNr = 1;
+      result.State.ActorList[0].UserId = result.a[0].id;
+      if (result.State.ActorList.length === 2) {
+        result.State.ActorList[1].ActorNr = 2;
+        result.State.ActorList[1].UserId = result.a[1].id;
       }
     }
 		return result;
