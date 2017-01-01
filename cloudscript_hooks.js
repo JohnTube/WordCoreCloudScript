@@ -105,12 +105,20 @@ function onInitGame(args, data) {
 		s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
 		data.r = [{gs: round0_grid, ts: eventData.r.ts, r: 0, m: [{}, {}]}];
 		// TEMP: to not let players alone
-		eventData.EvCode = CustomEventCodes.InitGame;
-		eventData.GameId = args.GameId;
-		eventData.Target = "A87B7470F4AEDC76";
-		handlers.sendPushNotification({Recipient: "A87B7470F4AEDC76", Message: JSON.stringify({Message: args.Nickname + ' has created a game!', CustomData: eventData})});
-		eventData.Target = "73BD7B8F4F332064";
-		handlers.sendPushNotification({Recipient: "73BD7B8F4F332064", Message: JSON.stringify({Message: args.Nickname + ' has created a game!', CustomData: eventData})});
+		var ingoredUsers = ["E5B98D6342BE2081", "73BD7B8F4F332064", "AE153C11A8A5AFBD", "36FA5C73684CD689", "8B962390A39AC3B0", "982707EF02AE3898", "3557776C7D92362E", "56F1BEC55BF6D383",
+			"C5F4BDF9290B4D7B", "D11CA9D40F20683F", "1C2F249ED7F92165", "DDD2FCBD209A4089", "A87B7470F4AEDC76", "6E4D79BFDB4710D6"];
+		if (ignoredUsers.indexOf(args.UserId) !== -1) {
+			eventData.EvCode = CustomEventCodes.InitGame;
+			eventData.GameId = args.GameId;
+			eventData.Target = "A87B7470F4AEDC76";
+			var language = "ENGLISH";
+			if (data.l === 2) {
+				language = "FRENCH";
+			}
+			handlers.sendPushNotification({Recipient: "A87B7470F4AEDC76", Message: JSON.stringify({Message: args.Nickname + ' created '+language+' game!', CustomData: eventData})});
+			eventData.Target = "73BD7B8F4F332064";
+			handlers.sendPushNotification({Recipient: "73BD7B8F4F332064", Message: JSON.stringify({Message: args.Nickname + ' created '+language+' game!', CustomData: eventData})});
+		}
 		return data; // do not cache this event
 	} catch (e) { throw e;}
 }
