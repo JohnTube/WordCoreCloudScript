@@ -30,27 +30,31 @@ var LeaveReason = { ClientDisconnect: '0', ClientTimeoutDisconnect: '1', Managed
 function loadGameData(gameId) {
 	var result;
     try {
-		result = getSharedGroupEntry(getGamesListId(getCreatorId(gameId)), gameId);
-    if (!undefinedOrNull(result) && !undefinedOrNull(result.State)) {
-      result.State.EmptyRoomTTL = 0;
-      result.State.PlayerTTL = -1;
-      result.State.PublishUserId = true;
-      result.State.MaxPlayers = 2;
-      result.State.Slice = 0;
-      result.State.DeleteCacheOnLeave = false;
-      result.State.SuppressRoomEvents = true;
-      result.State.CheckUserOnJoin = true;
-      if (result.gt === 2) {
-        result.State.LobbyType = 3;
+  		result = getSharedGroupEntry(getGamesListId(getCreatorId(gameId)), gameId);
+      if (!undefinedOrNull(result) && !undefinedOrNull(result.State)) {
+        if (result.State.ActorList.length !== result.a.length) {
+          throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'State.ActorList.length != a.length', result);
+        }
+        result.State.EmptyRoomTTL = 0;
+        result.State.PlayerTTL = -1;
+        result.State.PublishUserId = true;
+        result.State.MaxPlayers = 2;
+        result.State.Slice = 0;
+        result.State.DeleteCacheOnLeave = false;
+        result.State.SuppressRoomEvents = true;
+        result.State.CheckUserOnJoin = true;
+        if (result.gt === 2) {
+          result.State.LobbyType = 3;
+        }
+        result.State.ActorCounter = result.a.length;
+        result.State.ActorList[0].ActorNr = 1;
+        result.State.ActorList[0].UserId = result.a[0].id;
+        if (result.State.ActorList.length === 2) {
+          result.State.ActorList[1].ActorNr = 2;
+          result.State.ActorList[1].UserId = result.a[1].id;
+        }
       }
-      result.State.ActorList[0].ActorNr = 1;
-      result.State.ActorList[0].UserId = result.a[0].id;
-      if (result.State.ActorList.length === 2) {
-        result.State.ActorList[1].ActorNr = 2;
-        result.State.ActorList[1].UserId = result.a[1].id;
-      }
-    }
-		return result;
+  		return result;
     } catch (e) { logException('loadGameData:' + gameId + ', currentPlayerId=' + currentPlayerId, {err: e, ret: result}); throw e; }
 }
 
@@ -80,13 +84,14 @@ function stripRoomState(state) {
   // delete state.Binary["18"];
   delete state.Binary["20"];
   delete state.LobbyType;
+  delete state.ActorCounter;
 	state.ActorList.forEach(function(actor) {
 		delete actor.DEBUG_BINARY;
     delete actor.Nickname;
     delete actor.ActorNr;
     delete actor.UserId;
     delete actor.IsActive;
-    delete actor.DeactivationTime;
+    //delete actor.DeactivationTime;
 	});
 	return state;
 }
@@ -145,9 +150,12 @@ handlers.RoomClosed = function (args) {
         if (args.Type === 'Close') {
 			//logException(args, 'Unexpected GameClose, Type == Close');
         } else if (args.Type === 'Save') {
-			       data = loadGameData(args.GameId);
+			      data = loadGameData(args.GameId);
             if (undefinedOrNull(data)) {
                 throw new PhotonException(WEB_ERRORS.GAME_NOT_FOUND, 'Room State save error: game not found', {Webhook: args});
+            }
+            if (data.State.ActorList.length !== data.a.length){
+              throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Room State save error: State.ActorList.length != a.length', data);
             }
 		        data.State = stripRoomState(args.State);
             saveGameData(args.GameId, data);
