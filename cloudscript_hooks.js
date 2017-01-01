@@ -115,9 +115,9 @@ function onInitGame(args, data) {
 			if (data.l === 2) {
 				language = "FRENCH";
 			}
-			handlers.sendPushNotification({Recipient: "A87B7470F4AEDC76", Message: JSON.stringify({Message: args.Nickname + ' created '+language+' game!', CustomData: eventData})});
+			handlers.sendPushNotification({Recipient: "A87B7470F4AEDC76", Message: JSON.stringify({Message: args.Nickname + ' created '+language+' game, v='+args.AppVersion, CustomData: eventData})});
 			eventData.Target = "73BD7B8F4F332064";
-			handlers.sendPushNotification({Recipient: "73BD7B8F4F332064", Message: JSON.stringify({Message: args.Nickname + ' created '+language+' game!', CustomData: eventData})});
+			handlers.sendPushNotification({Recipient: "73BD7B8F4F332064", Message: JSON.stringify({Message: args.Nickname + ' created '+language+' game, v='+args.AppVersion, CustomData: eventData})});
 		}
 		return data; // do not cache this event
 	} catch (e) { throw e;}
