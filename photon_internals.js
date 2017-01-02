@@ -154,7 +154,7 @@ handlers.RoomClosed = function (args) {
             if (undefinedOrNull(data)) {
                 throw new PhotonException(WEB_ERRORS.GAME_NOT_FOUND, 'Room State save error: game not found', {Webhook: args});
             }
-            if (data.State.ActorList.length !== data.a.length){
+            if (args.State.ActorList.length !== data.a.length){
               throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'Room State save error: State.ActorList.length != a.length', data);
             }
 		        data.State = stripRoomState(args.State);
