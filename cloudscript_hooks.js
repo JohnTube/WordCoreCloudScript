@@ -119,6 +119,12 @@ function onInitGame(args, data) {
 			eventData.Target = "73BD7B8F4F332064";
 			handlers.sendPushNotification({Recipient: "73BD7B8F4F332064", Message: JSON.stringify({Message: args.Nickname + ' created '+language+' game, v='+args.AppVersion, CustomData: eventData})});
 		}
+		if (data.gt === 3) { // CHALLENGE
+			eventData.Target = eventData.OpponentId;
+			//delete eventData.OpponentId;
+			handlers.sendPushNotification({Recipient: eventData.OpponentId, Message: JSON.stringify({Message: args.Nickname + ' challenged you to a game !', CustomData: eventData})});
+			updateSharedGroupEntry(getGamesListId(eventData.OpponentId), args.GameId, {});
+		}
 		return data; // do not cache this event
 	} catch (e) { throw e;}
 }
