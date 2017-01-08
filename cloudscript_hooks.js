@@ -170,7 +170,11 @@ function onJoinGame(args, data) {
 		eventData.EvCode = CustomEventCodes.JoinGame;
 		eventData.n = args.Nickname;
 		eventData.Target = data.a[0].id;
-		handlers.sendPushNotification({Recipient: data.a[0].id, Message: JSON.stringify({Message: args.Nickname + ' has joined a game!', CustomData: eventData})});
+		if (data.gt === 3) {
+			handlers.sendPushNotification({Recipient: data.a[0].id, Message: JSON.stringify({Message: args.Nickname + ' accepted your challenge!', CustomData: eventData})});
+		} else {
+			handlers.sendPushNotification({Recipient: data.a[0].id, Message: JSON.stringify({Message: args.Nickname + ' has joined a game!', CustomData: eventData})});
+		}
 		return data; // do not cache this event
 	} catch (e) { throw e;}
 }
@@ -375,11 +379,15 @@ function onResign(args, gameData){
 	gameData.deletionFlag = actorNr;
 	redeemWordukens(args.UserId, gameData.a[actorNr - 1].w, args.GameId);
 	if (gameData.a.length === 2) {
+		var msg = gameData.a[actorNr - 1].n + ' resigned!';
+		if (actorNr === 2 && gameData.gt === 3 && gameData.s < GameStates.Playing) {
+			msg = gameData.a[actorNr - 1].n + ' declined the challenge!';
+		}
 		// send push
 		handlers.sendPushNotification({
 			Recipient: gameData.a[2 - actorNr].id,
 			Message: JSON.stringify({
-				Message: gameData.a[actorNr - 1].n + ' resigned!',
+				Message: msg,
 				CustomData: {
 					EvCode: CustomEventCodes.Resign,
 					GameId: args.GameId,

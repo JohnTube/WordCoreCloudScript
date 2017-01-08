@@ -547,7 +547,7 @@ handlers.fixRound = function (args) {
 	}
 };
 
-handlers.onPlayerCreated = function(args, context){
+handlers.onPlayerCreated = function(args, context) {
 	try {
 		createSharedGroup(getGamesListId(currentPlayerId));
 	} catch (e) {
