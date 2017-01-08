@@ -32,7 +32,7 @@ function loadGameData(gameId) {
     try {
   		result = getSharedGroupEntry(getGamesListId(getCreatorId(gameId)), gameId);
       if (!undefinedOrNull(result) && !undefinedOrNull(result.State)) {
-        if (result.State.ActorList.length !== result.a.length) {
+        if (result.State.ActorList.length !== result.a.length && result.gt !== 3) {
           throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'State.ActorList.length != a.length', result);
         }
         result.State.EmptyRoomTTL = 0;
