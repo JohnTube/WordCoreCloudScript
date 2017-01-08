@@ -45,6 +45,8 @@ function loadGameData(gameId) {
         result.State.CheckUserOnJoin = true;
         if (result.gt === 2) {
           result.State.LobbyType = 3;
+        } else if (result.gt === 3) {
+          result.State.LobbyType = 0;
         }
         result.State.ActorCounter = result.a.length;
         result.State.ActorList[0].ActorNr = 1;

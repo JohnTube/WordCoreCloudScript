@@ -186,7 +186,7 @@ function pollGamesData(clientData, userId) {
 						}
 						var round = gameList[gameKey].r.length - 1;//gameList[gameKey].t / 3
 						var timestamp = gameList[gameKey].r[round].ts;
-						if (gameList[gameKey].s < GameStates.Playing) {
+						if (gameList[gameKey].s < GameStates.Playing && gameList[gameKey].gt === 2) {
 							logException('Unexpected GameState ('+ gameList[gameKey].s +') of game ' + gameKey + ' referenced from ' + userId, gameList[gameKey]);
 						} else if (gameList[gameKey].s > GameStates.UnmatchedWaiting &&
 							gameList[gameKey].s < GameStates.P1Resigned) {
