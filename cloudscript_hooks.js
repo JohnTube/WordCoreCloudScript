@@ -79,7 +79,7 @@ function onInitGame(args, data) {
 	}
 	try {
 		var eventData = args.Data;
-		if (eventData.gt !== 2 || eventData.gt !==3) {
+		if (eventData.gt !== 2 && eventData.gt !==3) {
 			throw new PhotonException(WEB_ERRORS.UNEX PECTED_VALUE, 'Custom InitGame event: Wrong GameType', { w: args, d: data });
 		}
     var a1_wordukens = [];
