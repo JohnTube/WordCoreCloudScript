@@ -121,7 +121,7 @@ function onInitGame(args, data) {
 		}
 		if (data.gt === 3) { // CHALLENGE
 			eventData.Target = eventData.OpponentId;
-			data.a[1] = {id:eventData.OpponentId};
+			data.a[1] = {id:eventData.OpponentId, w: []};
 			//delete eventData.OpponentId;
 			handlers.sendPushNotification({Recipient: eventData.OpponentId, Message: JSON.stringify({Message: args.Nickname + ' challenged you to a game !', CustomData: eventData})});
 			updateSharedGroupEntry(getGamesListId(eventData.OpponentId), args.GameId, {});
