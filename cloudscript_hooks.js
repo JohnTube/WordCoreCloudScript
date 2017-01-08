@@ -131,7 +131,7 @@ function onInitGame(args, data) {
 }
 
 function onJoinGame(args, data) {
-	if (args.ActorNr !== 2 || data.a.length !== 1) {
+	if (args.ActorNr !== 2 || (data.a.length !== 1 && data.gt !== 3)) {
 		throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom JoinGame event: Wrong actorNr or duplicate event', { w: args, d: data });
 	}
 	try {
