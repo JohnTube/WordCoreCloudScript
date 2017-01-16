@@ -238,7 +238,7 @@ function onEndOfRound(args, data) {
 	} catch (e) { throw e;}
 }
 
-function onEndOfGame(args, data){
+function onEndOfGame(args, data) {
 	try {
 		var eventData = args.Data; // TODO: test args and eventData
 		if (eventData.SkipBlocked !== true && eventData.t !== MAX_TURNS_PER_GAME || eventData.t !== data.t + args.ActorNr) {
@@ -295,7 +295,7 @@ function onEndOfGame(args, data){
 	} catch (e) { throw e;}
 }
 
-function onNewRound(args, data){
+function onNewRound(args, data) {
 	if (data.s !== GameStates.Blocked) {
 		logException('Unexpected GameState onNewRound (probably 2nd client tried to fix blocked round too late)', { w: args, d: data });
 		return data;
@@ -335,7 +335,7 @@ function onNewRound(args, data){
 }
 
 
-function onResign(args, gameData){
+function onResign(args, gameData) {
 	var actorNr = 1;
 	if (args.UserId !== getCreatorId(args.GameId)) {
 		actorNr = 2;
@@ -451,23 +451,8 @@ function onEventReceived(args, data) {
 function consumeWordukens(userId, wordukens, gameId) {
   try {
 		var itemsToConsume = {}, itemKey = "";
-		for(var i=0; i<wordukens.length; i++){
-			switch (wordukens[i].wt) {
-				case WordukenType.BestMove:
-					itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.BestMove";
-					break;
-				case WordukenType.Incrementor:
-					itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.Incrementor";
-					break;
-				case WordukenType.WildCard:
-					itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.WildCard";
-					break;
-				case WordukenType.SingleColor:
-					itemKey = "com.ThugLeaf.WordCoreAlpha.Worduken.SingleColor";
-					break;
-				default:
-					continue;
-		  }
+		for(var i=0; i<wordukens.length; i++) {
+			itemKey = WORDUKENS_STORE_IDS[wordukens[i].wt - 1];
 			if (undefinedOrNull(itemsToConsume[itemKey])) {
 				itemsToConsume[itemKey] = 1;
 			} else {
@@ -512,20 +497,7 @@ function redeemWordukens(userId, wordukens, gameId){
 		var itemsToRedeem = [];
 		for(var i=0; i<wordukens.length; i++) {
 			if (wordukens[i].t === -1) {
-				switch (wordukens[i].wt) {
-					case WordukenType.BestMove:
-						itemsToRedeem.push("com.ThugLeaf.WordCoreAlpha.Worduken.BestMove");
-						break;
-					case WordukenType.Incrementor:
-						itemsToRedeem.push("com.ThugLeaf.WordCoreAlpha.Worduken.Incrementor");
-						break;
-					case WordukenType.WildCard:
-						itemsToRedeem.push("com.ThugLeaf.WordCoreAlpha.Worduken.WildCard");
-						break;
-					case WordukenType.SingleColor:
-						itemsToRedeem.push("com.ThugLeaf.WordCoreAlpha.Worduken.SingleColor");
-						break;
-				}
+				itemsToRedeem.push(WORDUKENS_STORE_IDS[wordukens[i].wt - 1]);
 			}
 		}
 		if (itemsToRedeem.length > 0){

@@ -41,4 +41,12 @@ var CustomEventCodes = {Undefined : 0, InitGame : 1, JoinGame : 2, WordukenUsed 
     EndedDraw : 13,
     EndedP1Won : 14,
     EndedP2Won : 15
-};
+  },
+  STORE_PRODUCT_ID_PREFIX = "com.ThugLeaf.WordCoreAlpha.Worduken.",
+  WORDUKENS_STORE_IDS = [
+    STORE_PRODUCT_ID_PREFIX + "BestMove",
+    STORE_PRODUCT_ID_PREFIX + "WildCard",
+    STORE_PRODUCT_ID_PREFIX + "SingleColor",
+    STORE_PRODUCT_ID_PREFIX + "Shuffler",
+    STORE_PRODUCT_ID_PREFIX + "Incrementor",
+  ];
