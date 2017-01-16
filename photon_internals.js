@@ -98,20 +98,6 @@ function stripRoomState(state) {
 	return state;
 }
 
-var MAX_GAMES_PER_PLAYER = 5;
-
-var WEB_ERRORS = {
-	SUCCESS : 0,
-	MISSING_ARG : 1, // Missing Webhook Argument: <arg>
-	UNEXPECTED_VALUE : 2,
-	// 'Game with GameId=<gameId> already exists.'
-	GAME_NOT_FOUND : 5,// 'Could not load the State, Reason=<reason>.'
-  MAX_GAMES_REACHED : 110,
-  EVENT_FAILURE : 111,
-	UNKNOWN_ERROR : 100,
-	USER_ID_ISSUE : 6,
-};
-
 handlers.RoomCreated = function (args) {
     try {
       var data = {};

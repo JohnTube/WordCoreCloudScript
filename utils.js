@@ -44,7 +44,6 @@ function createSharedGroup(id) {
     } catch (e) { /*logException('createSharedGroup:' + id, e);*/throw e; }
 }
 
-var MAX_SHARED_GROUP_KEYS_PER_UPDATE = 5;
 
 function updateSharedGroupData(id, data) {
     var key, stringData = {};
@@ -181,6 +180,60 @@ function grantItemsToUser(userId, items){
 		return result;
 	} catch (e) {
 		logException('grantItemsToUser error adding ', {err: e, ret: result, u: userId, i: items});
+		throw e;
+	}
+}
+
+function getPlayerCombinedInfo(userIdap) {
+	var result;
+	try {
+		result = server.GetPlayerCombinedInfo(
+			{
+				PlayFabId: userId,
+				InfoRequestParameters: {
+					GetUserAccountInfo: true,
+					GetUserInventory: true,
+					GetUserVirtualCurrency: true,
+					GetUserData: true,
+					//UserDataKeys: [],
+					GetUserReadOnlyData: true,
+					//UserReadOnlyKeys: [],
+					GetPlayerStatistics: true,
+					// PlayerStatisticNames: []
+				}
+			});
+		return result;
+	} catch (e) {
+			logException('getPlayerCombinedInfo error ', {err: e, ret: result, u: userId});
+			throw e;
+	}
+}
+
+function updatePlayerStats(userId, stats) {
+	var result;
+	try {
+		result = server.UpdatePlayerStatistics({
+			PlayFabId: userId,
+			Statistics: stats,
+			//ForceUpdate: true
+		});
+		return result;
+	} catch (e) {
+		logException('updatePlayerStats error ', {err: e, ret: result, u: userId, s: stats});
+		throw e;
+	}
+}
+
+function updateUserReadOnlyData(userId, data) {
+	var result;
+	try {
+		result = server.UpdateUserReadOnlyData({
+			PlayFabId: userId,
+			Data: data
+		});
+		return result;
+	} catch (e) {
+		logException('updateUserReadOnlyData error ', {err: e, ret: result, u: userId, d: data});
 		throw e;
 	}
 }

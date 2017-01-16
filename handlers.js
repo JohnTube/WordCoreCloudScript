@@ -1,8 +1,3 @@
-var MATCHMAKING_TIME_OUT = 60 * 60 * 1000, // 1 hour in milliseconds, 'ClosedRoomTTL' with Photon AsyncRandomLobby ! 3600000
-ROUND_TIME_OUT = 2 * 24 * MATCHMAKING_TIME_OUT, // 172800000
-CLEAN_UP_TIME_OUT = 2 * ROUND_TIME_OUT; // DEV : 1 week ==> PROD : 2 days in milliseconds, 345600000
-
-
 function checkTimeOut(timestamp, THRESHOLD) {
 	if (undefinedOrNull(timestamp) || undefinedOrNull(THRESHOLD)) {
 		logException('timestamp undefinedOrNull '+ THRESHOLD);
@@ -243,8 +238,8 @@ function pollGamesData(clientData, userId) {
 // TODO: add checks based on userId / actorNr
 function getDiffData(gameData, clientGame) {
 	// 2 steps: check if client state can go to server state, then construct events cache to send back to client
+	var diff = {};
 	try {//if (!gameData.hasOwnProperty('Cache')) {return null;} // TODO: remove or add log when moving to prod
-		var diff = {};
 		if (gameData.s !== clientGame.s) {
 			switch (clientGame.s) {
 				case GameStates.UnmatchedPlaying:
@@ -340,9 +335,9 @@ function getDiffData(gameData, clientGame) {
 				diff.e.push([2, CustomEventCodes.Resign, {}]);
 			}
 	  }
-		logException('diff result', {d:diff, c:clientGame, s:gameData});
 		return diff;
 	} catch (e) {
+		logException('diff result', {d:diff, c:clientGame, s:gameData});
 		throw e;
 	}
 }
@@ -550,6 +545,8 @@ handlers.fixRound = function (args) {
 handlers.onPlayerCreated = function(args, context) {
 	try {
 		createSharedGroup(getGamesListId(currentPlayerId));
+		handlers.sendPushNotification({Recipient: "A87B7470F4AEDC76", Message: JSON.stringify({Message: 'A new player ('+currentPlayerId+') is created.'})});
+		handlers.sendPushNotification({Recipient: "73BD7B8F4F332064", Message: JSON.stringify({Message: 'A new player ('+currentPlayerId+') is created.'})});
 	} catch (e) {
 		logException('onPlayerCreated', {e: e, args: args, context: context});
 		return {ResultCode: WEB_ERRORS.UNKNOWN_ERROR};

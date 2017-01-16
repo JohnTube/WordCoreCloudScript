@@ -6,11 +6,6 @@ function getLengthBonus(word) {
 	return lengthBonus;} catch (e) { throw e;}
 }
 
-var ALPHABETS = [
-	{A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1, J: 8, K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1, S: 1, T: 1, U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10},
-	{A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1, J: 8, K: 10, L: 1, M:2 , N: 1, O: 1, P: 3, Q: 8, R: 1, S: 1, T: 1, U: 1, V: 4, W: 10, X: 10, Y: 10, Z: 10}
-];
-
 function getMovePoints(language, word) {
 	try {
 		var i = 0, score = 0, lettersValues = ALPHABETS[language - 1];
@@ -21,8 +16,6 @@ function getMovePoints(language, word) {
 		return score;
 	} catch (e) { throw e;}
 }
-
-var WordukenType = { NoWorduken : 0, BestMove : 1, WildCard : 2, SingleColor : 3, Shuffler : 4, Incrementor : 5};
 
 function addMoveToGame(gameData, actorNr, move) {
 	try {	// TODO : test if move is legit/legal
@@ -54,24 +47,6 @@ function getMoveLetters(gameData, move) {
 	} catch (e) { throw e; }
 }
 
-var GameStates = {
-    Undefined : 0,              // 0
-    MatchmakingTimedOut : 1,    // 1
-    UnmatchedPlaying : 2,       // 2
-    UnmatchedWaiting : 3,
-    Playing : 4, // 4
-    P1Waiting : 5, // 5
-    P2Waiting : 6,
-	  Blocked : 7,
-    P1Resigned : 8,
-    P2Resigned : 9,
-    TimedOutDraw : 10,
-    TimedOutP1Won : 11,
-    TimedOutP2Won : 12,
-    EndedDraw : 13,
-    EndedP1Won : 14,
-    EndedP2Won : 15
-};
 
 function onInitGame(args, data) {
 	if (args.ActorNr !== 1) {
@@ -105,8 +80,6 @@ function onInitGame(args, data) {
 		s: GameStates.UnmatchedPlaying, t: 0, rg: args.Region, l: eventData.l, gt: eventData.gt, ts: eventData.ts};
 		data.r = [{gs: round0_grid, ts: eventData.r.ts, r: 0, m: [{}, {}]}];
 		// TEMP: to not let players alone
-		var ignoredUsers = ["E5B98D6342BE2081", "73BD7B8F4F332064", "AE153C11A8A5AFBD", "36FA5C73684CD689", "8B962390A39AC3B0", "982707EF02AE3898", "3557776C7D92362E", "56F1BEC55BF6D383",
-			"C5F4BDF9290B4D7B", "D11CA9D40F20683F", "1C2F249ED7F92165", "DDD2FCBD209A4089", "A87B7470F4AEDC76", "6E4D79BFDB4710D6"];
 		if (ignoredUsers.indexOf(args.UserId) === -1) {
 			eventData.EvCode = CustomEventCodes.InitGame;
 			eventData.GameId = args.GameId;
@@ -399,10 +372,6 @@ function onResign(args, gameData){
 	}
 	return gameData;
 }
-
-var CustomEventCodes = {Undefined : 0, InitGame : 1, JoinGame : 2, WordukenUsed : 3, EndOfTurn : 4, EndOfRound : 5, EndOfGame : 6, NewRound : 7, Resign: 8};
-var MAX_ROUNDS_PER_GAME = 5;
-var MAX_TURNS_PER_GAME = 3 * MAX_ROUNDS_PER_GAME;
 
 
 // args = PathEvent webhook args, you need args.EvCode and args.Data (event data).
