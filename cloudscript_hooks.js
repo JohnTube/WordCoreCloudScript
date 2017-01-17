@@ -584,9 +584,9 @@ function updateGameOverStats(actorNr, gameData) {
 			newStats.push({StatisticName: STATS_KEYS.AVG_SCORE_MOVE, Value: avgScore});
 		}
 		// check avg moves length
-		tmp = oldStats[STATS_KEYS.AVG_SCORE_LENGTH];
+		tmp = oldStats[STATS_KEYS.AVG_LENGTH_MOVE];
 		if (undefinedOrNull(tmp) || tmp < maxLength) {
-			newStats.push({StatisticName: STATS_KEYS.AVG_SCORE_LENGTH, Value: avgLength});
+			newStats.push({StatisticName: STATS_KEYS.AVG_LENGTH_MOVE, Value: avgLength});
 		}
 		// TODO: increment game outcome stats
 		// TODO: count colors and update
