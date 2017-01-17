@@ -184,7 +184,7 @@ function grantItemsToUser(userId, items){
 	}
 }
 
-function getPlayerCombinedInfo(userIdap) {
+function getPlayerCombinedInfo(userId) {
 	var result;
 	try {
 		result = server.GetPlayerCombinedInfo(
