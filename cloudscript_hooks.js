@@ -454,6 +454,7 @@ function consumeWordukens(userId, wordukens, gameId) {
   try {
 		var itemsToConsume = {}, itemKey = "";
 		for(var i=0; i<wordukens.length; i++) {
+			if (wordukens[i].wt === WordukenType.Shuffler) { continue; }
 			itemKey = WORDUKENS_STORE_IDS[wordukens[i].wt - 1];
 			if (undefinedOrNull(itemsToConsume[itemKey])) {
 				itemsToConsume[itemKey] = 1;
@@ -498,7 +499,7 @@ function redeemWordukens(userId, wordukens, gameId){
 	try {
 		var itemsToRedeem = [];
 		for(var i=0; i<wordukens.length; i++) {
-			if (wordukens[i].t === -1) {
+			if (wordukens[i].t === -1 && wordukens[i].wt !== WordukenType.Shuffler) {
 				itemsToRedeem.push(WORDUKENS_STORE_IDS[wordukens[i].wt - 1]);
 			}
 		}
