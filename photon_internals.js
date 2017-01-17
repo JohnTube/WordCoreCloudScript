@@ -13,6 +13,24 @@ function getCreatorId(gameId) {
 		return gameId.split('-')[4];
 }
 
+function isGameOver(gameData) {
+  if (undefinedOrNull(gameData) || undefinedOrNull(gameData.s)) {
+    throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'gameData or gameData.s is UndefinedOrNull', gameData);
+  }
+  switch (gameData.s) {
+    case GameStates.Undefined:
+      throw new PhotonException(WEB_ERRORS.UNEXPECTED_VALUE, 'GameState is Undefined', gameData);
+    case GameStates.Playing:
+    case GameStates.P1Waiting:
+    case GameStates.P2Waiting:
+    case GameStates.Blocked:
+      return false;
+    default:
+      return true;
+  }
+}
+
+
 function PhotonException(code, msg, data) {
 	this.ResultCode = code;
 	this.Message = msg;

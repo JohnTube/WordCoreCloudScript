@@ -146,6 +146,7 @@ function pollGamesData(clientData, userId) {
 					}
 					if (checkLeftOversTimeOut(timestamp)) {
 						logException('Deleting leftover game ' + gameKey, gameList[gameKey]);
+						// TODO: redeem wordukens and update stats if needed
 						listToUpdate[listId][gameKey] = null;
 					} else if (!undefinedOrNull(gameList[gameKey].a) &&
 						gameList[gameKey].a.length >= 1 &&
@@ -202,6 +203,7 @@ function pollGamesData(clientData, userId) {
 						}
 						if (checkLeftOversTimeOut(timestamp)){
 							logException('Deleting leftover game ' + gameKey, gameList[gameKey]);
+							// TODO: redeem wordukens and update stats if needed
 							listToUpdate[listId][gameKey] = null;
 						} else if (!undefinedOrNull(gameList[gameKey].a) &&
 							gameList[gameKey].a.length === 2 &&
@@ -353,18 +355,21 @@ function deleteOrFlagGames(games, userId) {
 				gameData = gamesToDelete[gameKey];
 				userKey = getCreatorId(gameKey);
 				if (userKey === userId) {
-					if (gameData.deletionFlag === 2) {
+					if (!isGameOver(gameData)) {
+						logException('trying to flag/delete a game ('+gameKey+') that is not over, user '+user, gameData);
+						continue;
+					}
+					if (gameData.deletionFlag === 1) {
+						logException('game: '+gameKey+' already flagged (1) for user: '+userId, gameData);
+					}	else if (gameData.deletionFlag === 2 || (gameData.gt === GAME_TYPES.Random && gameData.a.length === 1)) {
 						redeemWordukens(userId, gameData.a[0].w, gameKey);
+						updateGameOverStats(1, gameData);
 						listToUpdate[listId][gameKey] = null;
-					} else if (gameData.s === GameStates.MatchmakingTimedOut ||
-						 (gameData.deletionFlag == 1 && gameData.a.length === 1)) { // TODO: verify scenario! maybe we just need gameData.a.length === 1 only to delete asap
-						listToUpdate[listId][gameKey] = null;
-					} else if (gameData.deletionFlag !== 1) {
+					} else {
 						redeemWordukens(userId, gameData.a[0].w, gameKey);
+						updateGameOverStats(1, gameData);
 						gameData.deletionFlag = 1;
 						listToUpdate[listId][gameKey] = gameData;
-					} else {
-						logException('game: '+gameKey+' already flagged (1) for user: '+userId, gameData);
 					}
 				} else {
 					if (!listToLoad.hasOwnProperty(userKey)) {
@@ -380,25 +385,30 @@ function deleteOrFlagGames(games, userId) {
 				listId = getGamesListId(userKey);
 				listToUpdate[listId] = {};
 				gamesToDelete = getSharedGroupData(listId, listToLoad[userKey]);
-				for (var i=0; i<listToLoad[userKey].length;i++) {
+				for (var i=0; i<listToLoad[userKey].length; i++) {
 					gameKey = listToLoad[userKey][i];
 					if (gamesToDelete.hasOwnProperty(gameKey)) {
 						gameData = gamesToDelete[gameKey];
-						if (gameData.deletionFlag === 1) {
+						if (!isGameOver(gameData)) {
+							logException('trying to flag/delete a game ('+gameKey+') that is not over, user '+user, gameData);
+							continue;
+						}
+						if (gameData.deletionFlag === 2) {
+							logException('game: '+gameKey+' already flagged (2) for user: '+userId, gameData);
+						}
+						else if (gameData.deletionFlag === 1) {
 							redeemWordukens(userId, gameData.a[1].w, gameKey);
+							updateGameOverStats(2, gameData);
 							listToUpdate[listId][gameKey] = null;
-						} else if (gameData.deletionFlag !== 2) {
+						} else {
 							redeemWordukens(userId, gameData.a[1].w, gameKey);
+							updateGameOverStats(2, gameData);
 							gameData.deletionFlag = 2;
 							listToUpdate[listId][gameKey] = gameData;
-						} else {
-							logException('game: '+gameKey+' already flagged (2) for user: '+userId, gameData);
 						}
 					} else if (listToLoad[userKey].includes(gameKey)) {
 						listToUpdate[getGamesListId(userId)][gameKey] = null;
 						logException('deleteOrFlagGames, '+ gameKey + ' save was not found, referenced from ' + userId);
-					} else {
-						// TODO: what to do here??
 					}
 				}
 			}

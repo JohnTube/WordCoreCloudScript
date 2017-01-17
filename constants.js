@@ -24,6 +24,12 @@ var CustomEventCodes = {Undefined : 0, InitGame : 1, JoinGame : 2, WordukenUsed 
 	   {A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1, J: 8, K: 5, L: 1, M: 3, N: 1, O: 1, P: 3, Q: 10, R: 1, S: 1, T: 1, U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10},
 	   {A: 1, B: 3, C: 3, D: 2, E: 1, F: 4, G: 2, H: 4, I: 1, J: 8, K: 10, L: 1, M:2 , N: 1, O: 1, P: 3, Q: 8, R: 1, S: 1, T: 1, U: 1, V: 4, W: 10, X: 10, Y: 10, Z: 10}
   ],
+  GAME_TYPES = {
+    Undefined : 0,
+    Practice : 1,
+    Random : 2,
+    Challenge : 3
+  },
   GameStates = {
     Undefined : 0,              // 0
     MatchmakingTimedOut : 1,    // 1
@@ -49,4 +55,16 @@ var CustomEventCodes = {Undefined : 0, InitGame : 1, JoinGame : 2, WordukenUsed 
     STORE_PRODUCT_ID_PREFIX + "SingleColor",
     STORE_PRODUCT_ID_PREFIX + "Shuffler",
     STORE_PRODUCT_ID_PREFIX + "Incrementor",
-  ];
+  ],
+  STATS_KEYS = {
+    HI_SCORE_GAME : "HiScoreGame",
+    HI_SCORE_MOVE : "HiScoreMove",
+    MAX_LENGTH_MOVE : "MaxLengthMove",
+    AVG_SCORE_MOVE : "AvgScoreMove",
+    AVG_LENGTH_MOVE : "AvgLengthMove",
+    HI_MULTIPLIER : "HiMultiplier",
+  },
+  USER_DATA_KEYS = {
+    HI_SCORE_MOVE_WORD : "HiScoreMoveWord",
+    LONGEST_WORD : "LongestWord",
+  };

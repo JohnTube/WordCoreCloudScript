@@ -261,6 +261,7 @@ function onEndOfGame(args, data) {
 		}
 		data.deletionFlag = args.ActorNr;
 		redeemWordukens(args.UserId, data.a[args.ActorNr - 1].w, args.GameId);
+		updateGameOverStats(args.ActorNr, gameData);
 		/*if (args.ActorNr === 2) {
 			deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
 		}*/
@@ -352,6 +353,7 @@ function onResign(args, gameData) {
 	gameData.s = GameStates.Blocked + actorNr;
 	gameData.deletionFlag = actorNr;
 	redeemWordukens(args.UserId, gameData.a[actorNr - 1].w, args.GameId);
+	updateGameOverStats(actorNr, gameData);
 	if (gameData.a.length === 2) {
 		var msg = gameData.a[actorNr - 1].n + ' resigned!';
 		if (actorNr === 2 && gameData.gt === 3 && gameData.s < GameStates.Playing) {
@@ -505,5 +507,94 @@ function redeemWordukens(userId, wordukens, gameId){
 		}
 	} catch (e) {
 		logException('Unexpected:redeemWordukens exception', {err:e, w: wordukens, u: userId, g:gameId});
+	}
+}
+
+function updateGameOverStats(actorNr, gameData) {
+	try {
+		var actorData = gameData.a[actorNr - 1],
+		 		old = getPlayerCombinedInfo(actorData.id),
+				oldStats = {},	oldData = {}, newStats = [], newData = {};
+		var i, key;
+	  if (!undefinedOrNull(old.PlayerStatistics)) {
+			for(i = 0; i < old.PlayerStatistics.length; i++) {
+				key = old.PlayerStatistics[i].StatisticName;
+					oldStats[key] = old.PlayerStatistics[key].Value;
+			}
+		}
+		if (!undefinedOrNull(old.UserReadOnlyData)) {
+			for(key in old.UserReadOnlyData) {
+				if (old.UserReadOnlyData.hasOwnProperty(key)) {
+					oldData[key] = old.UserReadOnlyData[key].Value;
+				}
+			}
+		}
+		// check hi score per game
+		var tmp = oldStats[STATS_KEYS.HI_SCORE_GAME];
+		if (undefinedOrNull(tmp) || tmp < actorData.s){
+			newStats.push({StatisticName: STATS_KEYS.HI_SCORE_GAME, Value: actorData.s});
+		}
+		tmp = oldStats[STATS_KEYS.HI_MULTIPLIER];
+		if (undefinedOrNull(tmp) || tmp < actorData.m){
+			newStats.push({StatisticName: STATS_KEYS.HI_MULTIPLIER, Value: actorData.m});
+		}
+		var hiScoreMove = 0; // TODO: use peak to get peak move or cache peak move word
+		var hiScoreMoveWord = "";
+		var maxLength = 0;
+		var longestWord = "";
+		var avgLength = 0;
+		var avgScore = 0;
+		for(i=0; i<MAX_ROUNDS_PER_GAME && i<gameData.r.length; i++) {
+			if (isEmpty(gameData.r[i].m[actorNr - 1])) { break; }
+			var moveScore = getMovePoints(gameData.r[i].m[actorNr - 1]);
+			avgScore = avgScore + moveScore;
+			if (moveScore >= hiScoreMove) {
+				hiScoreMove = moveScore;
+				hiScoreMoveWord = gameData.r[i].m[actorNr - 1].mw;
+			}
+			var length = gameData.r[i].m[actorNr - 1].mc.length; // TODO: check if this the best way to check length, what about WildCard?
+			avgLength = avgLength + length;
+			if (length >= maxLength) {
+				maxLength = length;
+				longestWord = gameData.r[i].m[actorNr - 1].mw;
+			}
+		}
+		if (i > 0) {
+			avgLength = avgLength / i;
+			avgScore = avgScore / i;
+		}
+		// check hi score per move
+		tmp = oldStats[STATS_KEYS.HI_SCORE_MOVE];
+		if (undefinedOrNull(tmp) || tmp <= hiScoreMove) {
+			newStats.push({StatisticName: STATS_KEYS.HI_SCORE_MOVE, Value: hiScoreMove});
+			newData[USER_DATA_KEYS.HI_SCORE_MOVE_WORD] = hiScoreMoveWord;
+		}
+		// check longest move
+		tmp = oldStats[STATS_KEYS.MAX_LENGTH_MOVE];
+		if (undefinedOrNull(tmp) || tmp <= maxLength) {
+			newStats.push({StatisticName: STATS_KEYS.MAX_LENGTH_MOVE, Value: maxLength});
+			newData[USER_DATA_KEYS.LONGEST_WORD] = longestWord;
+		}
+		// check avg moves score
+		tmp = oldStats[STATS_KEYS.AVG_SCORE_MOVE];
+		if (undefinedOrNull(tmp) || tmp < maxLength) {
+			newStats.push({StatisticName: STATS_KEYS.AVG_SCORE_MOVE, Value: avgScore});
+		}
+		// check avg moves length
+		tmp = oldStats[STATS_KEYS.AVG_SCORE_LENGTH];
+		if (undefinedOrNull(tmp) || tmp < maxLength) {
+			newStats.push({StatisticName: STATS_KEYS.AVG_SCORE_LENGTH, Value: avgScore});
+		}
+		// TODO: increment game outcome stats
+		// TODO: count colors and update
+		// TODO: count letters and update
+		if (newStats.length > 0) {
+			updatePlayerStats(actorData.id, newStats);
+		}
+		if (!isEmpty(newData)) {
+			updateUserReadOnlyData(userId, newData);
+		}
+  } catch (e) {
+		logException('updatePlayerStats error', {err:e, u: userId, g:gameId});
 	}
 }
