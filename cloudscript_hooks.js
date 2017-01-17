@@ -583,7 +583,7 @@ function updateGameOverStats(actorNr, gameData) {
 		// check avg moves length
 		tmp = oldStats[STATS_KEYS.AVG_SCORE_LENGTH];
 		if (undefinedOrNull(tmp) || tmp < maxLength) {
-			newStats.push({StatisticName: STATS_KEYS.AVG_SCORE_LENGTH, Value: avgScore});
+			newStats.push({StatisticName: STATS_KEYS.AVG_SCORE_LENGTH, Value: avgLength});
 		}
 		// TODO: increment game outcome stats
 		// TODO: count colors and update
@@ -595,6 +595,6 @@ function updateGameOverStats(actorNr, gameData) {
 			updateUserReadOnlyData(actorData.id, newData);
 		}
   } catch (e) {
-		logException('updatePlayerStats error', {err:e, u: actorData.id, g:gameId});
+		logException('updatePlayerStats error', {err:e, a: actorNr, g:gameData});
 	}
 }
