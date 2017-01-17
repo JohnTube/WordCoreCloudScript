@@ -546,18 +546,20 @@ function updateGameOverStats(actorNr, gameData) {
 		var avgLength = 0;
 		var avgScore = 0;
 		for(i=0; i<MAX_ROUNDS_PER_GAME && i<gameData.r.length; i++) {
-			if (isEmpty(gameData.r[i].m[actorNr - 1])) { break; }
-			var moveScore = getMovePoints(gameData.r[i].m[actorNr - 1]);
+			var move = gameData.r[i].m[actorNr - 1];
+			if (isEmpty(move)) { break; }
+			var letters = getMoveLetters(gameData, move),
+			  moveScore = getMovePoints(gameData.l, letters);
 			avgScore = avgScore + moveScore;
 			if (moveScore >= hiScoreMove) {
 				hiScoreMove = moveScore;
-				hiScoreMoveWord = gameData.r[i].m[actorNr - 1].mw;
+				hiScoreMoveWord = move.mw;
 			}
-			var length = gameData.r[i].m[actorNr - 1].mc.length; // TODO: check if this the best way to check length, what about WildCard?
+			var length = move.mw.length;
 			avgLength = avgLength + length;
 			if (length >= maxLength) {
 				maxLength = length;
-				longestWord = gameData.r[i].m[actorNr - 1].mw;
+				longestWord = move.mw;
 			}
 		}
 		if (i > 0) {
