@@ -592,9 +592,9 @@ function updateGameOverStats(actorNr, gameData) {
 			updatePlayerStats(actorData.id, newStats);
 		}
 		if (!isEmpty(newData)) {
-			updateUserReadOnlyData(userId, newData);
+			updateUserReadOnlyData(actorData.id, newData);
 		}
   } catch (e) {
-		logException('updatePlayerStats error', {err:e, u: userId, g:gameId});
+		logException('updatePlayerStats error', {err:e, u: actorData.id, g:gameId});
 	}
 }
