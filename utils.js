@@ -229,7 +229,8 @@ function updateUserReadOnlyData(userId, data) {
 	try {
 		result = server.UpdateUserReadOnlyData({
 			PlayFabId: userId,
-			Data: data
+			Data: data,
+  		Permission: 'Public'
 		});
 		return result;
 	} catch (e) {
