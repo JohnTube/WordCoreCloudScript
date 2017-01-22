@@ -125,8 +125,7 @@ function pollGamesData(clientData, userId) {
 							redeemWordukens(userId, gameList[gameKey].a[0].w, gameKey);
 							listToUpdate[listId][gameKey] = gameList[gameKey];
 						}
-					} else if (gameList[gameKey].s > GameStates.UnmatchedWaiting &&
-						gameList[gameKey].s < GameStates.P1Resigned) {
+					} else if (isGameOver(gameList[gameKey]) === false) {
 						var round = gameList[gameKey].r.length - 1;//gameList[gameKey].t / 3
 						timestamp = gameList[gameKey].r[round].ts;
 						if (undefinedOrNull(timestamp)) {
@@ -184,8 +183,7 @@ function pollGamesData(clientData, userId) {
 						var timestamp = gameList[gameKey].r[round].ts;
 						if (gameList[gameKey].s < GameStates.Playing && gameList[gameKey].gt === 2) {
 							logException('Unexpected GameState ('+ gameList[gameKey].s +') of game ' + gameKey + ' referenced from ' + userId, gameList[gameKey]);
-						} else if (gameList[gameKey].s > GameStates.UnmatchedWaiting &&
-							gameList[gameKey].s < GameStates.P1Resigned) {
+						} else if (isGameOver(gameList[gameKey]) === false) {
 							if (undefinedOrNull(timestamp)) {
 								logException('undefinedOrNull timestamp of last round=' + round, gameList[gameKey]);
 							} else if (checkRoundTimeOut(timestamp)) {
