@@ -261,7 +261,7 @@ function onEndOfGame(args, data) {
 		}
 		data.deletionFlag = args.ActorNr;
 		redeemWordukens(args.UserId, data.a[args.ActorNr - 1].w, args.GameId);
-		updateGameOverStats(args.ActorNr, gameData);
+		updateGameOverStats(args.ActorNr, data);
 		/*if (args.ActorNr === 2) {
 			deleteSharedGroupEntry(getGamesListId(args.UserId), args.GameId);
 		}*/
