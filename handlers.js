@@ -354,7 +354,7 @@ function deleteOrFlagGames(games, userId) {
 				userKey = getCreatorId(gameKey);
 				if (userKey === userId) {
 					if (!isGameOver(gameData)) {
-						logException('trying to flag/delete a game ('+gameKey+') that is not over, user '+user, gameData);
+						logException('trying to flag/delete a game ('+gameKey+') that is not over, user '+userId, gameData);
 						continue;
 					}
 					if (gameData.deletionFlag === 1) {
@@ -388,7 +388,7 @@ function deleteOrFlagGames(games, userId) {
 					if (gamesToDelete.hasOwnProperty(gameKey)) {
 						gameData = gamesToDelete[gameKey];
 						if (!isGameOver(gameData)) {
-							logException('trying to flag/delete a game ('+gameKey+') that is not over, user '+user, gameData);
+							logException('trying to flag/delete a game ('+gameKey+') that is not over, user '+userKey, gameData);
 							continue;
 						}
 						if (gameData.deletionFlag === 2) {
