@@ -545,11 +545,13 @@ function updateGameOverStats(actorNr, gameData) {
 		var hiScoreMoveWord = "";
 		var maxLength = 0;
 		var longestWord = "";
+		var k = 0;
 		var avgLength = 0;
 		var avgScore = 0;
-		for(i=0; i<MAX_ROUNDS_PER_GAME && i<gameData.r.length; i++) {
+		for(i=0; i<gameData.r.length; i++) {
 			var move = gameData.r[i].m[actorNr - 1];
 			if (isEmpty(move)) { break; }
+			k++;
 			var letters = getMoveLetters(gameData, move),
 			  moveScore = getMovePoints(gameData.l, letters);
 			avgScore = avgScore + moveScore;
@@ -564,9 +566,22 @@ function updateGameOverStats(actorNr, gameData) {
 				longestWord = move.mw;
 			}
 		}
-		if (i > 0) {
-			avgLength = avgLength / i;
-			avgScore = avgScore / i;
+		if (k === MAX_ROUNDS_PER_GAME) {
+			avgLength = Math.floor(avgLength / k);
+			avgScore = Math.floor(avgScore / k);
+		} else {
+			avgLength = 0;
+			avgScore = 0;
+		}
+		// check avg moves score
+		tmp = oldStats[STATS_KEYS.AVG_SCORE_MOVE];
+		if (undefinedOrNull(tmp) || tmp < maxLength) {
+			newStats.push({StatisticName: STATS_KEYS.AVG_SCORE_MOVE, Value: avgScore});
+		}
+		// check avg moves length
+		tmp = oldStats[STATS_KEYS.AVG_LENGTH_MOVE];
+		if (undefinedOrNull(tmp) || tmp < maxLength) {
+			newStats.push({StatisticName: STATS_KEYS.AVG_LENGTH_MOVE, Value: avgLength});
 		}
 		// check hi score per move
 		tmp = oldStats[STATS_KEYS.HI_SCORE_MOVE];
@@ -579,16 +594,6 @@ function updateGameOverStats(actorNr, gameData) {
 		if (undefinedOrNull(tmp) || tmp <= maxLength) {
 			newStats.push({StatisticName: STATS_KEYS.MAX_LENGTH_MOVE, Value: maxLength});
 			newData[USER_DATA_KEYS.LONGEST_WORD] = longestWord;
-		}
-		// check avg moves score
-		tmp = oldStats[STATS_KEYS.AVG_SCORE_MOVE];
-		if (undefinedOrNull(tmp) || tmp < maxLength) {
-			newStats.push({StatisticName: STATS_KEYS.AVG_SCORE_MOVE, Value: avgScore});
-		}
-		// check avg moves length
-		tmp = oldStats[STATS_KEYS.AVG_LENGTH_MOVE];
-		if (undefinedOrNull(tmp) || tmp < maxLength) {
-			newStats.push({StatisticName: STATS_KEYS.AVG_LENGTH_MOVE, Value: avgLength});
 		}
 		// TODO: increment game outcome stats
 		// TODO: count colors and update
