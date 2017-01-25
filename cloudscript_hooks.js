@@ -92,7 +92,7 @@ function onInitGame(args, data) {
 			eventData.Target = "73BD7B8F4F332064";
 			handlers.sendPushNotification({Recipient: "73BD7B8F4F332064", Message: JSON.stringify({Message: args.Nickname + ' created '+language+' game, v='+args.AppVersion, CustomData: eventData})});
 		}
-		if (data.gt === GAME_TYPES.CHALLENGE) { // CHALLENGE
+		if (data.gt === GAME_TYPES.Challenge) { // CHALLENGE
 			eventData.EvCode = CustomEventCodes.InitGame;
 			eventData.Target = eventData.OpponentId;
 			eventData.GameId = args.GameId;
@@ -117,7 +117,9 @@ function onJoinGame(args, data) {
 		} else {
 			throw new PhotonException(WEB_ERRORS.EVENT_FAILURE, 'Custom JoinGame event: unexpected Ss,Ts', { w: args, d: data });
 		}
-		updateSharedGroupEntry(getGamesListId(args.UserId), args.GameId, {});
+		if (data.gt === GAME_TYPES.Random){
+			updateSharedGroupEntry(getGamesListId(args.UserId), args.GameId, {});
+		}
 		var eventData = args.Data;
     var a2_wordukens = [];
     // TODO: remove version check when everyone updates
@@ -146,7 +148,7 @@ function onJoinGame(args, data) {
 		eventData.EvCode = CustomEventCodes.JoinGame;
 		eventData.n = args.Nickname;
 		eventData.Target = data.a[0].id;
-		if (data.gt === 3) {
+		if (data.gt === GAME_TYPES.Challenge) {
 			handlers.sendPushNotification({Recipient: data.a[0].id, Message: JSON.stringify({Message: args.Nickname + ' accepted your challenge!', CustomData: eventData})});
 		} else {
 			handlers.sendPushNotification({Recipient: data.a[0].id, Message: JSON.stringify({Message: args.Nickname + ' has joined a game!', CustomData: eventData})});
